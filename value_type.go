@@ -45,6 +45,32 @@ const (
 	Custom
 )
 
+// String returns a string representation of the given type.
+func (vt ValueType) String() string {
+	return typeNames[vt]
+}
+
+var typeNames = [...]string{
+	"None",
+	"Illegal",
+	"Null",
+	"Bool",
+	"Array",
+	"Object",
+	"Double",
+	"UTCDate",
+	"External",
+	"MinKey",
+	"MaxKey",
+	"Int",
+	"UInt",
+	"SmallInt",
+	"String",
+	"Binary",
+	"BCD",
+	"Custom",
+}
+
 var typeMap = [256]ValueType{
 	/* 0x00 */ None /* 0x01 */, Array,
 	/* 0x02 */ Array /* 0x03 */, Array,
