@@ -38,7 +38,7 @@ func readIntegerFixed(start []byte, length ValueLength) uint64 {
 // read an unsigned little endian integer value of the
 // specified length, starting at the specified byte offset
 func readIntegerNonEmpty(s []byte, length int) uint64 {
-	x := uint(8)
+	x := uint(0)
 	v := uint64(0)
 	for i := 0; i < length; i++ {
 		v += uint64(s[i]) << x
