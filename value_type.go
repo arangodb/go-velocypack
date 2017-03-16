@@ -201,6 +201,12 @@ var typeMap = [256]ValueType{
 	/* 0xfc */ Custom /* 0xfd */, Custom,
 	/* 0xfe */ Custom /* 0xff */, Custom}
 
+const (
+	doubleLength  = 8
+	int64Length   = 8
+	charPtrLength = 8
+)
+
 var fixedTypeLengths = [256]int{
 	/* 0x00 */ 1 /* 0x01 */, 1,
 	/* 0x02 */ 0 /* 0x03 */, 0,
@@ -215,8 +221,8 @@ var fixedTypeLengths = [256]int{
 	/* 0x14 */ 0 /* 0x15 */, 0,
 	/* 0x16 */ 0 /* 0x17 */, 1,
 	/* 0x18 */ 1 /* 0x19 */, 1,
-	/* 0x1a */ 1 /* 0x1b */, 1 + 8, /*sizeof(double)*/
-	/* 0x1c */ 1 + 8 /*sizeof(int64_t)*/ /* 0x1d */, 1 + 8, /* sizeof(char*)*/
+	/* 0x1a */ 1 /* 0x1b */, 1 + doubleLength, /*sizeof(double)*/
+	/* 0x1c */ 1 + int64Length /*sizeof(int64_t)*/ /* 0x1d */, 1 + charPtrLength, /* sizeof(char*)*/
 	/* 0x1e */ 1 /* 0x1f */, 1,
 	/* 0x20 */ 2 /* 0x21 */, 3,
 	/* 0x22 */ 4 /* 0x23 */, 5,
@@ -330,3 +336,25 @@ var fixedTypeLengths = [256]int{
 	/* 0xfa */ 0 /* 0xfb */, 0,
 	/* 0xfc */ 0 /* 0xfd */, 0,
 	/* 0xfe */ 0 /* 0xff */, 0}
+
+var widthMap = [32]int{
+	0, // 0x00, None
+	1, // 0x01, empty array
+	1, // 0x02, array without index table
+	2, // 0x03, array without index table
+	4, // 0x04, array without index table
+	8, // 0x05, array without index table
+	1, // 0x06, array with index table
+	2, // 0x07, array with index table
+	4, // 0x08, array with index table
+	8, // 0x09, array with index table
+	1, // 0x0a, empty object
+	1, // 0x0b, object with sorted index table
+	2, // 0x0c, object with sorted index table
+	4, // 0x0d, object with sorted index table
+	8, // 0x0e, object with sorted index table
+	1, // 0x0f, object with unsorted index table
+	2, // 0x10, object with unsorted index table
+	4, // 0x11, object with unsorted index table
+	8, // 0x12, object with unsorted index table
+	0}

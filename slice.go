@@ -22,7 +22,11 @@
 
 package velocypack
 
-import "encoding/hex"
+import (
+	"encoding/binary"
+	"encoding/hex"
+	"math"
+)
 
 // Slice provides read only access to a VPack value
 type Slice []byte
@@ -47,85 +51,313 @@ func (s Slice) String() string {
 	return hex.EncodeToString(s)
 }
 
-// Type returns the vpack type of the slice
-func (s Slice) Type() ValueType {
-	return typeMap[s[0]]
-}
-
-// IsType returns true when the vpack type of the slice is equal to the given type.
-// Returns false otherwise.
-func (s Slice) IsType(t ValueType) bool {
-	return typeMap[s[0]] == t
-}
-
-// IsNone returns true if slice is a None object
-func (s Slice) IsNone() bool { return s.IsType(None) }
-
-// IsIllegal returns true if slice is an Illegal object
-func (s Slice) IsIllegal() bool { return s.IsType(Illegal) }
-
-// IsNull returns true if slice is a Null object
-func (s Slice) IsNull() bool { return s.IsType(Null) }
-
-// IsBool returns true if slice is a Bool object
-func (s Slice) IsBool() bool { return s.IsType(Bool) }
-
-// IsTrue returns true if slice is the Boolean value true
-func (s Slice) IsTrue() bool { return s[0] == 0x1a }
-
-// IsFalse returns true if slice is the Boolean value false
-func (s Slice) IsFalse() bool { return s[0] == 0x19 }
-
-// IsArray returns true if slice is an Array object
-func (s Slice) IsArray() bool { return s.IsType(Array) }
-
-// IsObject returns true if slice is an Object object
-func (s Slice) IsObject() bool { return s.IsType(Object) }
-
-// IsDouble returns true if slice is a Double object
-func (s Slice) IsDouble() bool { return s.IsType(Double) }
-
-// IsUTCDate returns true if slice is a UTCDate object
-func (s Slice) IsUTCDate() bool { return s.IsType(UTCDate) }
-
-// IsExternal returns true if slice is an External object
-func (s Slice) IsExternal() bool { return s.IsType(External) }
-
-// IsMinKey returns true if slice is a MinKey object
-func (s Slice) IsMinKey() bool { return s.IsType(MinKey) }
-
-// IsMaxKey returns true if slice is a MaxKey object
-func (s Slice) IsMaxKey() bool { return s.IsType(MaxKey) }
-
-// IsInt returns true if slice is an Int object
-func (s Slice) IsInt() bool { return s.IsType(Int) }
-
-// IsUInt returns true if slice is a UInt object
-func (s Slice) IsUInt() bool { return s.IsType(UInt) }
-
-// IsSmallInt returns true if slice is a SmallInt object
-func (s Slice) IsSmallInt() bool { return s.IsType(SmallInt) }
-
-// IsString returns true if slice is a String object
-func (s Slice) IsString() bool { return s.IsType(String) }
-
-// IsBinary returns true if slice is a Binary object
-func (s Slice) IsBinary() bool { return s.IsType(Binary) }
-
-// IsBCD returns true if slice is a BCD
-func (s Slice) IsBCD() bool { return s.IsType(BCD) }
-
-// IsCustom returns true if slice is a Custom type
-func (s Slice) IsCustom() bool { return s.IsType(Custom) }
-
-// IsInteger returns true if a slice is any decimal number type
-func (s Slice) IsInteger() bool { return s.IsInt() || s.IsUInt() || s.IsSmallInt() }
-
-// IsNumber returns true if slice is any Number-type object
-func (s Slice) IsNumber() bool { return s.IsInteger() || s.IsDouble() }
-
-// IsSorted returns true if slice is an object with table offsets, sorted by attribute name
-func (s Slice) IsSorted() bool {
+// ByteSize returns the total byte size for the slice, including the head byte
+func (s Slice) ByteSize() (ValueLength, error) {
 	h := s[0]
-	return (h >= 0x0b && h <= 0x0e)
+	// check if the type has a fixed length first
+	l := fixedTypeLengths[h]
+	if l != 0 {
+		// return fixed length
+		return ValueLength(l), nil
+	}
+
+	// types with dynamic lengths need special treatment:
+	switch s.Type() {
+	case Array, Object:
+		{
+			if h == 0x13 || h == 0x14 {
+				// compact Array or Object
+				return readVariableValueLength(s[1:], false), nil
+			}
+
+			if h == 0x01 || h == 0x0a {
+				// we cannot get here, because the FixedTypeLengths lookup
+				// above will have kicked in already. however, the compiler
+				// claims we'll be reading across the bounds of the input
+				// here...
+				return 1, nil
+			}
+
+			VELOCYPACK_ASSERT(h > 0x00 && h <= 0x0e)
+			return ValueLength(readIntegerNonEmpty(s[1:], widthMap[h])), nil
+		}
+
+	case External:
+		{
+			return 1 + charPtrLength, nil
+		}
+
+	case UTCDate:
+		{
+			return 1 + int64Length, nil
+		}
+
+	case Int:
+		{
+			return ValueLength(1 + (h - 0x1f)), nil
+		}
+
+	case String:
+		{
+			VELOCYPACK_ASSERT(h == 0xbf)
+			if h < 0xbf {
+				// we cannot get here, because the FixedTypeLengths lookup
+				// above will have kicked in already. however, the compiler
+				// claims we'll be reading across the bounds of the input
+				// here...
+				return ValueLength(h) - 0x40, nil
+			}
+			// long UTF-8 String
+			return ValueLength(1 + 8 + readIntegerFixed(s[1:], 8)), nil
+		}
+
+	case Binary:
+		{
+			VELOCYPACK_ASSERT(h >= 0xc0 && h <= 0xc7)
+			return ValueLength(1 + ValueLength(h) - 0xbf + ValueLength(readIntegerNonEmpty(s[1:], int(h)-0xbf))), nil
+		}
+
+	case BCD:
+		{
+			if h <= 0xcf {
+				// positive BCD
+				VELOCYPACK_ASSERT(h >= 0xc8 && h < 0xcf)
+				return ValueLength(1 + ValueLength(h) - 0xc7 + ValueLength(readIntegerNonEmpty(s[1:], int(h)-0xc7))), nil
+			}
+
+			// negative BCD
+			VELOCYPACK_ASSERT(h >= 0xd0 && h < 0xd7)
+			return ValueLength(1 + ValueLength(h) - 0xcf + ValueLength(readIntegerNonEmpty(s[1:], int(h)-0xcf))), nil
+		}
+
+	case Custom:
+		{
+			VELOCYPACK_ASSERT(h >= 0xf4)
+			switch h {
+			case 0xf4:
+			case 0xf5:
+			case 0xf6:
+				{
+					return ValueLength(2 + readIntegerFixed(s[1:], 1)), nil
+				}
+
+			case 0xf7:
+			case 0xf8:
+			case 0xf9:
+				{
+					return ValueLength(3 + readIntegerFixed(s[1:], 2)), nil
+				}
+
+			case 0xfa:
+			case 0xfb:
+			case 0xfc:
+				{
+					return ValueLength(5 + readIntegerFixed(s[1:], 4)), nil
+				}
+
+			case 0xfd:
+			case 0xfe:
+			case 0xff:
+				{
+					return ValueLength(9 + readIntegerFixed(s[1:], 8)), nil
+				}
+
+			default:
+				{
+					// fallthrough intentional
+				}
+			}
+		}
+	default:
+		{
+			// fallthrough intentional
+		}
+	}
+
+	return 0, InternalError{}
+}
+
+// MustByteSize returns the total byte size for the slice, including the head byte.
+// Panics in case of an error.
+func (s Slice) MustByteSize() ValueLength {
+	if v, err := s.ByteSize(); err != nil {
+		panic(err)
+	} else {
+		return v
+	}
+}
+
+// GetBool returns a boolean value from the slice.
+// Returns an error if slice is not of type Bool.
+func (s Slice) GetBool() (bool, error) {
+	if err := s.AssertType(Bool); err != nil {
+		return false, WithStack(err)
+	}
+	return s.IsTrue(), nil
+}
+
+// MustGetBool returns a boolean value from the slice.
+// Panics if slice is not of type Bool.
+func (s Slice) MustGetBool() bool {
+	if v, err := s.GetBool(); err != nil {
+		panic(err)
+	} else {
+		return v
+	}
+}
+
+// GetDouble returns a Double value from the slice.
+// Returns an error if slice is not of type Double.
+func (s Slice) GetDouble() (float64, error) {
+	if err := s.AssertType(Double); err != nil {
+		return 0.0, WithStack(err)
+	}
+	bits := binary.LittleEndian.Uint64(s[1:])
+	return math.Float64frombits(bits), nil
+}
+
+// MustGetDouble returns a Double value from the slice.
+// Panics if slice is not of type Double.
+func (s Slice) MustGetDouble() float64 {
+	if v, err := s.GetDouble(); err != nil {
+		panic(err)
+	} else {
+		return v
+	}
+}
+
+// GetInt returns a Int value from the slice.
+// Returns an error if slice is not of type Int.
+func (s Slice) GetInt() (int64, error) {
+	h := s[0]
+
+	if h >= 0x20 && h <= 0x27 {
+		// Int  T
+		v := readIntegerNonEmpty(s[1:], int(h)-0x1f)
+		if h == 0x27 {
+			return toInt64(v), nil
+		} else {
+			vv := int64(v)
+			shift := int64(1) << ((h-0x1f)*8 - 1)
+			if vv < shift {
+				return vv, nil
+			} else {
+				return vv - (shift << 1), nil
+			}
+		}
+	}
+
+	if h >= 0x28 && h <= 0x2f {
+		// UInt
+		v, err := s.GetUInt()
+		if err != nil {
+			return 0, WithStack(err)
+		}
+		if v > math.MaxInt64 {
+			return 0, NumberOutOfRangeError{}
+		}
+		return int64(v), nil
+	}
+
+	if h >= 0x30 && h <= 0x3f {
+		// SmallInt
+		return s.GetSmallInt()
+	}
+
+	return 0, InvalidTypeError{"Expecting type Int"}
+}
+
+// MustGetInt returns a Int value from the slice.
+// Panics if slice is not of type Int.
+func (s Slice) MustGetInt() int64 {
+	if v, err := s.GetInt(); err != nil {
+		panic(err)
+	} else {
+		return v
+	}
+}
+
+// GetUInt returns a UInt value from the slice.
+// Returns an error if slice is not of type UInt.
+func (s Slice) GetUInt() (uint64, error) {
+	h := s[0]
+
+	if h == 0x28 {
+		// single byte integer
+		return uint64(s[1]), nil
+	}
+
+	if h >= 0x29 && h <= 0x2f {
+		// UInt
+		return readIntegerNonEmpty(s[1:], int(h)-0x27), nil
+	}
+
+	if h >= 0x20 && h <= 0x27 {
+		// Int
+		v, err := s.GetInt()
+		if err != nil {
+			return 0, WithStack(err)
+		}
+		if v < 0 {
+			return 0, NumberOutOfRangeError{}
+		}
+		return uint64(v), nil
+	}
+
+	if h >= 0x30 && h <= 0x39 {
+		// Smallint >= 0
+		return uint64(h - 0x30), nil
+	}
+
+	if h >= 0x3a && h <= 0x3f {
+		// Smallint < 0
+		return 0, NumberOutOfRangeError{}
+	}
+
+	return 0, InvalidTypeError{"Expecting type UInt"}
+}
+
+// MustGetUInt returns a UInt value from the slice.
+// Panics if slice is not of type UInt.
+func (s Slice) MustGetUInt() uint64 {
+	if v, err := s.GetUInt(); err != nil {
+		panic(err)
+	} else {
+		return v
+	}
+}
+
+// GetSmallInt returns a SmallInt value from the slice.
+// Returns an error if slice is not of type SmallInt.
+func (s Slice) GetSmallInt() (int64, error) {
+	h := s[0]
+
+	if h >= 0x30 && h <= 0x39 {
+		// Smallint >= 0
+		return int64(h - 0x30), nil
+	}
+
+	if h >= 0x3a && h <= 0x3f {
+		// Smallint < 0
+		return int64(h-0x3a) - 6, nil
+	}
+
+	if (h >= 0x20 && h <= 0x27) || (h >= 0x28 && h <= 0x2f) {
+		// Int and UInt
+		// we'll leave it to the compiler to detect the two ranges above are
+		// adjacent
+		return s.GetInt()
+	}
+
+	return 0, InvalidTypeError{"Expecting type SmallInt"}
+}
+
+// MustGetSmallInt returns a SmallInt value from the slice.
+// Panics if slice is not of type SmallInt.
+func (s Slice) MustGetSmallInt() int64 {
+	if v, err := s.GetSmallInt(); err != nil {
+		panic(err)
+	} else {
+		return v
+	}
 }
