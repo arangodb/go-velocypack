@@ -40,4 +40,4 @@ run-tests: $(GOBUILDDIR)
 		-e GOPATH=/usr/code/.gobuild \
 		-w /usr/code/ \
 		golang:$(GOVERSION) \
-		go test $(TESTOPTIONS) $(REPOPATH)/test
+		go test -cover $(TESTOPTIONS) $(REPOPATH)/test
