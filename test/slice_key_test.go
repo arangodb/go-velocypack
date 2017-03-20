@@ -23,40 +23,23 @@
 package test
 
 import (
-	"fmt"
-	"reflect"
-	"runtime"
 	"testing"
+
+	velocypack "github.com/arangodb/go-velocypack"
 )
 
-func ASSERT_EQ(a, b interface{}, t *testing.T) {
-	if !reflect.DeepEqual(a, b) {
-		t.Errorf("Expected %v, %v to be equal\nat %s", a, b, callerInfo(2))
-	}
+func TestSliceMinKey(t *testing.T) {
+	slice := velocypack.Slice{0x1e}
+
+	ASSERT_EQ(velocypack.MinKey, slice.Type(), t)
+	ASSERT_TRUE(slice.IsMinKey(), t)
+	ASSERT_EQ(velocypack.ValueLength(1), slice.MustByteSize(), t)
 }
 
-func ASSERT_DOUBLE_EQ(a, b float64, t *testing.T) {
-	if a != b {
-		t.Errorf("Expected %v, %v to be equal\nat %s", a, b, callerInfo(2))
-	}
-}
+func TestSliceMaxKey(t *testing.T) {
+	slice := velocypack.Slice{0x1f}
 
-func ASSERT_TRUE(a bool, t *testing.T) {
-	if !a {
-		t.Errorf("Expected true\nat %s", callerInfo(2))
-	}
-}
-
-func ASSERT_FALSE(a bool, t *testing.T) {
-	if a {
-		t.Errorf("Expected false\nat %s", callerInfo(2))
-	}
-}
-
-func callerInfo(depth int) string {
-	_, file, line, ok := runtime.Caller(depth)
-	if !ok {
-		return "?"
-	}
-	return fmt.Sprintf("%s (%d)", file, line)
+	ASSERT_EQ(velocypack.MaxKey, slice.Type(), t)
+	ASSERT_TRUE(slice.IsMaxKey(), t)
+	ASSERT_EQ(velocypack.ValueLength(1), slice.MustByteSize(), t)
 }

@@ -437,13 +437,50 @@ func (s Slice) MustAt(index ValueLength) Slice {
 	}
 }
 
-// KeyAt extract a key from an Object at the specified index.
+// KeyAt extracts a key from an Object at the specified index.
 func (s Slice) KeyAt(index ValueLength, translate ...bool) (Slice, error) {
 	if !s.IsObject() {
 		return nil, InvalidTypeError{"Expecting type Object"}
 	}
 
 	return s.getNthKey(index, optionalBool(translate, true))
+}
+
+// MustKeyAt extracts a key from an Object at the specified index.
+// Panics in case of an error.
+func (s Slice) MustKeyAt(index ValueLength, translate ...bool) Slice {
+	if result, err := s.KeyAt(index, translate...); err != nil {
+		panic(err)
+	} else {
+		return result
+	}
+}
+
+// ValueAt extracts a value from an Object at the specified index
+func (s Slice) ValueAt(index ValueLength) (Slice, error) {
+	if !s.IsObject() {
+		return nil, InvalidTypeError{"Expecting type Object"}
+	}
+
+	key, err := s.getNthKey(index, false)
+	if err != nil {
+		return nil, WithStack(err)
+	}
+	byteSize, err := key.ByteSize()
+	if err != nil {
+		return nil, WithStack(err)
+	}
+	return Slice(key[byteSize:]), nil
+}
+
+// MustValueAt extracts a value from an Object at the specified index.
+// Panics in case of an error.
+func (s Slice) MustValueAt(index ValueLength) Slice {
+	if result, err := s.ValueAt(index); err != nil {
+		panic(err)
+	} else {
+		return result
+	}
 }
 
 func indexEntrySize(head byte) ValueLength {

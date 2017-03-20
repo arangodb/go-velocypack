@@ -23,40 +23,29 @@
 package test
 
 import (
-	"fmt"
-	"reflect"
-	"runtime"
 	"testing"
+
+	velocypack "github.com/arangodb/go-velocypack"
 )
 
-func ASSERT_EQ(a, b interface{}, t *testing.T) {
-	if !reflect.DeepEqual(a, b) {
-		t.Errorf("Expected %v, %v to be equal\nat %s", a, b, callerInfo(2))
-	}
+func TestSliceFalse(t *testing.T) {
+	slice := velocypack.Slice{0x19}
+
+	ASSERT_EQ(velocypack.Bool, slice.Type(), t)
+	ASSERT_TRUE(slice.IsBool(), t)
+	ASSERT_TRUE(slice.IsFalse(), t)
+	ASSERT_FALSE(slice.IsTrue(), t)
+	ASSERT_EQ(velocypack.ValueLength(1), slice.MustByteSize(), t)
+	ASSERT_FALSE(slice.MustGetBool(), t)
 }
 
-func ASSERT_DOUBLE_EQ(a, b float64, t *testing.T) {
-	if a != b {
-		t.Errorf("Expected %v, %v to be equal\nat %s", a, b, callerInfo(2))
-	}
-}
+func TestSliceTrue(t *testing.T) {
+	slice := velocypack.Slice{0x1a}
 
-func ASSERT_TRUE(a bool, t *testing.T) {
-	if !a {
-		t.Errorf("Expected true\nat %s", callerInfo(2))
-	}
-}
-
-func ASSERT_FALSE(a bool, t *testing.T) {
-	if a {
-		t.Errorf("Expected false\nat %s", callerInfo(2))
-	}
-}
-
-func callerInfo(depth int) string {
-	_, file, line, ok := runtime.Caller(depth)
-	if !ok {
-		return "?"
-	}
-	return fmt.Sprintf("%s (%d)", file, line)
+	ASSERT_EQ(velocypack.Bool, slice.Type(), t)
+	ASSERT_TRUE(slice.IsBool(), t)
+	ASSERT_FALSE(slice.IsFalse(), t)
+	ASSERT_TRUE(slice.IsTrue(), t)
+	ASSERT_EQ(velocypack.ValueLength(1), slice.MustByteSize(), t)
+	ASSERT_TRUE(slice.MustGetBool(), t)
 }
