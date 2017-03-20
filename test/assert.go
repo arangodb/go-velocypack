@@ -26,11 +26,18 @@ import (
 	"fmt"
 	"reflect"
 	"runtime"
+	"strings"
 	"testing"
 )
 
 func ASSERT_EQ(a, b interface{}, t *testing.T) {
-	if !reflect.DeepEqual(a, b) {
+	as, asOk := a.(string)
+	bs, bsOk := b.(string)
+	if asOk && bsOk {
+		if strings.Compare(as, bs) != 0 {
+			t.Errorf("Expected '%s', '%s' to be equal\nat %s", as, bs, callerInfo(2))
+		}
+	} else if !reflect.DeepEqual(a, b) {
 		t.Errorf("Expected %v, %v to be equal\nat %s", a, b, callerInfo(2))
 	}
 }
@@ -50,6 +57,14 @@ func ASSERT_TRUE(a bool, t *testing.T) {
 func ASSERT_FALSE(a bool, t *testing.T) {
 	if a {
 		t.Errorf("Expected false\nat %s", callerInfo(2))
+	}
+}
+
+func ASSERT_VELOCYPACK_EXCEPTION(errorType func(error) bool, t *testing.T) func(result interface{}, err error) {
+	return func(result interface{}, err error) {
+		if !errorType(err) {
+			t.Errorf("Expected error, got %s\nat %s", err, callerInfo(2))
+		}
 	}
 }
 

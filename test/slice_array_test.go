@@ -20,34 +20,20 @@
 // Author Ewout Prangsma
 //
 
-package velocypack
+package test
 
 import (
-	"fmt"
-	"strconv"
+	"testing"
+
+	velocypack "github.com/arangodb/go-velocypack"
 )
 
-type ValueLength int64
+func TestSliceArrayEmpty(t *testing.T) {
+	slice := velocypack.Slice{0x01}
 
-func (s ValueLength) String() string {
-	return strconv.FormatInt(int64(s), 10)
-}
-
-// getVariableValueLength calculates the length of a variable length integer in unsigned LEB128 format
-func getVariableValueLength(value ValueLength) ValueLength {
-	l := ValueLength(1)
-	for value >= 0x80 {
-		value >>= 7
-		l++
-	}
-	return l
-}
-
-// check if the length is beyond the size of a SIZE_MAX on this platform
-func checkOverflow(length ValueLength) error {
-	if length < 0 {
-		return fmt.Errorf("Negative length")
-	}
-	// TODO
-	return nil
+	ASSERT_EQ(velocypack.Array, slice.Type(), t)
+	ASSERT_TRUE(slice.IsArray(), t)
+	ASSERT_TRUE(slice.IsEmptyArray(), t)
+	ASSERT_EQ(velocypack.ValueLength(1), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(0), slice.MustLength(), t)
 }

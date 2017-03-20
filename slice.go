@@ -52,9 +52,17 @@ func (s Slice) String() string {
 	return hex.EncodeToString(s)
 }
 
+// head returns the first element of the slice or 0 if the slice is empty.
+func (s Slice) head() byte {
+	if len(s) > 0 {
+		return s[0]
+	}
+	return 0
+}
+
 // ByteSize returns the total byte size for the slice, including the head byte
 func (s Slice) ByteSize() (ValueLength, error) {
-	h := s[0]
+	h := s.head()
 	// check if the type has a fixed length first
 	l := fixedTypeLengths[h]
 	if l != 0 {
@@ -230,7 +238,7 @@ func (s Slice) MustGetDouble() float64 {
 // GetInt returns a Int value from the slice.
 // Returns an error if slice is not of type Int.
 func (s Slice) GetInt() (int64, error) {
-	h := s[0]
+	h := s.head()
 
 	if h >= 0x20 && h <= 0x27 {
 		// Int  T
@@ -281,7 +289,7 @@ func (s Slice) MustGetInt() int64 {
 // GetUInt returns a UInt value from the slice.
 // Returns an error if slice is not of type UInt.
 func (s Slice) GetUInt() (uint64, error) {
-	h := s[0]
+	h := s.head()
 
 	if h == 0x28 {
 		// single byte integer
@@ -331,7 +339,7 @@ func (s Slice) MustGetUInt() uint64 {
 // GetSmallInt returns a SmallInt value from the slice.
 // Returns an error if slice is not of type SmallInt.
 func (s Slice) GetSmallInt() (int64, error) {
-	h := s[0]
+	h := s.head()
 
 	if h >= 0x30 && h <= 0x39 {
 		// Smallint >= 0
@@ -363,13 +371,77 @@ func (s Slice) MustGetSmallInt() int64 {
 	}
 }
 
+// GetString return the value for a String object
+func (s Slice) GetString() (string, error) {
+	h := s.head()
+	if h >= 0x40 && h <= 0xbe {
+		// short UTF-8 String
+		length := h - 0x40
+		result := string(s[1 : 1+length])
+		return result, nil
+	}
+
+	if h == 0xbf {
+		// long UTF-8 String
+		length := readIntegerFixed(s[1:], 8)
+		if err := checkOverflow(ValueLength(length)); err != nil {
+			return "", WithStack(err)
+		}
+		result := string(s[1+8 : 1+8+length])
+		return result, nil
+	}
+
+	return "", InvalidTypeError{"Expecting type String"}
+}
+
+// MustGetString return the value for a String object.
+// Panics in case of an error.
+func (s Slice) MustGetString() string {
+	if result, err := s.GetString(); err != nil {
+		panic(err)
+	} else {
+		return result
+	}
+}
+
+// GetStringLength return the length for a String object
+func (s Slice) GetStringLength() (ValueLength, error) {
+	h := s.head()
+	if h >= 0x40 && h <= 0xbe {
+		// short UTF-8 String
+		length := h - 0x40
+		return ValueLength(length), nil
+	}
+
+	if h == 0xbf {
+		// long UTF-8 String
+		length := readIntegerFixed(s[1:], 8)
+		if err := checkOverflow(ValueLength(length)); err != nil {
+			return 0, WithStack(err)
+		}
+		return ValueLength(length), nil
+	}
+
+	return 0, InvalidTypeError{"Expecting type String"}
+}
+
+// MustGetStringLength return the length for a String object.
+// Panics in case of an error.
+func (s Slice) MustGetStringLength() ValueLength {
+	if result, err := s.GetStringLength(); err != nil {
+		panic(err)
+	} else {
+		return result
+	}
+}
+
 // Length return the number of members for an Array or Object object
 func (s Slice) Length() (ValueLength, error) {
 	if !s.IsArray() && !s.IsObject() {
 		return 0, InvalidTypeError{"Expecting type Array or Object"}
 	}
 
-	h := s[0]
+	h := s.head()
 	if h == 0x01 || h == 0x0a {
 		// special case: empty!
 		return 0, nil
@@ -508,7 +580,7 @@ func (s Slice) findDataOffset(head byte) ValueLength {
 func (s Slice) getNthOffset(index ValueLength) (ValueLength, error) {
 	VELOCYPACK_ASSERT(s.IsArray() || s.IsObject())
 
-	h := s[0]
+	h := s.head()
 
 	if h == 0x13 || h == 0x14 {
 		// compact Array or Object
@@ -585,7 +657,7 @@ func (s Slice) getNthOffsetFromCompact(index ValueLength) (ValueLength, error) {
 		return 0, IndexOutOfBoundsError{}
 	}
 
-	h := s[0]
+	h := s.head()
 	offset := ValueLength(1 + getVariableValueLength(end))
 	current := ValueLength(0)
 	for current != index {

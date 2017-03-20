@@ -26,19 +26,19 @@ import "fmt"
 
 // Type returns the vpack type of the slice
 func (s Slice) Type() ValueType {
-	return typeMap[s[0]]
+	return typeMap[s.head()]
 }
 
 // IsType returns true when the vpack type of the slice is equal to the given type.
 // Returns false otherwise.
 func (s Slice) IsType(t ValueType) bool {
-	return typeMap[s[0]] == t
+	return typeMap[s.head()] == t
 }
 
 // AssertType returns an error when the vpack type of the slice different from the given type.
 // Returns nil otherwise.
 func (s Slice) AssertType(t ValueType) error {
-	if found := typeMap[s[0]]; found != t {
+	if found := typeMap[s.head()]; found != t {
 		return WithStack(InvalidTypeError{Message: fmt.Sprintf("expected type '%s', got '%s'", t, found)})
 	}
 	return nil
@@ -47,7 +47,7 @@ func (s Slice) AssertType(t ValueType) error {
 // AssertTypeAny returns an error when the vpack type of the slice different from all of the given types.
 // Returns nil otherwise.
 func (s Slice) AssertTypeAny(t ...ValueType) error {
-	found := typeMap[s[0]]
+	found := typeMap[s.head()]
 	for _, x := range t {
 		if x == found {
 			return nil
@@ -69,16 +69,22 @@ func (s Slice) IsNull() bool { return s.IsType(Null) }
 func (s Slice) IsBool() bool { return s.IsType(Bool) }
 
 // IsTrue returns true if slice is the Boolean value true
-func (s Slice) IsTrue() bool { return s[0] == 0x1a }
+func (s Slice) IsTrue() bool { return s.head() == 0x1a }
 
 // IsFalse returns true if slice is the Boolean value false
-func (s Slice) IsFalse() bool { return s[0] == 0x19 }
+func (s Slice) IsFalse() bool { return s.head() == 0x19 }
 
 // IsArray returns true if slice is an Array object
 func (s Slice) IsArray() bool { return s.IsType(Array) }
 
+// IsEmptyArray tests whether the Slice is an empty array
+func (s Slice) IsEmptyArray() bool { return s.head() == 0x01 }
+
 // IsObject returns true if slice is an Object object
 func (s Slice) IsObject() bool { return s.IsType(Object) }
+
+// IsEmptyObject tests whether the Slice is an empty object
+func (s Slice) IsEmptyObject() bool { return s.head() == 0x0a }
 
 // IsDouble returns true if slice is a Double object
 func (s Slice) IsDouble() bool { return s.IsType(Double) }
@@ -124,6 +130,6 @@ func (s Slice) IsNumber() bool { return s.IsInteger() || s.IsDouble() }
 
 // IsSorted returns true if slice is an object with table offsets, sorted by attribute name
 func (s Slice) IsSorted() bool {
-	h := s[0]
+	h := s.head()
 	return (h >= 0x0b && h <= 0x0e)
 }
