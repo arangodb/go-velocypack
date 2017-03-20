@@ -65,7 +65,7 @@ func TestSliceEmptyArrayFactory(t *testing.T) {
 }
 
 func TestSliceEmptyObjectFactory(t *testing.T) {
-	slice := velocypack.EmptyArraySlice()
+	slice := velocypack.EmptyObjectSlice()
 	ASSERT_TRUE(slice.IsObject() && slice.MustLength() == 0, t)
 }
 

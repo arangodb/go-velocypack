@@ -25,6 +25,7 @@ package velocypack
 import (
 	"encoding/binary"
 	"encoding/hex"
+	"fmt"
 	"math"
 )
 
@@ -413,6 +414,38 @@ func (s Slice) MustLength() ValueLength {
 	}
 }
 
+// At extracts the array value at the specified index.
+func (s Slice) At(index ValueLength) (Slice, error) {
+	if !s.IsArray() {
+		return nil, InvalidTypeError{"Expecting type Array"}
+	}
+
+	if result, err := s.getNth(index); err != nil {
+		return nil, WithStack(err)
+	} else {
+		return result, nil
+	}
+}
+
+// MustAt extracts the array value at the specified index.
+// Panics in case of an error.
+func (s Slice) MustAt(index ValueLength) Slice {
+	if result, err := s.At(index); err != nil {
+		panic(err)
+	} else {
+		return result
+	}
+}
+
+// KeyAt extract a key from an Object at the specified index.
+func (s Slice) KeyAt(index ValueLength, translate ...bool) (Slice, error) {
+	if !s.IsObject() {
+		return nil, InvalidTypeError{"Expecting type Object"}
+	}
+
+	return s.getNthKey(index, optionalBool(translate, true))
+}
+
 func indexEntrySize(head byte) ValueLength {
 	VELOCYPACK_ASSERT(head > 0x00 && head <= 0x12)
 	return ValueLength(widthMap[head])
@@ -432,4 +465,153 @@ func (s Slice) findDataOffset(head byte) ValueLength {
 		return 5
 	}
 	return 9
+}
+
+// get the offset for the nth member from an Array or Object type
+func (s Slice) getNthOffset(index ValueLength) (ValueLength, error) {
+	VELOCYPACK_ASSERT(s.IsArray() || s.IsObject())
+
+	h := s[0]
+
+	if h == 0x13 || h == 0x14 {
+		// compact Array or Object
+		l, err := s.getNthOffsetFromCompact(index)
+		if err != nil {
+			return 0, WithStack(err)
+		}
+		return l, nil
+	}
+
+	if h == 0x01 || h == 0x0a {
+		// special case: empty Array or empty Object
+		return 0, IndexOutOfBoundsError{}
+	}
+
+	offsetSize := indexEntrySize(h)
+	end := ValueLength(readIntegerNonEmpty(s[1:], int(offsetSize)))
+
+	dataOffset := ValueLength(0)
+
+	// find the number of items
+	var n ValueLength
+	if h <= 0x05 { // No offset table or length, need to compute:
+		dataOffset = s.findDataOffset(h)
+		first := Slice(s[dataOffset:])
+		s, err := first.ByteSize()
+		if err != nil {
+			return 0, WithStack(err)
+		}
+		if s == 0 {
+			return 0, InternalError{}
+		}
+		n = (end - dataOffset) / s
+	} else if offsetSize < 8 {
+		n = ValueLength(readIntegerNonEmpty(s[1+offsetSize:], int(offsetSize)))
+	} else {
+		n = ValueLength(readIntegerNonEmpty(s[end-offsetSize:], int(offsetSize)))
+	}
+
+	if index >= n {
+		return 0, IndexOutOfBoundsError{}
+	}
+
+	// empty array case was already covered
+	VELOCYPACK_ASSERT(n > 0)
+
+	if h <= 0x05 || n == 1 {
+		// no index table, but all array items have the same length
+		// now fetch first item and determine its length
+		if dataOffset == 0 {
+			dataOffset = s.findDataOffset(h)
+		}
+		sliceAtDataOffset := Slice(s[dataOffset:])
+		sliceAtDataOffsetByteSize, err := sliceAtDataOffset.ByteSize()
+		if err != nil {
+			return 0, WithStack(err)
+		}
+		return dataOffset + index*sliceAtDataOffsetByteSize, nil
+	}
+
+	offsetSize8Or0 := ValueLength(0)
+	if offsetSize == 8 {
+		offsetSize8Or0 = 8
+	}
+	ieBase := end - n*offsetSize + index*offsetSize - (offsetSize8Or0)
+	return ValueLength(readIntegerNonEmpty(s[ieBase:], int(offsetSize))), nil
+}
+
+// get the offset for the nth member from a compact Array or Object type
+func (s Slice) getNthOffsetFromCompact(index ValueLength) (ValueLength, error) {
+	end := ValueLength(readVariableValueLength(s[1:], false))
+	n := ValueLength(readVariableValueLength(s[end-1:], true))
+	if index >= n {
+		return 0, IndexOutOfBoundsError{}
+	}
+
+	h := s[0]
+	offset := ValueLength(1 + getVariableValueLength(end))
+	current := ValueLength(0)
+	for current != index {
+		sliceAtOffset := Slice(s[offset:])
+		sliceAtOffsetByteSize, err := sliceAtOffset.ByteSize()
+		if err != nil {
+			return 0, WithStack(err)
+		}
+		offset += sliceAtOffsetByteSize
+		if h == 0x14 {
+			sliceAtOffset := Slice(s[offset:])
+			sliceAtOffsetByteSize, err := sliceAtOffset.ByteSize()
+			if err != nil {
+				return 0, WithStack(err)
+			}
+			offset += sliceAtOffsetByteSize
+		}
+		current++
+	}
+	return offset, nil
+}
+
+// extract the nth member from an Array
+func (s Slice) getNth(index ValueLength) (Slice, error) {
+	VELOCYPACK_ASSERT(s.IsArray())
+
+	offset, err := s.getNthOffset(index)
+	if err != nil {
+		return nil, WithStack(err)
+	}
+	return Slice(s[offset:]), nil
+}
+
+// getNthKey extract the nth member from an Object
+func (s Slice) getNthKey(index ValueLength, translate bool) (Slice, error) {
+	VELOCYPACK_ASSERT(s.Type() == Object)
+
+	offset, err := s.getNthOffset(index)
+	if err != nil {
+		return nil, WithStack(err)
+	}
+	result := Slice(s[offset:])
+	if translate {
+		result, err = result.makeKey()
+		if err != nil {
+			return nil, WithStack(err)
+		}
+	}
+	return result, nil
+}
+
+func (s Slice) makeKey() (Slice, error) {
+	if s.IsString() {
+		return s, nil
+	}
+	if s.IsSmallInt() || s.IsUInt() {
+		return nil, WithStack(fmt.Errorf("makeKey not implemented for SmallInt || UInt"))
+		/*  if (Options::Defaults.attributeTranslator == nullptr) {
+		      throw Exception(Exception::NeedAttributeTranslator);
+		    }
+		    return translateUnchecked();
+		*/
+	}
+
+	return nil, InvalidTypeError{"Cannot translate key of this type"}
 }

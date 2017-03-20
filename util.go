@@ -78,3 +78,11 @@ func readVariableValueLength(source []byte, reverse bool) ValueLength {
 	}
 	return length
 }
+
+// optionalBool returns the first arg element if available, otherwise returns defaultValue.
+func optionalBool(arg []bool, defaultValue bool) bool {
+	if len(arg) == 0 {
+		return defaultValue
+	}
+	return arg[0]
+}

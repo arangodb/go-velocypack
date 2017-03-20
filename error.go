@@ -53,6 +53,20 @@ func IsNumberOutOfRange(err error) bool {
 	return ok
 }
 
+// IndexOutOfBoundsError indicates an index outside of array/object bounds.
+type IndexOutOfBoundsError struct{}
+
+// Error implements the error interface for IndexOutOfBoundsError.
+func (e IndexOutOfBoundsError) Error() string {
+	return "index out of range"
+}
+
+// IsIndexOutOfBounds returns true if the given error is an IndexOutOfBoundsError.
+func IsIndexOutOfBounds(err error) bool {
+	_, ok := Cause(err).(IndexOutOfBoundsError)
+	return ok
+}
+
 // InternalError indicates an error that the client cannot prevent.
 type InternalError struct {
 }

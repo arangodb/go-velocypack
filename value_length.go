@@ -22,4 +22,20 @@
 
 package velocypack
 
+import "strconv"
+
 type ValueLength int64
+
+func (s ValueLength) String() string {
+	return strconv.FormatInt(int64(s), 10)
+}
+
+// getVariableValueLength calculates the length of a variable length integer in unsigned LEB128 format
+func getVariableValueLength(value ValueLength) ValueLength {
+	l := ValueLength(1)
+	for value >= 0x80 {
+		value >>= 7
+		l++
+	}
+	return l
+}

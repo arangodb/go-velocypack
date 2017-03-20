@@ -23,18 +23,28 @@
 package test
 
 import (
+	"fmt"
 	"reflect"
+	"runtime"
 	"testing"
 )
 
 func ASSERT_EQ(a, b interface{}, t *testing.T) {
 	if !reflect.DeepEqual(a, b) {
-		t.Errorf("Expected %v, %v to be equal", a, b)
+		t.Errorf("Expected %v, %v to be equal\nat %s", a, b, callerInfo(2))
 	}
 }
 
 func ASSERT_TRUE(a bool, t *testing.T) {
 	if !a {
-		t.Error("Expected true")
+		t.Errorf("Expected true\nat %s", callerInfo(2))
 	}
+}
+
+func callerInfo(depth int) string {
+	_, file, line, ok := runtime.Caller(depth)
+	if !ok {
+		return "?"
+	}
+	return fmt.Sprintf("%s (%d)", file, line)
 }
