@@ -361,3 +361,75 @@ func (s Slice) MustGetSmallInt() int64 {
 		return v
 	}
 }
+
+// Length return the number of members for an Array or Object object
+func (s Slice) Length() (ValueLength, error) {
+	if !s.IsArray() && !s.IsObject() {
+		return 0, InvalidTypeError{"Expecting type Array or Object"}
+	}
+
+	h := s[0]
+	if h == 0x01 || h == 0x0a {
+		// special case: empty!
+		return 0, nil
+	}
+
+	if h == 0x13 || h == 0x14 {
+		// compact Array or Object
+		end := readVariableValueLength(s[1:], false)
+		return readVariableValueLength(s[end-1:], true), nil
+	}
+
+	offsetSize := uint64(indexEntrySize(h))
+	VELOCYPACK_ASSERT(offsetSize > 0)
+	end := readIntegerNonEmpty(s[1:], int(offsetSize))
+
+	// find number of items
+	if h <= 0x05 { // No offset table or length, need to compute:
+		firstSubOffset := s.findDataOffset(h)
+		first := s[firstSubOffset:]
+		s, err := first.ByteSize()
+		if err != nil {
+			return 0, WithStack(err)
+		}
+		if s == 0 {
+			return 0, InternalError{}
+		}
+		return (ValueLength(end) - firstSubOffset) / s, nil
+	} else if offsetSize < 8 {
+		return ValueLength(readIntegerNonEmpty(s[offsetSize+1:], int(offsetSize))), nil
+	}
+
+	return ValueLength(readIntegerNonEmpty(s[end-offsetSize:], int(offsetSize))), nil
+}
+
+// MustLength return the number of members for an Array or Object object.
+// Panics in case of error.
+func (s Slice) MustLength() ValueLength {
+	if result, err := s.Length(); err != nil {
+		panic(err)
+	} else {
+		return result
+	}
+}
+
+func indexEntrySize(head byte) ValueLength {
+	VELOCYPACK_ASSERT(head > 0x00 && head <= 0x12)
+	return ValueLength(widthMap[head])
+}
+
+func (s Slice) findDataOffset(head byte) ValueLength {
+	// Must be called for a nonempty array or object at start():
+	VELOCYPACK_ASSERT(head <= 0x12)
+	fsm := firstSubMap[head]
+	if fsm <= 2 && s[2] != 0 {
+		return 2
+	}
+	if fsm <= 3 && s[3] != 0 {
+		return 3
+	}
+	if fsm <= 5 && s[5] != 0 {
+		return 5
+	}
+	return 9
+}
