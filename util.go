@@ -31,16 +31,16 @@ func VELOCYPACK_ASSERT(v bool) {
 
 // read an unsigned little endian integer value of the
 // specified length, starting at the specified byte offset
-func readIntegerFixed(start []byte, length ValueLength) uint64 {
-	return readIntegerNonEmpty(start, int(length))
+func readIntegerFixed(start []byte, length uint) uint64 {
+	return readIntegerNonEmpty(start, length)
 }
 
 // read an unsigned little endian integer value of the
 // specified length, starting at the specified byte offset
-func readIntegerNonEmpty(s []byte, length int) uint64 {
+func readIntegerNonEmpty(s []byte, length uint) uint64 {
 	x := uint(0)
 	v := uint64(0)
-	for i := 0; i < length; i++ {
+	for i := uint(0); i < length; i++ {
 		v += uint64(s[i]) << x
 		x += 8
 	}

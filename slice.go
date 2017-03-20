@@ -73,113 +73,69 @@ func (s Slice) ByteSize() (ValueLength, error) {
 	// types with dynamic lengths need special treatment:
 	switch s.Type() {
 	case Array, Object:
-		{
-			if h == 0x13 || h == 0x14 {
-				// compact Array or Object
-				return readVariableValueLength(s[1:], false), nil
-			}
-
-			if h == 0x01 || h == 0x0a {
-				// we cannot get here, because the FixedTypeLengths lookup
-				// above will have kicked in already. however, the compiler
-				// claims we'll be reading across the bounds of the input
-				// here...
-				return 1, nil
-			}
-
-			VELOCYPACK_ASSERT(h > 0x00 && h <= 0x0e)
-			return ValueLength(readIntegerNonEmpty(s[1:], widthMap[h])), nil
+		if h == 0x13 || h == 0x14 {
+			// compact Array or Object
+			return readVariableValueLength(s[1:], false), nil
 		}
+
+		if h == 0x01 || h == 0x0a {
+			// we cannot get here, because the FixedTypeLengths lookup
+			// above will have kicked in already. however, the compiler
+			// claims we'll be reading across the bounds of the input
+			// here...
+			return 1, nil
+		}
+
+		VELOCYPACK_ASSERT(h > 0x00 && h <= 0x0e)
+		return ValueLength(readIntegerNonEmpty(s[1:], widthMap[h])), nil
 
 	case External:
-		{
-			return 1 + charPtrLength, nil
-		}
+		return 1 + charPtrLength, nil
 
 	case UTCDate:
-		{
-			return 1 + int64Length, nil
-		}
+		return 1 + int64Length, nil
 
 	case Int:
-		{
-			return ValueLength(1 + (h - 0x1f)), nil
-		}
+		return ValueLength(1 + (h - 0x1f)), nil
 
 	case String:
-		{
-			VELOCYPACK_ASSERT(h == 0xbf)
-			if h < 0xbf {
-				// we cannot get here, because the FixedTypeLengths lookup
-				// above will have kicked in already. however, the compiler
-				// claims we'll be reading across the bounds of the input
-				// here...
-				return ValueLength(h) - 0x40, nil
-			}
-			// long UTF-8 String
-			return ValueLength(1 + 8 + readIntegerFixed(s[1:], 8)), nil
+		VELOCYPACK_ASSERT(h == 0xbf)
+		if h < 0xbf {
+			// we cannot get here, because the FixedTypeLengths lookup
+			// above will have kicked in already. however, the compiler
+			// claims we'll be reading across the bounds of the input
+			// here...
+			return ValueLength(h) - 0x40, nil
 		}
+		// long UTF-8 String
+		return ValueLength(1 + 8 + readIntegerFixed(s[1:], 8)), nil
 
 	case Binary:
-		{
-			VELOCYPACK_ASSERT(h >= 0xc0 && h <= 0xc7)
-			return ValueLength(1 + ValueLength(h) - 0xbf + ValueLength(readIntegerNonEmpty(s[1:], int(h)-0xbf))), nil
-		}
+		VELOCYPACK_ASSERT(h >= 0xc0 && h <= 0xc7)
+		return ValueLength(1 + ValueLength(h) - 0xbf + ValueLength(readIntegerNonEmpty(s[1:], uint(h)-0xbf))), nil
 
 	case BCD:
-		{
-			if h <= 0xcf {
-				// positive BCD
-				VELOCYPACK_ASSERT(h >= 0xc8 && h < 0xcf)
-				return ValueLength(1 + ValueLength(h) - 0xc7 + ValueLength(readIntegerNonEmpty(s[1:], int(h)-0xc7))), nil
-			}
-
-			// negative BCD
-			VELOCYPACK_ASSERT(h >= 0xd0 && h < 0xd7)
-			return ValueLength(1 + ValueLength(h) - 0xcf + ValueLength(readIntegerNonEmpty(s[1:], int(h)-0xcf))), nil
+		if h <= 0xcf {
+			// positive BCD
+			VELOCYPACK_ASSERT(h >= 0xc8 && h < 0xcf)
+			return ValueLength(1 + ValueLength(h) - 0xc7 + ValueLength(readIntegerNonEmpty(s[1:], uint(h)-0xc7))), nil
 		}
+
+		// negative BCD
+		VELOCYPACK_ASSERT(h >= 0xd0 && h < 0xd7)
+		return ValueLength(1 + ValueLength(h) - 0xcf + ValueLength(readIntegerNonEmpty(s[1:], uint(h)-0xcf))), nil
 
 	case Custom:
-		{
-			VELOCYPACK_ASSERT(h >= 0xf4)
-			switch h {
-			case 0xf4:
-			case 0xf5:
-			case 0xf6:
-				{
-					return ValueLength(2 + readIntegerFixed(s[1:], 1)), nil
-				}
-
-			case 0xf7:
-			case 0xf8:
-			case 0xf9:
-				{
-					return ValueLength(3 + readIntegerFixed(s[1:], 2)), nil
-				}
-
-			case 0xfa:
-			case 0xfb:
-			case 0xfc:
-				{
-					return ValueLength(5 + readIntegerFixed(s[1:], 4)), nil
-				}
-
-			case 0xfd:
-			case 0xfe:
-			case 0xff:
-				{
-					return ValueLength(9 + readIntegerFixed(s[1:], 8)), nil
-				}
-
-			default:
-				{
-					// fallthrough intentional
-				}
-			}
-		}
-	default:
-		{
-			// fallthrough intentional
+		VELOCYPACK_ASSERT(h >= 0xf4)
+		switch h {
+		case 0xf4, 0xf5, 0xf6:
+			return ValueLength(2 + readIntegerFixed(s[1:], 1)), nil
+		case 0xf7, 0xf8, 0xf9:
+			return ValueLength(3 + readIntegerFixed(s[1:], 2)), nil
+		case 0xfa, 0xfb, 0xfc:
+			return ValueLength(5 + readIntegerFixed(s[1:], 4)), nil
+		case 0xfd, 0xfe, 0xff:
+			return ValueLength(9 + readIntegerFixed(s[1:], 8)), nil
 		}
 	}
 
@@ -263,7 +219,7 @@ func (s Slice) GetInt() (int64, error) {
 
 	if h >= 0x20 && h <= 0x27 {
 		// Int  T
-		v := readIntegerNonEmpty(s[1:], int(h)-0x1f)
+		v := readIntegerNonEmpty(s[1:], uint(h)-0x1f)
 		if h == 0x27 {
 			return toInt64(v), nil
 		} else {
@@ -319,7 +275,7 @@ func (s Slice) GetUInt() (uint64, error) {
 
 	if h >= 0x29 && h <= 0x2f {
 		// UInt
-		return readIntegerNonEmpty(s[1:], int(h)-0x27), nil
+		return readIntegerNonEmpty(s[1:], uint(h)-0x27), nil
 	}
 
 	if h >= 0x20 && h <= 0x27 {
@@ -509,7 +465,7 @@ func (s Slice) GetBinary() ([]byte, error) {
 	h := s.head()
 	VELOCYPACK_ASSERT(h >= 0xc0 && h <= 0xc7)
 
-	lengthSize := int(h - 0xbf)
+	lengthSize := uint(h - 0xbf)
 	length := readIntegerNonEmpty(s[1:], lengthSize)
 	checkOverflow(ValueLength(length))
 	return s[1+lengthSize : 1+uint64(lengthSize)+length], nil
@@ -534,7 +490,7 @@ func (s Slice) GetBinaryLength() (ValueLength, error) {
 	h := s.head()
 	VELOCYPACK_ASSERT(h >= 0xc0 && h <= 0xc7)
 
-	lengthSize := int(h - 0xbf)
+	lengthSize := uint(h - 0xbf)
 	length := readIntegerNonEmpty(s[1:], lengthSize)
 	return ValueLength(length), nil
 }
@@ -567,9 +523,9 @@ func (s Slice) Length() (ValueLength, error) {
 		return readVariableValueLength(s[end-1:], true), nil
 	}
 
-	offsetSize := uint64(indexEntrySize(h))
+	offsetSize := indexEntrySize(h)
 	VELOCYPACK_ASSERT(offsetSize > 0)
-	end := readIntegerNonEmpty(s[1:], int(offsetSize))
+	end := readIntegerNonEmpty(s[1:], offsetSize)
 
 	// find number of items
 	if h <= 0x05 { // No offset table or length, need to compute:
@@ -584,10 +540,10 @@ func (s Slice) Length() (ValueLength, error) {
 		}
 		return (ValueLength(end) - firstSubOffset) / s, nil
 	} else if offsetSize < 8 {
-		return ValueLength(readIntegerNonEmpty(s[offsetSize+1:], int(offsetSize))), nil
+		return ValueLength(readIntegerNonEmpty(s[offsetSize+1:], offsetSize)), nil
 	}
 
-	return ValueLength(readIntegerNonEmpty(s[end-offsetSize:], int(offsetSize))), nil
+	return ValueLength(readIntegerNonEmpty(s[end-uint64(offsetSize):], offsetSize)), nil
 }
 
 // MustLength return the number of members for an Array or Object object.
@@ -669,9 +625,9 @@ func (s Slice) MustValueAt(index ValueLength) Slice {
 	}
 }
 
-func indexEntrySize(head byte) ValueLength {
+func indexEntrySize(head byte) uint {
 	VELOCYPACK_ASSERT(head > 0x00 && head <= 0x12)
-	return ValueLength(widthMap[head])
+	return widthMap[head]
 }
 
 // Get looks for the specified attribute inside an Object
@@ -693,19 +649,19 @@ func (s Slice) Get(attribute string) (Slice, error) {
 		return value, WithStack(err)
 	}
 
-	offsetSize := ValueLength(indexEntrySize(h))
+	offsetSize := indexEntrySize(h)
 	VELOCYPACK_ASSERT(offsetSize > 0)
-	end := ValueLength(readIntegerNonEmpty(s[1:], int(offsetSize)))
+	end := ValueLength(readIntegerNonEmpty(s[1:], offsetSize))
 
 	// read number of items
 	var n ValueLength
 	var ieBase ValueLength
 	if offsetSize < 8 {
-		n = ValueLength(readIntegerNonEmpty(s[1+offsetSize:], int(offsetSize)))
-		ieBase = end - n*offsetSize
+		n = ValueLength(readIntegerNonEmpty(s[1+offsetSize:], offsetSize))
+		ieBase = end - n*ValueLength(offsetSize)
 	} else {
-		n = ValueLength(readIntegerNonEmpty(s[end-offsetSize:], int(offsetSize)))
-		ieBase = end - n*offsetSize - offsetSize
+		n = ValueLength(readIntegerNonEmpty(s[end-ValueLength(offsetSize):], offsetSize))
+		ieBase = end - n*ValueLength(offsetSize) - ValueLength(offsetSize)
 	}
 
 	if n == 1 {
@@ -761,7 +717,7 @@ func (s Slice) Get(attribute string) (Slice, error) {
 		}
 	}
 
-	result, err := s.searchObjectKeyLinear(attribute, ieBase, offsetSize, n)
+	result, err := s.searchObjectKeyLinear(attribute, ieBase, ValueLength(offsetSize), n)
 	return result, WithStack(err)
 }
 
@@ -842,7 +798,7 @@ func (s Slice) getNthOffset(index ValueLength) (ValueLength, error) {
 	}
 
 	offsetSize := indexEntrySize(h)
-	end := ValueLength(readIntegerNonEmpty(s[1:], int(offsetSize)))
+	end := ValueLength(readIntegerNonEmpty(s[1:], offsetSize))
 
 	dataOffset := ValueLength(0)
 
@@ -860,9 +816,9 @@ func (s Slice) getNthOffset(index ValueLength) (ValueLength, error) {
 		}
 		n = (end - dataOffset) / s
 	} else if offsetSize < 8 {
-		n = ValueLength(readIntegerNonEmpty(s[1+offsetSize:], int(offsetSize)))
+		n = ValueLength(readIntegerNonEmpty(s[1+offsetSize:], offsetSize))
 	} else {
-		n = ValueLength(readIntegerNonEmpty(s[end-offsetSize:], int(offsetSize)))
+		n = ValueLength(readIntegerNonEmpty(s[end-ValueLength(offsetSize):], offsetSize))
 	}
 
 	if index >= n {
@@ -890,8 +846,8 @@ func (s Slice) getNthOffset(index ValueLength) (ValueLength, error) {
 	if offsetSize == 8 {
 		offsetSize8Or0 = 8
 	}
-	ieBase := end - n*offsetSize + index*offsetSize - (offsetSize8Or0)
-	return ValueLength(readIntegerNonEmpty(s[ieBase:], int(offsetSize))), nil
+	ieBase := end - n*ValueLength(offsetSize) + index*ValueLength(offsetSize) - (offsetSize8Or0)
+	return ValueLength(readIntegerNonEmpty(s[ieBase:], offsetSize)), nil
 }
 
 // get the offset for the nth member from a compact Array or Object type
@@ -984,7 +940,7 @@ func (s Slice) searchObjectKeyLinear(attribute string, ieBase, offsetSize, n Val
 
 	for index := ValueLength(0); index < n; index++ {
 		offset := ValueLength(ieBase + index*offsetSize)
-		key := Slice(s[readIntegerNonEmpty(s[offset:], int(offsetSize)):])
+		key := Slice(s[readIntegerNonEmpty(s[offset:], uint(offsetSize)):])
 
 		if key.IsString() {
 			if eq, err := key.IsEqualString(attribute); err != nil {
@@ -1019,10 +975,7 @@ func (s Slice) searchObjectKeyLinear(attribute string, ieBase, offsetSize, n Val
 
 // perform a binary search for the specified attribute inside an Object
 //template<ValueLength offsetSize>
-func (s Slice) searchObjectKeyBinary(attribute string,
-	ieBase ValueLength,
-	n ValueLength,
-	offsetSize ValueLength) (Slice, error) {
+func (s Slice) searchObjectKeyBinary(attribute string, ieBase ValueLength, n ValueLength, offsetSize ValueLength) (Slice, error) {
 	useTranslator := AttributeTranslator != nil
 	VELOCYPACK_ASSERT(n > 0)
 
@@ -1032,7 +985,7 @@ func (s Slice) searchObjectKeyBinary(attribute string,
 
 	for {
 		offset := ValueLength(ieBase + index*offsetSize)
-		key := Slice(s[readIntegerFixed(s[offset:], offsetSize):])
+		key := Slice(s[readIntegerFixed(s[offset:], uint(offsetSize)):])
 
 		var res int
 		var err error
@@ -1099,7 +1052,7 @@ func (s Slice) getUIntUnchecked() uint64 {
 	h := s.head()
 	if h >= 0x28 && h <= 0x2f {
 		// UInt
-		return readIntegerNonEmpty(s[1:], int(h-0x27))
+		return readIntegerNonEmpty(s[1:], uint(h-0x27))
 	}
 
 	if h >= 0x30 && h <= 0x39 {

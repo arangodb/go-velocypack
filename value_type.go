@@ -337,7 +337,7 @@ var fixedTypeLengths = [256]int{
 	/* 0xfc */ 0 /* 0xfd */, 0,
 	/* 0xfe */ 0 /* 0xff */, 0}
 
-var widthMap = [32]int{
+var widthMap = [32]uint{
 	0, // 0x00, None
 	1, // 0x01, empty array
 	1, // 0x02, array without index table

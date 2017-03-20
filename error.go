@@ -100,8 +100,10 @@ var (
 	// WithStack is called on every return of an error to add stacktrace information to the error.
 	// When setting this function, also set the Cause function.
 	// The interface of this function is compatible with functions in github.com/pkg/errors.
+	// WithStack(nil) must return nil.
 	WithStack = func(err error) error { return err }
 	// Cause is used to get the root cause of the given error.
 	// The interface of this function is compatible with functions in github.com/pkg/errors.
+	// Cause(nil) must return nil.
 	Cause = func(err error) error { return err }
 )
