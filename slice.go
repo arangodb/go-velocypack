@@ -52,6 +52,26 @@ func (s Slice) String() string {
 	return hex.EncodeToString(s)
 }
 
+// JSONString converts the contents of the slice to JSON.
+func (s Slice) JSONString() (string, error) {
+	buf := &bytes.Buffer{}
+	d := NewDumper(buf)
+	if err := d.Append(s); err != nil {
+		return "", WithStack(err)
+	}
+	return buf.String(), nil
+}
+
+// MustJSONString converts the contents of the slice to JSON.
+// Panics in case of an error.
+func (s Slice) MustJSONString() string {
+	if result, err := s.JSONString(); err != nil {
+		panic(err)
+	} else {
+		return result
+	}
+}
+
 // head returns the first element of the slice or 0 if the slice is empty.
 func (s Slice) head() byte {
 	if len(s) > 0 {

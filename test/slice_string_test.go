@@ -117,3 +117,9 @@ func TestSliceStringLong(t *testing.T) {
 	ASSERT_EQ("foobar", slice.MustGetString(), t)
 	ASSERT_EQ(velocypack.ValueLength(6), slice.MustGetStringLength(), t)
 }
+
+func TestSliceStringToStringNull(t *testing.T) {
+	slice := velocypack.NullSlice()
+
+	ASSERT_EQ("null", slice.MustJSONString(), t)
+}
