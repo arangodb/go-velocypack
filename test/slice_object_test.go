@@ -52,3 +52,122 @@ func TestSliceObjectCases1(t *testing.T) {
 	ASSERT_TRUE(ss.IsSmallInt(), t)
 	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
 }
+
+func TestSliceObjectCases2(t *testing.T) {
+	slice := velocypack.Slice{0x0b, 0x00, 0x03, 0x00, 0x00, 0x41, 0x61, 0x31, 0x41,
+		0x62, 0x32, 0x41, 0x63, 0x33, 0x05, 0x08, 0x0b}
+	slice[1] = byte(len(slice)) // Set byte length
+
+	ASSERT_EQ(velocypack.Object, slice.Type(), t)
+	ASSERT_TRUE(slice.IsObject(), t)
+	ASSERT_FALSE(slice.IsEmptyObject(), t)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
+	ss := slice.MustGet("a")
+	ASSERT_TRUE(ss.IsSmallInt(), t)
+	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+}
+
+func TestSliceObjectCases3(t *testing.T) {
+	slice := velocypack.Slice{0x0b, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x41, 0x61, 0x31, 0x41, 0x62,
+		0x32, 0x41, 0x63, 0x33, 0x09, 0x0c, 0x0f}
+	slice[1] = byte(len(slice)) // Set byte length
+
+	ASSERT_EQ(velocypack.Object, slice.Type(), t)
+	ASSERT_TRUE(slice.IsObject(), t)
+	ASSERT_FALSE(slice.IsEmptyObject(), t)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
+	ss := slice.MustGet("a")
+	ASSERT_TRUE(ss.IsSmallInt(), t)
+	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+}
+
+func TestSliceObjectCases7(t *testing.T) {
+	slice := velocypack.Slice{0x0c, 0x00, 0x00, 0x03, 0x00, 0x41, 0x61, 0x31, 0x41, 0x62,
+		0x32, 0x41, 0x63, 0x33, 0x05, 0x00, 0x08, 0x00, 0x0b, 0x00}
+	slice[1] = byte(len(slice)) // Set byte length
+
+	ASSERT_EQ(velocypack.Object, slice.Type(), t)
+	ASSERT_TRUE(slice.IsObject(), t)
+	ASSERT_FALSE(slice.IsEmptyObject(), t)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
+	ss := slice.MustGet("a")
+	ASSERT_TRUE(ss.IsSmallInt(), t)
+	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+}
+
+func TestSliceObjectCases8(t *testing.T) {
+	slice := velocypack.Slice{0x0c, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x41, 0x61, 0x31, 0x41, 0x62, 0x32, 0x41,
+		0x63, 0x33, 0x09, 0x00, 0x0c, 0x00, 0x0f, 0x00}
+	slice[1] = byte(len(slice)) // Set byte length
+
+	ASSERT_EQ(velocypack.Object, slice.Type(), t)
+	ASSERT_TRUE(slice.IsObject(), t)
+	ASSERT_FALSE(slice.IsEmptyObject(), t)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
+	ss := slice.MustGet("a")
+	ASSERT_TRUE(ss.IsSmallInt(), t)
+	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+}
+
+func TestSliceObjectCases11(t *testing.T) {
+	slice := velocypack.Slice{0x0d, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x41,
+		0x61, 0x31, 0x41, 0x62, 0x32, 0x41, 0x63, 0x33, 0x09, 0x00,
+		0x00, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x0f, 0x00, 0x00, 0x00}
+	slice[1] = byte(len(slice)) // Set byte length
+
+	ASSERT_EQ(velocypack.Object, slice.Type(), t)
+	ASSERT_TRUE(slice.IsObject(), t)
+	ASSERT_FALSE(slice.IsEmptyObject(), t)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
+	ss := slice.MustGet("a")
+	ASSERT_TRUE(ss.IsSmallInt(), t)
+	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+}
+
+func TestSliceObjectCases13(t *testing.T) {
+	slice := velocypack.Slice{0x0e, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x41,
+		0x61, 0x31, 0x41, 0x62, 0x32, 0x41, 0x63, 0x33, 0x09, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0c, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+	slice[1] = byte(len(slice)) // Set byte length
+
+	ASSERT_EQ(velocypack.Object, slice.Type(), t)
+	ASSERT_TRUE(slice.IsObject(), t)
+	ASSERT_FALSE(slice.IsEmptyObject(), t)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
+	ss := slice.MustGet("a")
+	ASSERT_TRUE(ss.IsSmallInt(), t)
+	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+}
+
+func TestSliceObjectCompact(t *testing.T) {
+	slice := velocypack.Slice{0x14, 0x0f, 0x41, 0x61, 0x30, 0x41, 0x62, 0x31,
+		0x41, 0x63, 0x32, 0x41, 0x64, 0x33, 0x04}
+	slice[1] = byte(len(slice)) // Set byte length
+
+	ASSERT_EQ(velocypack.Object, slice.Type(), t)
+	ASSERT_TRUE(slice.IsObject(), t)
+	ASSERT_FALSE(slice.IsEmptyObject(), t)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(4), slice.MustLength(), t)
+	ss := slice.MustGet("a")
+	ASSERT_TRUE(ss.IsSmallInt(), t)
+	ASSERT_EQ(int64(0), ss.MustGetInt(), t)
+
+	ss = slice.MustGet("b")
+	ASSERT_TRUE(ss.IsSmallInt(), t)
+	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+
+	ss = slice.MustGet("d")
+	ASSERT_TRUE(ss.IsSmallInt(), t)
+	ASSERT_EQ(int64(3), ss.MustGetInt(), t)
+}
