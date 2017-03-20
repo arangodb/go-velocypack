@@ -435,6 +435,55 @@ func (s Slice) MustGetStringLength() ValueLength {
 	}
 }
 
+// GetBinary return the value for a Binary object
+func (s Slice) GetBinary() ([]byte, error) {
+	if !s.IsBinary() {
+		return nil, InvalidTypeError{"Expecting type Binary"}
+	}
+
+	h := s.head()
+	VELOCYPACK_ASSERT(h >= 0xc0 && h <= 0xc7)
+
+	lengthSize := int(h - 0xbf)
+	length := readIntegerNonEmpty(s[1:], lengthSize)
+	checkOverflow(ValueLength(length))
+	return s[1+lengthSize : 1+uint64(lengthSize)+length], nil
+}
+
+// MustGetBinary return the value for a Binary object.
+// Panics in case of an error.
+func (s Slice) MustGetBinary() []byte {
+	if result, err := s.GetBinary(); err != nil {
+		panic(err)
+	} else {
+		return result
+	}
+}
+
+// GetBinaryLength return the length for a Binary object
+func (s Slice) GetBinaryLength() (ValueLength, error) {
+	if !s.IsBinary() {
+		return 0, InvalidTypeError{"Expecting type Binary"}
+	}
+
+	h := s.head()
+	VELOCYPACK_ASSERT(h >= 0xc0 && h <= 0xc7)
+
+	lengthSize := int(h - 0xbf)
+	length := readIntegerNonEmpty(s[1:], lengthSize)
+	return ValueLength(length), nil
+}
+
+// MustGetBinaryLength return the length for a Binary object.
+// Panics in case of an error.
+func (s Slice) MustGetBinaryLength() ValueLength {
+	if result, err := s.GetBinaryLength(); err != nil {
+		panic(err)
+	} else {
+		return result
+	}
+}
+
 // Length return the number of members for an Array or Object object
 func (s Slice) Length() (ValueLength, error) {
 	if !s.IsArray() && !s.IsObject() {

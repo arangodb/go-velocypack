@@ -27,7 +27,7 @@ import (
 	"strconv"
 )
 
-type ValueLength int64
+type ValueLength uint64
 
 func (s ValueLength) String() string {
 	return strconv.FormatInt(int64(s), 10)
