@@ -22,6 +22,8 @@
 
 package velocypack
 
+import "encoding/binary"
+
 // NoneSlice creates a slice of type None
 func NoneSlice() Slice { return Slice{0x00} }
 
@@ -51,3 +53,17 @@ func MinKeySlice() Slice { return Slice{0x1e} }
 
 // MaxKeySlice creates a slice of type MaxKey
 func MaxKeySlice() Slice { return Slice{0x1f} }
+
+// StringSlice creates a slice of type String with given string value
+func StringSlice(s string) Slice {
+	raw := []byte(s)
+	l := len(raw)
+	if l <= 126 {
+		return Slice(append([]byte{byte(0x40 + l)}, raw...))
+	}
+	buf := make([]byte, 1+8+l)
+	buf[0] = 0xbf
+	binary.LittleEndian.PutUint64(buf[1:], uint64(l))
+	copy(buf[1+8:], raw)
+	return buf
+}

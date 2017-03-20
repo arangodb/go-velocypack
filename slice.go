@@ -23,9 +23,9 @@
 package velocypack
 
 import (
+	"bytes"
 	"encoding/binary"
 	"encoding/hex"
-	"fmt"
 	"math"
 )
 
@@ -193,6 +193,27 @@ func (s Slice) MustByteSize() ValueLength {
 		panic(err)
 	} else {
 		return v
+	}
+}
+
+// Next returns the Slice that directly follows the given slice.
+// Same as s[s.ByteSize:]
+func (s Slice) Next() (Slice, error) {
+	size, err := s.ByteSize()
+	if err != nil {
+		return nil, WithStack(err)
+	}
+	return Slice(s[size:]), nil
+}
+
+// MustNext returns the Slice that directly follows the given slice.
+// Same as s[s.ByteSize:]
+// Panics in case of an error.
+func (s Slice) MustNext() Slice {
+	if result, err := s.Next(); err != nil {
+		panic(err)
+	} else {
+		return result
 	}
 }
 
@@ -435,6 +456,50 @@ func (s Slice) MustGetStringLength() ValueLength {
 	}
 }
 
+// CompareString compares the string value in the slice with the given string.
+// s == value -> 0
+// s < value -> -1
+// s > value -> 1
+func (s Slice) CompareString(value string) (int, error) {
+	k, err := s.GetString()
+	if err != nil {
+		return 0, WithStack(err)
+	}
+	return bytes.Compare([]byte(k), []byte(value)), nil
+}
+
+// MustCompareString compares the string value in the slice with the given string.
+// s == value -> 0
+// s < value -> -1
+// s > value -> 1
+// Panics in case of an error.
+func (s Slice) MustCompareString(value string) int {
+	if result, err := s.CompareString(value); err != nil {
+		panic(err)
+	} else {
+		return result
+	}
+}
+
+// IsEqualString compares the string value in the slice with the given string for equivalence.
+func (s Slice) IsEqualString(value string) (bool, error) {
+	k, err := s.GetString()
+	if err != nil {
+		return false, WithStack(err)
+	}
+	return k == value, nil
+}
+
+// MustIsEqualString compares the string value in the slice with the given string for equivalence.
+// Panics in case of an error.
+func (s Slice) MustIsEqualString(value string) bool {
+	if result, err := s.IsEqualString(value); err != nil {
+		panic(err)
+	} else {
+		return result
+	}
+}
+
 // GetBinary return the value for a Binary object
 func (s Slice) GetBinary() ([]byte, error) {
 	if !s.IsBinary() {
@@ -609,6 +674,137 @@ func indexEntrySize(head byte) ValueLength {
 	return ValueLength(widthMap[head])
 }
 
+// Get looks for the specified attribute inside an Object
+// returns a Slice(ValueType::None) if not found
+func (s Slice) Get(attribute string) (Slice, error) {
+	if !s.IsObject() {
+		return nil, InvalidTypeError{"Expecting Object"}
+	}
+
+	h := s.head()
+	if h == 0x0a {
+		// special case, empty object
+		return nil, nil
+	}
+
+	if h == 0x14 {
+		// compact Object
+		value, err := s.getFromCompactObject(attribute)
+		return value, WithStack(err)
+	}
+
+	offsetSize := ValueLength(indexEntrySize(h))
+	VELOCYPACK_ASSERT(offsetSize > 0)
+	end := ValueLength(readIntegerNonEmpty(s[1:], int(offsetSize)))
+
+	// read number of items
+	var n ValueLength
+	var ieBase ValueLength
+	if offsetSize < 8 {
+		n = ValueLength(readIntegerNonEmpty(s[1+offsetSize:], int(offsetSize)))
+		ieBase = end - n*offsetSize
+	} else {
+		n = ValueLength(readIntegerNonEmpty(s[end-offsetSize:], int(offsetSize)))
+		ieBase = end - n*offsetSize - offsetSize
+	}
+
+	if n == 1 {
+		// Just one attribute, there is no index table!
+		key := Slice(s[s.findDataOffset(h):])
+
+		if key.IsString() {
+			if eq, err := key.IsEqualString(attribute); err != nil {
+				return nil, WithStack(err)
+			} else if eq {
+				value, err := key.Next()
+				return value, WithStack(err)
+			}
+			// fall through to returning None Slice below
+		} else if key.IsSmallInt() || key.IsUInt() {
+			// translate key
+			if AttributeTranslator == nil {
+				return nil, WithStack(NeedAttributeTranslatorError{})
+			}
+			if eq, err := key.translateUnchecked().IsEqualString(attribute); err != nil {
+				return nil, WithStack(err)
+			} else if eq {
+				value, err := key.Next()
+				return value, WithStack(err)
+			}
+		}
+
+		// no match or invalid key type
+		return nil, nil
+	}
+
+	// only use binary search for attributes if we have at least this many entries
+	// otherwise we'll always use the linear search
+	const SortedSearchEntriesThreshold = ValueLength(4)
+
+	// bool const isSorted = (h >= 0x0b && h <= 0x0e);
+	if n >= SortedSearchEntriesThreshold && (h >= 0x0b && h <= 0x0e) {
+		// This means, we have to handle the special case n == 1 only
+		// in the linear search!
+		switch offsetSize {
+		case 1:
+			result, err := s.searchObjectKeyBinary(attribute, ieBase, n, 1)
+			return result, WithStack(err)
+		case 2:
+			result, err := s.searchObjectKeyBinary(attribute, ieBase, n, 2)
+			return result, WithStack(err)
+		case 4:
+			result, err := s.searchObjectKeyBinary(attribute, ieBase, n, 4)
+			return result, WithStack(err)
+		case 8:
+			result, err := s.searchObjectKeyBinary(attribute, ieBase, n, 8)
+			return result, WithStack(err)
+		}
+	}
+
+	result, err := s.searchObjectKeyLinear(attribute, ieBase, offsetSize, n)
+	return result, WithStack(err)
+}
+
+// MustGet looks for the specified attribute inside an Object
+// returns a Slice(ValueType::None) if not found
+// Panics in case of an error.
+func (s Slice) MustGet(attribute string) Slice {
+	if result, err := s.Get(attribute); err != nil {
+		panic(err)
+	} else {
+		return result
+	}
+}
+
+func (s Slice) getFromCompactObject(attribute string) (Slice, error) {
+	it, err := NewObjectIterator(s)
+	if err != nil {
+		return nil, WithStack(err)
+	}
+	for it.IsValid() {
+		key, err := it.Key(false)
+		if err != nil {
+			return nil, WithStack(err)
+		}
+		k, err := key.makeKey()
+		if err != nil {
+			return nil, WithStack(err)
+		}
+		if eq, err := k.IsEqualString(attribute); err != nil {
+			return nil, WithStack(err)
+		} else if eq {
+			value, err := key.Next()
+			return value, WithStack(err)
+		}
+
+		if err := it.Next(); err != nil {
+			return nil, WithStack(err)
+		}
+	}
+	// not found
+	return nil, nil
+}
+
 func (s Slice) findDataOffset(head byte) ValueLength {
 	// Must be called for a nonempty array or object at start():
 	VELOCYPACK_ASSERT(head <= 0x12)
@@ -758,18 +954,167 @@ func (s Slice) getNthKey(index ValueLength, translate bool) (Slice, error) {
 	return result, nil
 }
 
+// getNthValue extract the nth value from an Object
+func (s Slice) getNthValue(index ValueLength) (Slice, error) {
+	key, err := s.getNthKey(index, false)
+	if err != nil {
+		return nil, WithStack(err)
+	}
+	value, err := key.Next()
+	return value, WithStack(err)
+}
+
 func (s Slice) makeKey() (Slice, error) {
 	if s.IsString() {
 		return s, nil
 	}
 	if s.IsSmallInt() || s.IsUInt() {
-		return nil, WithStack(fmt.Errorf("makeKey not implemented for SmallInt || UInt"))
-		/*  if (Options::Defaults.attributeTranslator == nullptr) {
-		      throw Exception(Exception::NeedAttributeTranslator);
-		    }
-		    return translateUnchecked();
-		*/
+		if AttributeTranslator == nil {
+			return nil, WithStack(NeedAttributeTranslatorError{})
+		}
+		return s.translateUnchecked(), nil
 	}
 
 	return nil, InvalidTypeError{"Cannot translate key of this type"}
+}
+
+// perform a linear search for the specified attribute inside an Object
+func (s Slice) searchObjectKeyLinear(attribute string, ieBase, offsetSize, n ValueLength) (Slice, error) {
+	useTranslator := AttributeTranslator != nil
+
+	for index := ValueLength(0); index < n; index++ {
+		offset := ValueLength(ieBase + index*offsetSize)
+		key := Slice(s[readIntegerNonEmpty(s[offset:], int(offsetSize)):])
+
+		if key.IsString() {
+			if eq, err := key.IsEqualString(attribute); err != nil {
+				return nil, WithStack(err)
+			} else if !eq {
+				continue
+			}
+		} else if key.IsSmallInt() || key.IsUInt() {
+			// translate key
+			if !useTranslator {
+				// no attribute translator
+				return nil, WithStack(NeedAttributeTranslatorError{})
+			}
+			if eq, err := key.translateUnchecked().IsEqualString(attribute); err != nil {
+				return nil, WithStack(err)
+			} else if !eq {
+				continue
+			}
+		} else {
+			// invalid key type
+			return nil, nil
+		}
+
+		// key is identical. now return value
+		value, err := key.Next()
+		return value, WithStack(err)
+	}
+
+	// nothing found
+	return nil, nil
+}
+
+// perform a binary search for the specified attribute inside an Object
+//template<ValueLength offsetSize>
+func (s Slice) searchObjectKeyBinary(attribute string,
+	ieBase ValueLength,
+	n ValueLength,
+	offsetSize ValueLength) (Slice, error) {
+	useTranslator := AttributeTranslator != nil
+	VELOCYPACK_ASSERT(n > 0)
+
+	l := ValueLength(0)
+	r := ValueLength(n - 1)
+	index := ValueLength(r / 2)
+
+	for {
+		offset := ValueLength(ieBase + index*offsetSize)
+		key := Slice(s[readIntegerFixed(s[offset:], offsetSize):])
+
+		var res int
+		var err error
+		if key.IsString() {
+			res, err = key.CompareString(attribute)
+			if err != nil {
+				return nil, WithStack(err)
+			}
+		} else if key.IsSmallInt() || key.IsUInt() {
+			// translate key
+			if !useTranslator {
+				// no attribute translator
+				return nil, NeedAttributeTranslatorError{}
+			}
+			res, err = key.translateUnchecked().CompareString(attribute)
+			if err != nil {
+				return nil, WithStack(err)
+			}
+		} else {
+			// invalid key
+			return nil, nil
+		}
+
+		if res == 0 {
+			// found. now return a Slice pointing at the value
+			keySize, err := key.ByteSize()
+			if err != nil {
+				return nil, WithStack(err)
+			}
+			return Slice(key[keySize:]), nil
+		}
+
+		if res > 0 {
+			if index == 0 {
+				return nil, nil
+			}
+			r = index - 1
+		} else {
+			l = index + 1
+		}
+		if r < l {
+			return nil, nil
+		}
+
+		// determine new midpoint
+		index = l + ((r - l) / 2)
+	}
+}
+
+// translates an integer key into a string
+func (s Slice) translate() (Slice, error) {
+	if !s.IsSmallInt() && !s.IsUInt() {
+		return nil, WithStack(InvalidTypeError{"Cannot translate key of this type"})
+	}
+	if AttributeTranslator == nil {
+		return nil, WithStack(NeedAttributeTranslatorError{})
+	}
+	return s.translateUnchecked(), nil
+}
+
+// return the value for a UInt object, without checks!
+// returns 0 for invalid values/types
+func (s Slice) getUIntUnchecked() uint64 {
+	h := s.head()
+	if h >= 0x28 && h <= 0x2f {
+		// UInt
+		return readIntegerNonEmpty(s[1:], int(h-0x27))
+	}
+
+	if h >= 0x30 && h <= 0x39 {
+		// Smallint >= 0
+		return uint64(h - 0x30)
+	}
+	return 0
+}
+
+// translates an integer key into a string, without checks
+func (s Slice) translateUnchecked() Slice {
+	id := s.getUIntUnchecked()
+	key := AttributeTranslator.IDToString(id)
+	if key == "" {
+		return nil
+	}
+	return StringSlice(key)
 }

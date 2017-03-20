@@ -67,6 +67,20 @@ func IsIndexOutOfBounds(err error) bool {
 	return ok
 }
 
+// NeedAttributeTranslatorError indicates a lack of object key translator (smallint|uint -> string).
+type NeedAttributeTranslatorError struct{}
+
+// Error implements the error interface for NeedAttributeTranslatorError.
+func (e NeedAttributeTranslatorError) Error() string {
+	return "need attribute translator"
+}
+
+// IsNeedAttributeTranslator returns true if the given error is an NeedAttributeTranslatorError.
+func IsNeedAttributeTranslator(err error) bool {
+	_, ok := Cause(err).(NeedAttributeTranslatorError)
+	return ok
+}
+
 // InternalError indicates an error that the client cannot prevent.
 type InternalError struct {
 }
