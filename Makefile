@@ -34,10 +34,11 @@ $(GOBUILDDIR):
 
 # All unit tests
 run-tests: $(GOBUILDDIR)
+	@GOPATH=$(GOBUILDDIR) go get github.com/stretchr/testify/assert
 	@docker run \
 		--rm \
 		-v $(ROOTDIR):/usr/code \
 		-e GOPATH=/usr/code/.gobuild \
 		-w /usr/code/ \
 		golang:$(GOVERSION) \
-		go test -cover $(TESTOPTIONS) $(REPOPATH)/test
+		go test -cover $(TESTOPTIONS) $(REPOPATH) $(REPOPATH)/test

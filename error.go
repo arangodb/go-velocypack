@@ -96,6 +96,20 @@ func IsInternal(err error) bool {
 	return ok
 }
 
+// BuilderNeedOpenArrayError indicates an (invalid) attempt to open an array/object when that is not allowed.
+type BuilderNeedOpenArrayError struct{}
+
+// Error implements the error interface for BuilderNeedOpenArrayError.
+func (e BuilderNeedOpenArrayError) Error() string {
+	return "builder need open array"
+}
+
+// IsBuilderNeedOpenArray returns true if the given error is an BuilderNeedOpenArrayError.
+func IsBuilderNeedOpenArray(err error) bool {
+	_, ok := Cause(err).(BuilderNeedOpenArrayError)
+	return ok
+}
+
 var (
 	// WithStack is called on every return of an error to add stacktrace information to the error.
 	// When setting this function, also set the Cause function.
