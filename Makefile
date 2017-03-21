@@ -31,3 +31,13 @@ clean:
 $(GOBUILDDIR):
 	@mkdir -p $(ORGDIR)
 	@rm -f $(REPODIR) && ln -s ../../../.. $(REPODIR)
+
+# All unit tests
+run-tests: $(GOBUILDDIR)
+	@docker run \
+		--rm \
+		-v $(ROOTDIR):/usr/code \
+		-e GOPATH=/usr/code/.gobuild \
+		-w /usr/code/ \
+		golang:$(GOVERSION) \
+		go test -cover $(TESTOPTIONS) $(REPOPATH)/test
