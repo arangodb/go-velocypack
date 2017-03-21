@@ -110,6 +110,20 @@ func IsBuilderNeedOpenArray(err error) bool {
 	return ok
 }
 
+// BuilderNeedOpenObjectError indicates an (invalid) attempt to open an array/object when that is not allowed.
+type BuilderNeedOpenObjectError struct{}
+
+// Error implements the error interface for BuilderNeedOpenObjectError.
+func (e BuilderNeedOpenObjectError) Error() string {
+	return "builder need open object"
+}
+
+// IsBuilderNeedOpenObject returns true if the given error is an BuilderNeedOpenObjectError.
+func IsBuilderNeedOpenObject(err error) bool {
+	_, ok := Cause(err).(BuilderNeedOpenObjectError)
+	return ok
+}
+
 // BuilderNeedOpenCompoundError indicates an (invalid) attempt to close an array/object that is already closed.
 type BuilderNeedOpenCompoundError struct{}
 
@@ -134,6 +148,64 @@ func (e DuplicateAttributeNameError) Error() string {
 // IsDuplicateAttributeName returns true if the given error is an DuplicateAttributeNameError.
 func IsDuplicateAttributeName(err error) bool {
 	_, ok := Cause(err).(DuplicateAttributeNameError)
+	return ok
+}
+
+// BuilderNotSealedError is returned when a call is made to Builder.Bytes without being closed.
+type BuilderNotSealedError struct{}
+
+// Error implements the error interface for BuilderNotSealedError.
+func (e BuilderNotSealedError) Error() string {
+	return "builder not sealed"
+}
+
+// IsBuilderNotSealed returns true if the given error is an BuilderNotSealedError.
+func IsBuilderNotSealed(err error) bool {
+	_, ok := Cause(err).(BuilderNotSealedError)
+	return ok
+}
+
+// BuilderKeyAlreadyWrittenError is returned when a call is made to Builder.Bytes without being closed.
+type BuilderKeyAlreadyWrittenError struct{}
+
+// Error implements the error interface for BuilderKeyAlreadyWrittenError.
+func (e BuilderKeyAlreadyWrittenError) Error() string {
+	return "builder key already written"
+}
+
+// IsBuilderKeyAlreadyWritten returns true if the given error is an BuilderKeyAlreadyWrittenError.
+func IsBuilderKeyAlreadyWritten(err error) bool {
+	_, ok := Cause(err).(BuilderKeyAlreadyWrittenError)
+	return ok
+}
+
+// BuilderUnexpectedTypeError is returned when a Builder function received an invalid type.
+type BuilderUnexpectedTypeError struct {
+	Message string
+}
+
+// Error implements the error interface for BuilderUnexpectedTypeError.
+func (e BuilderUnexpectedTypeError) Error() string {
+	return e.Message
+}
+
+// IsBuilderUnexpectedType returns true if the given error is an BuilderUnexpectedTypeError.
+func IsBuilderUnexpectedType(err error) bool {
+	_, ok := Cause(err).(BuilderUnexpectedTypeError)
+	return ok
+}
+
+// BuilderKeyMustBeStringError is returned when a key is not of type string.
+type BuilderKeyMustBeStringError struct{}
+
+// Error implements the error interface for BuilderKeyMustBeStringError.
+func (e BuilderKeyMustBeStringError) Error() string {
+	return "builder key must be string"
+}
+
+// IsBuilderKeyMustBeString returns true if the given error is an BuilderKeyMustBeStringError.
+func IsBuilderKeyMustBeString(err error) bool {
+	_, ok := Cause(err).(BuilderKeyMustBeStringError)
 	return ok
 }
 

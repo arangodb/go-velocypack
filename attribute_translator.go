@@ -27,5 +27,5 @@ var AttributeTranslator AttributeIDTranslator
 // AttributeIDTranslator is used to translation integer style object keys to strings.
 type AttributeIDTranslator interface {
 	IDToString(id uint64) string
-	StringToID(key string) uint64
+	StringToID(key string) Slice
 }

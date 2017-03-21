@@ -30,6 +30,14 @@ func (iv *indexVector) Add(v ValueLength) {
 	*iv = append(*iv, v)
 }
 
+// RemoveLast removes the last index position from the end of the list.
+func (iv *indexVector) RemoveLast() {
+	l := len(*iv)
+	if l > 0 {
+		*iv = (*iv)[:l-1]
+	}
+}
+
 // Clear removes all entries
 func (iv *indexVector) Clear() {
 	if len(*iv) > 0 {
