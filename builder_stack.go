@@ -49,7 +49,7 @@ func (s *builderStack) Tos() ValueLength {
 	return 0
 }
 
-// IsEmpty returns 0 if there are no values on the stack.
+// IsEmpty returns true if there are no values on the stack.
 func (s *builderStack) IsEmpty() bool {
 	l := len(*s)
 	return l == 0

@@ -110,6 +110,33 @@ func IsBuilderNeedOpenArray(err error) bool {
 	return ok
 }
 
+// BuilderNeedOpenCompoundError indicates an (invalid) attempt to close an array/object that is already closed.
+type BuilderNeedOpenCompoundError struct{}
+
+// Error implements the error interface for BuilderNeedOpenCompoundError.
+func (e BuilderNeedOpenCompoundError) Error() string {
+	return "builder need open array"
+}
+
+// IsBuilderNeedOpenCompound returns true if the given error is an BuilderNeedOpenCompoundError.
+func IsBuilderNeedOpenCompound(err error) bool {
+	_, ok := Cause(err).(BuilderNeedOpenCompoundError)
+	return ok
+}
+
+type DuplicateAttributeNameError struct{}
+
+// Error implements the error interface for DuplicateAttributeNameError.
+func (e DuplicateAttributeNameError) Error() string {
+	return "duplicate key name"
+}
+
+// IsDuplicateAttributeName returns true if the given error is an DuplicateAttributeNameError.
+func IsDuplicateAttributeName(err error) bool {
+	_, ok := Cause(err).(DuplicateAttributeNameError)
+	return ok
+}
+
 var (
 	// WithStack is called on every return of an error to add stacktrace information to the error.
 	// When setting this function, also set the Cause function.

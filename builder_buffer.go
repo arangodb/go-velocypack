@@ -71,24 +71,30 @@ func (b *builderBuffer) Write(v []byte) {
 
 // ReserveSpace ensures that at least n bytes can be added to the buffer without allocating new memory.
 func (b *builderBuffer) ReserveSpace(n uint) {
-	l := len(*b)
-	b.grow(n)
-	*b = (*b)[:l]
+	if n > 0 {
+		l := len(*b)
+		b.grow(n)
+		*b = (*b)[:l]
+	}
 }
 
 // Shrink reduces the length of the buffer by n elements (removing the last elements).
 func (b *builderBuffer) Shrink(n uint) {
-	newLen := uint(len(*b)) - n
-	if newLen < 0 {
-		newLen = 0
+	if n > 0 {
+		newLen := uint(len(*b)) - n
+		if newLen < 0 {
+			newLen = 0
+		}
+		*b = (*b)[0:newLen]
 	}
-	*b = (*b)[0:newLen]
 }
 
 // Grow adds n elements to the buffer, returning a slice where the added elements start.
 func (b *builderBuffer) Grow(n uint) []byte {
 	l := len(*b)
-	b.grow(n)
+	if n > 0 {
+		b.grow(n)
+	}
 	return (*b)[l:]
 }
 

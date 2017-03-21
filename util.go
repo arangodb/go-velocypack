@@ -94,6 +94,28 @@ func readVariableValueLength(source []byte, reverse bool) ValueLength {
 	return length
 }
 
+// store a variable length integer in unsigned LEB128 format
+func storeVariableValueLength(dst []byte, offset, value ValueLength, reverse bool) {
+	VELOCYPACK_ASSERT(value > 0)
+
+	idx := offset
+	if reverse {
+		for value >= 0x80 {
+			dst[idx] = byte(value | 0x80)
+			idx--
+			value >>= 7
+		}
+		dst[idx] = byte(value & 0x7f)
+	} else {
+		for value >= 0x80 {
+			dst[idx] = byte(value | 0x80)
+			idx++
+			value >>= 7
+		}
+		dst[idx] = byte(value & 0x7f)
+	}
+}
+
 // optionalBool returns the first arg element if available, otherwise returns defaultValue.
 func optionalBool(arg []bool, defaultValue bool) bool {
 	if len(arg) == 0 {
