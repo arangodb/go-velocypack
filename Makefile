@@ -18,7 +18,7 @@ REPOPATH := $(ORGPATH)/$(REPONAME)
 
 SOURCES := $(shell find . -name '*.go')
 
-.PHONY: all build clean 
+.PHONY: all build clean run-tests show-coverage
 
 all: build
 
@@ -41,4 +41,7 @@ run-tests: $(GOBUILDDIR)
 		-e GOPATH=/usr/code/.gobuild \
 		-w /usr/code/ \
 		golang:$(GOVERSION) \
-		go test -cover $(TESTOPTIONS) $(REPOPATH) $(REPOPATH)/test
+		sh -c "go test $(TESTOPTIONS) $(REPOPATH) && go test -cover -coverpkg $(REPOPATH) -coverprofile=coverage.out $(TESTOPTIONS) $(REPOPATH)/test"
+
+show-coverage: run-tests
+	go tool cover -html coverage.out 

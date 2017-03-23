@@ -330,6 +330,44 @@ func (b *Builder) IsClosed() bool {
 	return b.stack.IsEmpty()
 }
 
+// HasKey checks whether an Object value has a specific key attribute.
+func (b *Builder) HasKey(key string) (bool, error) {
+	if b.stack.IsEmpty() {
+		return false, WithStack(BuilderNeedOpenObjectError{})
+	}
+	tos := b.stack.Tos()
+	if b.buf[tos] != 0x0b && b.buf[tos] != 0x14 {
+		return false, WithStack(BuilderNeedOpenObjectError{})
+	}
+	index := b.index[len(b.stack)-1]
+	if index.IsEmpty() {
+		return false, nil
+	}
+	for _, idx := range index {
+		s := Slice(b.buf[tos+idx:])
+		k, err := s.makeKey()
+		if err != nil {
+			return false, WithStack(err)
+		}
+		if eq, err := k.IsEqualString(key); err != nil {
+			return false, WithStack(err)
+		} else if eq {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+// MustHasKey checks whether an Object value has a specific key attribute.
+// Panics in case of an error.
+func (b *Builder) MustHasKey(key string) bool {
+	if result, err := b.HasKey(key); err != nil {
+		panic(err)
+	} else {
+		return result
+	}
+}
+
 // addNull adds a null value to the buffer.
 func (b *Builder) addNull() {
 	b.buf.WriteByte(0x18)
