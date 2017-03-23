@@ -209,6 +209,20 @@ func IsBuilderKeyMustBeString(err error) bool {
 	return ok
 }
 
+// BuilderNeedSubValueError is returned when a RemoveLast is called without any value in an object/array.
+type BuilderNeedSubValueError struct{}
+
+// Error implements the error interface for BuilderNeedSubValueError.
+func (e BuilderNeedSubValueError) Error() string {
+	return "builder need sub value"
+}
+
+// IsBuilderNeedSubValue returns true if the given error is an BuilderNeedSubValueError.
+func IsBuilderNeedSubValue(err error) bool {
+	_, ok := Cause(err).(BuilderNeedSubValueError)
+	return ok
+}
+
 var (
 	// WithStack is called on every return of an error to add stacktrace information to the error.
 	// When setting this function, also set the Cause function.

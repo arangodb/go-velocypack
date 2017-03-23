@@ -368,6 +368,75 @@ func (b *Builder) MustHasKey(key string) bool {
 	}
 }
 
+// GetKey returns the value for a specific key of an Object value.
+// Returns Slice of type None when key is not found.
+func (b *Builder) GetKey(key string) (Slice, error) {
+	if b.stack.IsEmpty() {
+		return nil, WithStack(BuilderNeedOpenObjectError{})
+	}
+	tos := b.stack.Tos()
+	if b.buf[tos] != 0x0b && b.buf[tos] != 0x14 {
+		return nil, WithStack(BuilderNeedOpenObjectError{})
+	}
+	index := b.index[len(b.stack)-1]
+	if index.IsEmpty() {
+		return nil, nil
+	}
+	for _, idx := range index {
+		s := Slice(b.buf[tos+idx:])
+		k, err := s.makeKey()
+		if err != nil {
+			return nil, WithStack(err)
+		}
+		if eq, err := k.IsEqualString(key); err != nil {
+			return nil, WithStack(err)
+		} else if eq {
+			value, err := s.Next()
+			if err != nil {
+				return nil, WithStack(err)
+			}
+			return value, nil
+		}
+	}
+	return nil, nil
+}
+
+// MustGetKey returns the value for a specific key of an Object value.
+// Returns Slice of type None when key is not found.
+// Panics in case of an error.
+func (b *Builder) MustGetKey(key string) Slice {
+	if result, err := b.GetKey(key); err != nil {
+		panic(err)
+	} else {
+		return result
+	}
+}
+
+// RemoveLast removes last subvalue written to an (unclosed) object or array.
+func (b *Builder) RemoveLast() error {
+	if b.stack.IsEmpty() {
+		return WithStack(BuilderNeedOpenCompoundError{})
+	}
+	tos := b.stack.Tos()
+	index := &b.index[len(b.stack)-1]
+	if index.IsEmpty() {
+		return WithStack(BuilderNeedSubValueError{})
+	}
+	newLength := tos + (*index)[len(*index)-1]
+	lastSize := b.buf.Len() - newLength
+	b.buf.Shrink(uint(lastSize))
+	index.RemoveLast()
+	return nil
+}
+
+// MustRemoveLast removes last subvalue written to an (unclosed) object or array.
+// Panics in case of an error.
+func (b *Builder) MustRemoveLast() {
+	if err := b.RemoveLast(); err != nil {
+		panic(err)
+	}
+}
+
 // addNull adds a null value to the buffer.
 func (b *Builder) addNull() {
 	b.buf.WriteByte(0x18)

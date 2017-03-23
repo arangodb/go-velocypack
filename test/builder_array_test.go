@@ -387,3 +387,12 @@ func TestBuilderAddOnNonArray(t *testing.T) {
 	b.MustAddValue(velocypack.NewObjectValue())
 	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderKeyMustBeString, t)(b.AddValue(velocypack.NewBoolValue(true)))
 }
+
+func TestBuilderIsOpenArray(t *testing.T) {
+	var b velocypack.Builder
+	ASSERT_FALSE(b.IsOpenArray(), t)
+	b.MustOpenArray()
+	ASSERT_TRUE(b.IsOpenArray(), t)
+	b.MustClose()
+	ASSERT_FALSE(b.IsOpenArray(), t)
+}

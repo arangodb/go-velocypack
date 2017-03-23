@@ -752,6 +752,25 @@ func (s Slice) MustGet(attribute string) Slice {
 	}
 }
 
+// HasKey returns true if the slice is an object that has a given key.
+func (s Slice) HasKey(key string) (bool, error) {
+	if result, err := s.Get(key); err != nil {
+		return false, WithStack(err)
+	} else {
+		return !result.IsNone(), nil
+	}
+}
+
+// MustHasKey returns true if the slice is an object that has a given key.
+// Panics in case of an error.
+func (s Slice) MustHasKey(key string) bool {
+	if result, err := s.HasKey(key); err != nil {
+		panic(err)
+	} else {
+		return result
+	}
+}
+
 func (s Slice) getFromCompactObject(attribute string) (Slice, error) {
 	it, err := NewObjectIterator(s)
 	if err != nil {

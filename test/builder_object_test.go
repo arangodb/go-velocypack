@@ -286,3 +286,174 @@ func TestBuilderAddOnNonObject(t *testing.T) {
 	b.MustAddValue(velocypack.NewArrayValue())
 	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNeedOpenObject, t)(b.AddKeyValue("foo", velocypack.NewBoolValue(true)))
 }
+
+func TestBuilderIsOpenObject(t *testing.T) {
+	var b velocypack.Builder
+	ASSERT_FALSE(b.IsOpenObject(), t)
+	b.MustOpenObject()
+	ASSERT_TRUE(b.IsOpenObject(), t)
+	b.MustClose()
+	ASSERT_FALSE(b.IsOpenObject(), t)
+}
+
+func TestBuilderHasKeyNonObject(t *testing.T) {
+	var b velocypack.Builder
+	b.AddValue(velocypack.NewIntValue(1))
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNeedOpenObject, t)(b.HasKey("foo"))
+}
+
+func TestBuilderHasKeyArray(t *testing.T) {
+	var b velocypack.Builder
+	b.AddValue(velocypack.NewArrayValue())
+	b.AddValue(velocypack.NewIntValue(1))
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNeedOpenObject, t)(b.HasKey("foo"))
+}
+
+func TestBuilderHasKeyEmptyObject(t *testing.T) {
+	var b velocypack.Builder
+	b.AddValue(velocypack.NewObjectValue())
+	ASSERT_FALSE(b.MustHasKey("foo"), t)
+	ASSERT_FALSE(b.MustHasKey("bar"), t)
+	ASSERT_FALSE(b.MustHasKey("baz"), t)
+	ASSERT_FALSE(b.MustHasKey("quetzalcoatl"), t)
+	b.Close()
+}
+
+func TestBuilderHasKeySubObject(t *testing.T) {
+	var b velocypack.Builder
+	b.AddValue(velocypack.NewObjectValue())
+	b.MustAddKeyValue("foo", velocypack.NewIntValue(1))
+	b.MustAddKeyValue("bar", velocypack.NewBoolValue(true))
+	ASSERT_TRUE(b.MustHasKey("foo"), t)
+	ASSERT_TRUE(b.MustHasKey("bar"), t)
+	ASSERT_FALSE(b.MustHasKey("baz"), t)
+
+	b.MustAddKeyValue("bark", velocypack.NewObjectValue())
+	ASSERT_FALSE(b.MustHasKey("bark"), t)
+	ASSERT_FALSE(b.MustHasKey("foo"), t)
+	ASSERT_FALSE(b.MustHasKey("bar"), t)
+	ASSERT_FALSE(b.MustHasKey("baz"), t)
+	b.MustClose()
+
+	ASSERT_TRUE(b.MustHasKey("foo"), t)
+	ASSERT_TRUE(b.MustHasKey("bar"), t)
+	ASSERT_TRUE(b.MustHasKey("bark"), t)
+	ASSERT_FALSE(b.MustHasKey("baz"), t)
+
+	b.MustAddKeyValue("baz", velocypack.NewIntValue(42))
+	ASSERT_TRUE(b.MustHasKey("foo"), t)
+	ASSERT_TRUE(b.MustHasKey("bar"), t)
+	ASSERT_TRUE(b.MustHasKey("bark"), t)
+	ASSERT_TRUE(b.MustHasKey("baz"), t)
+	b.Close()
+}
+
+func TestBuilderHasKeyCompact(t *testing.T) {
+	var b velocypack.Builder
+	b.AddValue(velocypack.NewObjectValue(true))
+	b.MustAddKeyValue("foo", velocypack.NewIntValue(1))
+	b.MustAddKeyValue("bar", velocypack.NewBoolValue(true))
+	ASSERT_TRUE(b.MustHasKey("foo"), t)
+	ASSERT_TRUE(b.MustHasKey("bar"), t)
+	ASSERT_FALSE(b.MustHasKey("baz"), t)
+
+	b.MustAddKeyValue("bark", velocypack.NewObjectValue())
+	ASSERT_FALSE(b.MustHasKey("bark"), t)
+	ASSERT_FALSE(b.MustHasKey("foo"), t)
+	ASSERT_FALSE(b.MustHasKey("bar"), t)
+	ASSERT_FALSE(b.MustHasKey("baz"), t)
+	b.MustClose()
+
+	ASSERT_TRUE(b.MustHasKey("foo"), t)
+	ASSERT_TRUE(b.MustHasKey("bar"), t)
+	ASSERT_TRUE(b.MustHasKey("bark"), t)
+	ASSERT_FALSE(b.MustHasKey("baz"), t)
+
+	b.MustAddKeyValue("baz", velocypack.NewIntValue(42))
+	ASSERT_TRUE(b.MustHasKey("foo"), t)
+	ASSERT_TRUE(b.MustHasKey("bar"), t)
+	ASSERT_TRUE(b.MustHasKey("bark"), t)
+	ASSERT_TRUE(b.MustHasKey("baz"), t)
+	b.Close()
+}
+
+func TestBuilderGetKeyNonObject(t *testing.T) {
+	var b velocypack.Builder
+	b.AddValue(velocypack.NewIntValue(1))
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNeedOpenObject, t)(b.GetKey("foo"))
+}
+
+func TestBuilderGetKeyArray(t *testing.T) {
+	var b velocypack.Builder
+	b.AddValue(velocypack.NewArrayValue())
+	b.AddValue(velocypack.NewIntValue(1))
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNeedOpenObject, t)(b.GetKey("foo"))
+}
+
+func TestBuilderGetKeyEmptyObject(t *testing.T) {
+	var b velocypack.Builder
+	b.AddValue(velocypack.NewObjectValue())
+	ASSERT_TRUE(b.MustGetKey("foo").IsNone(), t)
+	ASSERT_TRUE(b.MustGetKey("bar").IsNone(), t)
+	ASSERT_TRUE(b.MustGetKey("baz").IsNone(), t)
+	ASSERT_TRUE(b.MustGetKey("quetzalcoatl").IsNone(), t)
+	b.Close()
+}
+
+func TestBuilderGetKeySubObject(t *testing.T) {
+	var b velocypack.Builder
+	b.AddValue(velocypack.NewObjectValue())
+	b.MustAddKeyValue("foo", velocypack.NewIntValue(1))
+	b.MustAddKeyValue("bar", velocypack.NewBoolValue(true))
+	ASSERT_EQ(uint64(1), b.MustGetKey("foo").MustGetUInt(), t)
+	ASSERT_TRUE(b.MustGetKey("bar").IsBool(), t)
+	ASSERT_TRUE(b.MustGetKey("baz").IsNone(), t)
+
+	b.MustAddKeyValue("bark", velocypack.NewObjectValue())
+	ASSERT_TRUE(b.MustGetKey("bark").IsNone(), t)
+	ASSERT_TRUE(b.MustGetKey("foo").IsNone(), t)
+	ASSERT_TRUE(b.MustGetKey("bar").IsNone(), t)
+	ASSERT_TRUE(b.MustGetKey("baz").IsNone(), t)
+	b.MustClose()
+
+	ASSERT_EQ(uint64(1), b.MustGetKey("foo").MustGetUInt(), t)
+	ASSERT_TRUE(b.MustGetKey("bar").IsBool(), t)
+	ASSERT_TRUE(b.MustGetKey("baz").IsNone(), t)
+	ASSERT_TRUE(b.MustGetKey("bark").IsObject(), t)
+
+	b.MustAddKeyValue("baz", velocypack.NewIntValue(42))
+	ASSERT_EQ(uint64(1), b.MustGetKey("foo").MustGetUInt(), t)
+	ASSERT_TRUE(b.MustGetKey("bar").IsBool(), t)
+	ASSERT_EQ(uint64(42), b.MustGetKey("baz").MustGetUInt(), t)
+	ASSERT_TRUE(b.MustGetKey("bark").IsObject(), t)
+	b.Close()
+}
+
+func TestBuilderGetKeyCompact(t *testing.T) {
+	var b velocypack.Builder
+	b.AddValue(velocypack.NewObjectValue(true))
+	b.MustAddKeyValue("foo", velocypack.NewIntValue(1))
+	b.MustAddKeyValue("bar", velocypack.NewBoolValue(true))
+	ASSERT_EQ(uint64(1), b.MustGetKey("foo").MustGetUInt(), t)
+	ASSERT_TRUE(b.MustGetKey("bar").IsBool(), t)
+	ASSERT_TRUE(b.MustGetKey("baz").IsNone(), t)
+
+	b.MustAddKeyValue("bark", velocypack.NewObjectValue())
+	ASSERT_TRUE(b.MustGetKey("bark").IsNone(), t)
+	ASSERT_TRUE(b.MustGetKey("foo").IsNone(), t)
+	ASSERT_TRUE(b.MustGetKey("bar").IsNone(), t)
+	ASSERT_TRUE(b.MustGetKey("baz").IsNone(), t)
+	b.MustClose()
+
+	ASSERT_EQ(uint64(1), b.MustGetKey("foo").MustGetUInt(), t)
+	ASSERT_TRUE(b.MustGetKey("bar").IsBool(), t)
+	ASSERT_TRUE(b.MustGetKey("baz").IsNone(), t)
+	ASSERT_TRUE(b.MustGetKey("bark").IsObject(), t)
+
+	b.MustAddKeyValue("baz", velocypack.NewIntValue(42))
+	ASSERT_EQ(uint64(1), b.MustGetKey("foo").MustGetUInt(), t)
+	ASSERT_TRUE(b.MustGetKey("bar").IsBool(), t)
+	ASSERT_EQ(uint64(42), b.MustGetKey("baz").MustGetUInt(), t)
+	ASSERT_TRUE(b.MustGetKey("bark").IsObject(), t)
+	b.Close()
+}
