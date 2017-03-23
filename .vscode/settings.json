@@ -1,14 +1,14 @@
 // Place your settings in this file to overwrite default and user settings.
 {
-    "fileHeaderComment.parameter":{
-        "*":{
+    "fileHeaderComment.parameter": {
+        "*": {
             "commentprefix": "//",
             "company": "ArangoDB GmbH, Cologne, Germany",
             "author": "Ewout Prangsma"
         }
     },
-    "fileHeaderComment.template":{
-        "*":[
+    "fileHeaderComment.template": {
+        "*": [
             "${commentprefix} ",
             "${commentprefix} DISCLAIMER",
             "${commentprefix} ",
@@ -31,6 +31,15 @@
             "${commentprefix} Author ${author}",
             "${commentprefix} ",
             ""
+        ]
+    },
+    "emeraldwalk.runonsave": {
+        "commands": [
+            {
+                "isAsync": false,
+                "match": "\\.go$",
+                "cmd": "make -C ${workspaceRoot} run-tests"
+            }
         ]
     }
 }

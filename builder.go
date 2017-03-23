@@ -93,6 +93,48 @@ func (b *Builder) MustSlice() Slice {
 	}
 }
 
+// Size returns the actual size of the generated slice.
+// Returns an error when builder is not closed.
+func (b *Builder) Size() (ValueLength, error) {
+	if !b.IsClosed() {
+		return 0, WithStack(BuilderNotSealedError{})
+	}
+	return b.buf.Len(), nil
+}
+
+// MustSize returns the actual size of the generated slice.
+// Panics in case of an error.
+func (b *Builder) MustSize() ValueLength {
+	if result, err := b.Size(); err != nil {
+		panic(err)
+	} else {
+		return result
+	}
+}
+
+// IsEmpty returns true when no bytes have been generated yet.
+func (b *Builder) IsEmpty() bool {
+	return b.buf.IsEmpty()
+}
+
+// IsOpenObject returns true when the builder has an open object at the top of the stack.
+func (b *Builder) IsOpenObject() bool {
+	if b.stack.IsEmpty() {
+		return false
+	}
+	tos := b.stack.Tos()
+	return b.buf[tos] == 0x0b || b.buf[tos] == 0x014
+}
+
+// IsOpenArray returns true when the builder has an open array at the top of the stack.
+func (b *Builder) IsOpenArray() bool {
+	if b.stack.IsEmpty() {
+		return false
+	}
+	tos := b.stack.Tos()
+	return b.buf[tos] == 0x06 || b.buf[tos] == 0x013
+}
+
 // OpenObject starts a new object.
 // This must be closed using Close.
 func (b *Builder) OpenObject(unindexed ...bool) error {
@@ -683,8 +725,8 @@ func (b *Builder) closeCompactArrayOrObject(tos ValueLength, isArray bool, index
 		storeVariableValueLength(b.buf, tos+1, byteSize, false)
 
 		// store nrItems
-		nrItemsDst := b.buf.Grow(uint(nrItemsLen))
-		storeVariableValueLength(nrItemsDst, 0, ValueLength(len(index)), false)
+		b.buf.Grow(uint(nrItemsLen))
+		storeVariableValueLength(b.buf, tos+byteSize-1, ValueLength(len(index)), true)
 
 		b.stack.Pop()
 		return true
@@ -1060,6 +1102,14 @@ func (b *Builder) set(item Value) error {
 	}
 
 	if item.IsSlice() {
+		switch item.vt {
+		case None:
+			return WithStack(BuilderUnexpectedTypeError{"Cannot set a ValueType::None"})
+		case External:
+			return fmt.Errorf("External not supported")
+		case Custom:
+			return WithStack(fmt.Errorf("Cannot set a ValueType::Custom with this method"))
+		}
 		b.buf.Write(item.sliceValue())
 		return nil
 	}

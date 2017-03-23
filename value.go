@@ -106,6 +106,31 @@ func NewSliceValue(value Slice) Value {
 	return Value{value.Type(), value, false}
 }
 
+// NewObjectValue creates a new Value that opens a new object.
+func NewObjectValue(unindexed ...bool) Value {
+	return Value{Object, nil, optionalBool(unindexed, false)}
+}
+
+// NewArrayValue creates a new Value that opens a new array.
+func NewArrayValue(unindexed ...bool) Value {
+	return Value{Array, nil, optionalBool(unindexed, false)}
+}
+
+// NewNullValue creates a new Value of type Null.
+func NewNullValue() Value {
+	return Value{Null, nil, false}
+}
+
+// NewMinKeyValue creates a new Value of type MinKey.
+func NewMinKeyValue() Value {
+	return Value{MinKey, nil, false}
+}
+
+// NewMaxKeyValue creates a new Value of type MaxKey.
+func NewMaxKeyValue() Value {
+	return Value{MaxKey, nil, false}
+}
+
 // Type returns the ValueType of this value.
 func (v Value) Type() ValueType {
 	return v.vt

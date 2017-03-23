@@ -29,6 +29,33 @@ import (
 	velocypack "github.com/arangodb/go-velocypack"
 )
 
+func TestBuilderPrimitiveAddNone(t *testing.T) {
+	var b velocypack.Builder
+	s := velocypack.NoneSlice()
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderUnexpectedType, t)(b.Add(s))
+}
+
+func TestBuilderPrimitiveAddNull(t *testing.T) {
+	var b velocypack.Builder
+	b.MustAddValue(velocypack.NewNullValue())
+	s := b.MustSlice()
+	ASSERT_TRUE(s.IsNull(), t)
+}
+
+func TestBuilderPrimitiveAddMinKey(t *testing.T) {
+	var b velocypack.Builder
+	b.MustAddValue(velocypack.NewMinKeyValue())
+	s := b.MustSlice()
+	ASSERT_TRUE(s.IsMinKey(), t)
+}
+
+func TestBuilderPrimitiveAddMaxKey(t *testing.T) {
+	var b velocypack.Builder
+	b.MustAddValue(velocypack.NewMaxKeyValue())
+	s := b.MustSlice()
+	ASSERT_TRUE(s.IsMaxKey(), t)
+}
+
 func TestBuilderPrimitiveAddBool(t *testing.T) {
 	tests := []bool{true, false}
 	for _, test := range tests {
