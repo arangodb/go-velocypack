@@ -1166,6 +1166,7 @@ func (b *Builder) addInternalKeyValue(attrName string, v Value) error {
 				onError()
 				return WithStack(err)
 			}
+			return nil
 		}
 		// otherwise fall through to regular behavior
 	}

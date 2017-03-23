@@ -22,10 +22,62 @@
 
 package velocypack
 
+import "sync"
+
 var AttributeTranslator AttributeIDTranslator
 
 // AttributeIDTranslator is used to translation integer style object keys to strings.
 type AttributeIDTranslator interface {
 	IDToString(id uint64) string
 	StringToID(key string) Slice
+}
+
+type EditableAttributeIDTranslator interface {
+	AttributeIDTranslator
+	Add(key string, id uint64)
+}
+
+// attributeTranslator is a simple implementation of AttributeIDTranslator
+type attributeTranslator struct {
+	mutex      sync.RWMutex
+	idToString map[uint64]string
+	stringToID map[string]Slice
+}
+
+// NewAttributeIDTranslator creates a map based implementation of an AttributeIDTranslator.
+func NewAttributeIDTranslator() EditableAttributeIDTranslator {
+	return &attributeTranslator{
+		idToString: make(map[uint64]string),
+		stringToID: make(map[string]Slice),
+	}
+}
+
+func (t *attributeTranslator) Add(key string, id uint64) {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+
+	t.idToString[id] = key
+	var b Builder
+	b.addUInt(id)
+	t.stringToID[key] = b.MustSlice()
+}
+
+func (t *attributeTranslator) IDToString(id uint64) string {
+	t.mutex.RLock()
+	defer t.mutex.RUnlock()
+
+	if s, ok := t.idToString[id]; ok {
+		return s
+	}
+	return ""
+}
+
+func (t *attributeTranslator) StringToID(key string) Slice {
+	t.mutex.RLock()
+	defer t.mutex.RUnlock()
+
+	if s, ok := t.stringToID[key]; ok {
+		return s
+	}
+	return nil
 }
