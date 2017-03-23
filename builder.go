@@ -26,6 +26,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
+	"reflect"
 	"sort"
 )
 
@@ -104,6 +105,15 @@ func (b *Builder) OpenObject(unindexed ...bool) error {
 	return WithStack(b.openCompoundValue(vType))
 }
 
+// MustOpenObject starts a new object.
+// This must be closed using Close.
+// Panics in case of an error.
+func (b *Builder) MustOpenObject(unindexed ...bool) {
+	if err := b.OpenObject(unindexed...); err != nil {
+		panic(err)
+	}
+}
+
 // OpenArray starts a new array.
 // This must be closed using Close.
 func (b *Builder) OpenArray(unindexed ...bool) error {
@@ -114,6 +124,15 @@ func (b *Builder) OpenArray(unindexed ...bool) error {
 		vType = 0x06
 	}
 	return WithStack(b.openCompoundValue(vType))
+}
+
+// MustOpenArray starts a new array.
+// This must be closed using Close.
+// Panics in case of an error.
+func (b *Builder) MustOpenArray(unindexed ...bool) {
+	if err := b.OpenArray(unindexed...); err != nil {
+		panic(err)
+	}
 }
 
 // Close ends an open object or array.
@@ -256,46 +275,53 @@ func (b *Builder) Close() error {
 	return nil
 }
 
+// MustClose ends an open object or array.
+// Panics in case of an error.
+func (b *Builder) MustClose() {
+	if err := b.Close(); err != nil {
+		panic(err)
+	}
+}
+
 // IsClosed returns true if there are no more open objects or arrays.
 func (b *Builder) IsClosed() bool {
 	return b.stack.IsEmpty()
 }
 
-// AddNull adds a null value to the buffer.
-func (b *Builder) AddNull() error {
+// addNull adds a null value to the buffer.
+func (b *Builder) addNull() {
 	b.buf.WriteByte(0x18)
-	return nil
 }
 
-// AddFalse adds a bool false value to the buffer.
-func (b *Builder) AddFalse() error {
+// addFalse adds a bool false value to the buffer.
+func (b *Builder) addFalse() {
 	b.buf.WriteByte(0x19)
-	return nil
 }
 
-// AddTrue adds a bool true value to the buffer.
-func (b *Builder) AddTrue() error {
+// addTrue adds a bool true value to the buffer.
+func (b *Builder) addTrue() {
 	b.buf.WriteByte(0x1a)
-	return nil
 }
 
-// AddBool adds a bool value to the buffer.
-func (b *Builder) AddBool(v bool) error {
+// addBool adds a bool value to the buffer.
+func (b *Builder) addBool(v bool) {
 	if v {
-		return WithStack(b.AddTrue())
+		b.addTrue()
+	} else {
+		b.addFalse()
 	}
-	return WithStack(b.AddFalse())
 }
 
-// AddDouble adds a double value to the buffer.
-func (b *Builder) AddDouble(v float64) error {
+// addDouble adds a double value to the buffer.
+func (b *Builder) addDouble(v float64) {
 	bits := math.Float64bits(v)
+	b.buf.ReserveSpace(9)
+	b.buf.WriteByte(0x1b)
 	binary.LittleEndian.PutUint64(b.buf.Grow(8), bits)
-	return nil
 }
 
-// AddInt adds an int value to the buffer.
-func (b *Builder) AddInt(v int64) error {
+// addInt adds an int value to the buffer.
+func (b *Builder) addInt(v int64) {
 	if v >= 0 && v <= 9 {
 		b.buf.WriteByte(0x30 + byte(v))
 	} else if v < 0 && v >= -6 {
@@ -303,30 +329,27 @@ func (b *Builder) AddInt(v int64) error {
 	} else {
 		b.appendInt(v, 0x1f)
 	}
-	return nil
 }
 
-// AddUInt adds an uint value to the buffer.
-func (b *Builder) AddUInt(v uint64) error {
+// addUInt adds an uint value to the buffer.
+func (b *Builder) addUInt(v uint64) {
 	if v <= 9 {
 		b.buf.WriteByte(0x30 + byte(v))
 	} else {
 		b.appendUInt(v, 0x27)
 	}
-	return nil
 }
 
-// AddUTCDate adds an UTC date value to the buffer.
-func (b *Builder) AddUTCDate(v int64) error {
+// addUTCDate adds an UTC date value to the buffer.
+func (b *Builder) addUTCDate(v int64) {
 	x := toUInt64(v)
 	b.buf.ReserveSpace(9)
 	b.buf.WriteByte(0x1c)
 	b.appendLength(ValueLength(x), 8)
-	return nil
 }
 
-// AddString adds a string value to the buffer.
-func (b *Builder) AddString(v string) error {
+// addString adds a string value to the buffer.
+func (b *Builder) addString(v string) {
 	raw := []byte(v)
 	strLen := uint(len(raw))
 	if strLen > 126 {
@@ -340,47 +363,166 @@ func (b *Builder) AddString(v string) error {
 		b.buf.WriteByte(byte(0x40 + strLen)) // short string (with length)
 		b.buf.Write(raw)                     // string data
 	}
-	return nil
 }
 
-// AddBinary adds a binary value to the buffer.
-func (b *Builder) AddBinary(v []byte) error {
+// addBinary adds a binary value to the buffer.
+func (b *Builder) addBinary(v []byte) {
 	l := uint(len(v))
 	b.buf.ReserveSpace(1 + 8 + l)
-	b.appendLength(ValueLength(l), 8) // data length
-	b.buf.Write(v)                    // data
-	return nil
+	b.appendUInt(uint64(l), 0xbf) // data length
+	b.buf.Write(v)                // data
 }
 
-// AddIllegal adds an Illegal value to the buffer.
-func (b *Builder) AddIllegal() error {
+// addIllegal adds an Illegal value to the buffer.
+func (b *Builder) addIllegal() {
 	b.buf.WriteByte(0x17)
-	return nil
 }
 
-// AddMinKey adds a MinKey value to the buffer.
-func (b *Builder) AddMinKey() error {
+// addMinKey adds a MinKey value to the buffer.
+func (b *Builder) addMinKey() {
 	b.buf.WriteByte(0x1e)
-	return nil
 }
 
-// AddMaxKey adds a MaxKey value to the buffer.
-func (b *Builder) AddMaxKey() error {
+// addMaxKey adds a MaxKey value to the buffer.
+func (b *Builder) addMaxKey() {
 	b.buf.WriteByte(0x1f)
+}
+
+// Add adds a raw go value value to an array/raw value/object.
+func (b *Builder) Add(v interface{}) error {
+	if it, ok := v.(*ObjectIterator); ok {
+		return WithStack(b.AddKeyValuesFromIterator(it))
+	}
+	if it, ok := v.(*ArrayIterator); ok {
+		return WithStack(b.AddValuesFromIterator(it))
+	}
+	value := NewValue(v)
+	if value.IsIllegal() {
+		return WithStack(BuilderUnexpectedTypeError{fmt.Sprintf("Cannot convert value of type %s", reflect.TypeOf(v).Name())})
+	}
+	if err := b.addInternal(value); err != nil {
+		return WithStack(err)
+	}
 	return nil
 }
 
-// AddObjectValue adds a key+value to an open object.
-func (b *Builder) AddObjectValue(key string, v Value) error {
+// MustAdd adds a raw go value value to an array/raw value/object.
+// Panics in case of an error.
+func (b *Builder) MustAdd(v interface{}) {
+	if err := b.Add(v); err != nil {
+		panic(err)
+	}
+}
+
+// AddValue adds a value to an array/raw value/object.
+func (b *Builder) AddValue(v Value) error {
+	if err := b.addInternal(v); err != nil {
+		return WithStack(err)
+	}
+	return nil
+}
+
+// MustAddValue adds a value to an array/raw value/object.
+// Panics in case of an error.
+func (b *Builder) MustAddValue(v Value) {
+	if err := b.AddValue(v); err != nil {
+		panic(err)
+	}
+}
+
+// AddKeyValue adds a key+value to an open object.
+func (b *Builder) AddKeyValue(key string, v Value) error {
 	if err := b.addInternalKeyValue(key, v); err != nil {
 		return WithStack(err)
 	}
 	return nil
 }
 
-// AddArrayValue adds a value to an open array.
-func (b *Builder) AddArrayValue(v Value) error {
+// MustAddKeyValue adds a key+value to an open object.
+// Panics in case of an error.
+func (b *Builder) MustAddKeyValue(key string, v Value) {
+	if err := b.AddKeyValue(key, v); err != nil {
+		panic(err)
+	}
+}
+
+// AddValuesFromIterator adds values to an array from the given iterator.
+// The array must be opened before a call to this function and the array is left open Intentionally.
+func (b *Builder) AddValuesFromIterator(it *ArrayIterator) error {
+	if b.stack.IsEmpty() {
+		return WithStack(BuilderNeedOpenArrayError{})
+	}
+	tos := b.stack.Tos()
+	if b.buf[tos] != 0x06 && b.buf[tos] != 0x13 {
+		return WithStack(BuilderNeedOpenArrayError{})
+	}
+	for it.IsValid() {
+		v, err := it.Value()
+		if err != nil {
+			return WithStack(err)
+		}
+		if err := b.addInternal(NewSliceValue(v)); err != nil {
+			return WithStack(err)
+		}
+		if err := it.Next(); err != nil {
+			return WithStack(err)
+		}
+	}
 	return nil
+}
+
+// MustAddValuesFromIterator adds values to an array from the given iterator.
+// The array must be opened before a call to this function and the array is left open Intentionally.
+// Panics in case of an error.
+func (b *Builder) MustAddValuesFromIterator(it *ArrayIterator) {
+	if err := b.AddValuesFromIterator(it); err != nil {
+		panic(err)
+	}
+}
+
+// AddKeyValuesFromIterator adds values to an object from the given iterator.
+// The object must be opened before a call to this function and the object is left open Intentionally.
+func (b *Builder) AddKeyValuesFromIterator(it *ObjectIterator) error {
+	if b.stack.IsEmpty() {
+		return WithStack(BuilderNeedOpenObjectError{})
+	}
+	tos := b.stack.Tos()
+	if b.buf[tos] != 0x0b && b.buf[tos] != 0x14 {
+		return WithStack(BuilderNeedOpenObjectError{})
+	}
+	if b.keyWritten {
+		return WithStack(BuilderKeyAlreadyWrittenError{})
+	}
+	for it.IsValid() {
+		k, err := it.Key(true)
+		if err != nil {
+			return WithStack(err)
+		}
+		key, err := k.GetString()
+		if err != nil {
+			return WithStack(err)
+		}
+		v, err := it.Value()
+		if err != nil {
+			return WithStack(err)
+		}
+		if err := b.addInternalKeyValue(key, NewSliceValue(v)); err != nil {
+			return WithStack(err)
+		}
+		if err := it.Next(); err != nil {
+			return WithStack(err)
+		}
+	}
+	return nil
+}
+
+// MustAddKeyValuesFromIterator adds values to an object from the given iterator.
+// The object must be opened before a call to this function and the object is left open Intentionally.
+// Panics in case of an error.
+func (b *Builder) MustAddKeyValuesFromIterator(it *ObjectIterator) {
+	if err := b.AddKeyValuesFromIterator(it); err != nil {
+		panic(err)
+	}
 }
 
 // returns number of bytes required to store the value in 2s-complement
@@ -820,6 +962,23 @@ func (b *Builder) addObject(unindexed ...bool) {
 	b.addCompoundValue(h)
 }
 
+func (b *Builder) addInternal(v Value) error {
+	haveReported := false
+	if !b.stack.IsEmpty() {
+		if !b.keyWritten {
+			b.reportAdd()
+			haveReported = true
+		}
+	}
+	if err := b.set(v); err != nil {
+		if haveReported {
+			b.cleanupAdd()
+		}
+		return WithStack(err)
+	}
+	return nil
+}
+
 func (b *Builder) addInternalKeyValue(attrName string, v Value) error {
 	haveReported := false
 	if !b.stack.IsEmpty() {
@@ -900,6 +1059,11 @@ func (b *Builder) set(item Value) error {
 		return WithStack(err)
 	}
 
+	if item.IsSlice() {
+		b.buf.Write(item.sliceValue())
+		return nil
+	}
+
 	// This method builds a single further VPack item at the current
 	// append position. If this is an array or object, then an index
 	// table is created and a new ValueLength is pushed onto the stack.
@@ -907,17 +1071,11 @@ func (b *Builder) set(item Value) error {
 	case None:
 		return WithStack(BuilderUnexpectedTypeError{"Cannot set a ValueType::None"})
 	case Null:
-		if err := b.AddNull(); err != nil {
-			return WithStack(err)
-		}
+		b.addNull()
 	case Bool:
-		if err := b.AddBool(item.boolValue()); err != nil {
-			return WithStack(err)
-		}
+		b.addBool(item.boolValue())
 	case Double:
-		if err := b.AddDouble(item.doubleValue()); err != nil {
-			return WithStack(err)
-		}
+		b.addDouble(item.doubleValue())
 	case External:
 		return fmt.Errorf("External not supported")
 		/*if (options->disallowExternals) {
@@ -938,45 +1096,27 @@ func (b *Builder) set(item Value) error {
 		  break;
 		}*/
 	case SmallInt:
-		if err := b.AddInt(item.intValue()); err != nil {
-			return WithStack(err)
-		}
+		b.addInt(item.intValue())
 	case Int:
-		if err := b.AddInt(item.intValue()); err != nil {
-			return WithStack(err)
-		}
+		b.addInt(item.intValue())
 	case UInt:
-		if err := b.AddUInt(item.uintValue()); err != nil {
-			return WithStack(err)
-		}
+		b.addUInt(item.uintValue())
 	case UTCDate:
-		if err := b.AddUTCDate(item.utcDateValue()); err != nil {
-			return WithStack(err)
-		}
+		b.addUTCDate(item.utcDateValue())
 	case String:
-		if err := b.AddString(item.stringValue()); err != nil {
-			return WithStack(err)
-		}
+		b.addString(item.stringValue())
 	case Array:
 		b.addArray(item.unindexed)
 	case Object:
 		b.addObject(item.unindexed)
 	case Binary:
-		if err := b.AddBinary(item.binaryValue()); err != nil {
-			return WithStack(err)
-		}
+		b.addBinary(item.binaryValue())
 	case Illegal:
-		if err := b.AddIllegal(); err != nil {
-			return WithStack(err)
-		}
+		b.addIllegal()
 	case MinKey:
-		if err := b.AddMinKey(); err != nil {
-			return WithStack(err)
-		}
+		b.addMinKey()
 	case MaxKey:
-		if err := b.AddMaxKey(); err != nil {
-			return WithStack(err)
-		}
+		b.addMaxKey()
 	case BCD:
 		return WithStack(fmt.Errorf("Not implemented"))
 	case Custom:

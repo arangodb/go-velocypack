@@ -22,7 +22,10 @@
 
 package velocypack
 
-import "time"
+import (
+	"reflect"
+	"time"
+)
 
 // Value is a helper structure used to build VPack structures.
 // It holds a single data value with a specific type.
@@ -32,6 +35,34 @@ type Value struct {
 	unindexed bool
 }
 
+// NewValue creates a new Value with type derived from Go type of given value.
+// If the given value is not a supported type, a Value of type Illegal is returned.
+func NewValue(value interface{}) Value {
+	v := reflect.ValueOf(value)
+	switch v.Type().Kind() {
+	case reflect.Bool:
+		return NewBoolValue(v.Bool())
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return NewIntValue(v.Int())
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return NewUIntValue(v.Uint())
+	case reflect.Float32, reflect.Float64:
+		return NewDoubleValue(v.Float())
+	case reflect.String:
+		return NewStringValue(v.String())
+	}
+	if v, ok := value.([]byte); ok {
+		return NewBinaryValue(v)
+	}
+	if v, ok := value.(Slice); ok {
+		return NewSliceValue(v)
+	}
+	if v, ok := value.(Value); ok {
+		return v
+	}
+	return Value{Illegal, nil, false}
+}
+
 // NewBoolValue creates a new Value of type Bool with given value.
 func NewBoolValue(value bool) Value {
 	return Value{Bool, value, false}
@@ -39,6 +70,9 @@ func NewBoolValue(value bool) Value {
 
 // NewIntValue creates a new Value of type Int with given value.
 func NewIntValue(value int64) Value {
+	if value >= -6 && value <= 9 {
+		return Value{SmallInt, value, false}
+	}
 	return Value{Int, value, false}
 }
 
@@ -65,6 +99,27 @@ func NewBinaryValue(value []byte) Value {
 // NewUTCDateValue creates a new Value of type UTCDate with given value.
 func NewUTCDateValue(value time.Time) Value {
 	return Value{UTCDate, value, false}
+}
+
+// NewSliceValue creates a new Value of from the given slice.
+func NewSliceValue(value Slice) Value {
+	return Value{value.Type(), value, false}
+}
+
+// Type returns the ValueType of this value.
+func (v Value) Type() ValueType {
+	return v.vt
+}
+
+// IsSlice returns true when the value already contains a slice.
+func (v Value) IsSlice() bool {
+	_, ok := v.data.(Slice)
+	return ok
+}
+
+// IsIllegal returns true if the type of value is Illegal.
+func (v Value) IsIllegal() bool {
+	return v.vt == Illegal
 }
 
 func (v Value) boolValue() bool {
@@ -94,4 +149,8 @@ func (v Value) binaryValue() []byte {
 func (v Value) utcDateValue() int64 {
 	time := v.data.(time.Time)
 	return time.Unix()
+}
+
+func (v Value) sliceValue() Slice {
+	return v.data.(Slice)
 }
