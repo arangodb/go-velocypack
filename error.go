@@ -96,6 +96,147 @@ func IsInternal(err error) bool {
 	return ok
 }
 
+// BuilderNeedOpenArrayError indicates an (invalid) attempt to open an array/object when that is not allowed.
+type BuilderNeedOpenArrayError struct{}
+
+// Error implements the error interface for BuilderNeedOpenArrayError.
+func (e BuilderNeedOpenArrayError) Error() string {
+	return "builder need open array"
+}
+
+// IsBuilderNeedOpenArray returns true if the given error is an BuilderNeedOpenArrayError.
+func IsBuilderNeedOpenArray(err error) bool {
+	_, ok := Cause(err).(BuilderNeedOpenArrayError)
+	return ok
+}
+
+// BuilderNeedOpenObjectError indicates an (invalid) attempt to open an array/object when that is not allowed.
+type BuilderNeedOpenObjectError struct{}
+
+// Error implements the error interface for BuilderNeedOpenObjectError.
+func (e BuilderNeedOpenObjectError) Error() string {
+	return "builder need open object"
+}
+
+// IsBuilderNeedOpenObject returns true if the given error is an BuilderNeedOpenObjectError.
+func IsBuilderNeedOpenObject(err error) bool {
+	_, ok := Cause(err).(BuilderNeedOpenObjectError)
+	return ok
+}
+
+// BuilderNeedOpenCompoundError indicates an (invalid) attempt to close an array/object that is already closed.
+type BuilderNeedOpenCompoundError struct{}
+
+// Error implements the error interface for BuilderNeedOpenCompoundError.
+func (e BuilderNeedOpenCompoundError) Error() string {
+	return "builder need open array"
+}
+
+// IsBuilderNeedOpenCompound returns true if the given error is an BuilderNeedOpenCompoundError.
+func IsBuilderNeedOpenCompound(err error) bool {
+	_, ok := Cause(err).(BuilderNeedOpenCompoundError)
+	return ok
+}
+
+type DuplicateAttributeNameError struct{}
+
+// Error implements the error interface for DuplicateAttributeNameError.
+func (e DuplicateAttributeNameError) Error() string {
+	return "duplicate key name"
+}
+
+// IsDuplicateAttributeName returns true if the given error is an DuplicateAttributeNameError.
+func IsDuplicateAttributeName(err error) bool {
+	_, ok := Cause(err).(DuplicateAttributeNameError)
+	return ok
+}
+
+// BuilderNotSealedError is returned when a call is made to Builder.Bytes without being closed.
+type BuilderNotSealedError struct{}
+
+// Error implements the error interface for BuilderNotSealedError.
+func (e BuilderNotSealedError) Error() string {
+	return "builder not sealed"
+}
+
+// IsBuilderNotSealed returns true if the given error is an BuilderNotSealedError.
+func IsBuilderNotSealed(err error) bool {
+	_, ok := Cause(err).(BuilderNotSealedError)
+	return ok
+}
+
+// BuilderKeyAlreadyWrittenError is returned when a call is made to Builder.Bytes without being closed.
+type BuilderKeyAlreadyWrittenError struct{}
+
+// Error implements the error interface for BuilderKeyAlreadyWrittenError.
+func (e BuilderKeyAlreadyWrittenError) Error() string {
+	return "builder key already written"
+}
+
+// IsBuilderKeyAlreadyWritten returns true if the given error is an BuilderKeyAlreadyWrittenError.
+func IsBuilderKeyAlreadyWritten(err error) bool {
+	_, ok := Cause(err).(BuilderKeyAlreadyWrittenError)
+	return ok
+}
+
+// BuilderUnexpectedTypeError is returned when a Builder function received an invalid type.
+type BuilderUnexpectedTypeError struct {
+	Message string
+}
+
+// Error implements the error interface for BuilderUnexpectedTypeError.
+func (e BuilderUnexpectedTypeError) Error() string {
+	return e.Message
+}
+
+// IsBuilderUnexpectedType returns true if the given error is an BuilderUnexpectedTypeError.
+func IsBuilderUnexpectedType(err error) bool {
+	_, ok := Cause(err).(BuilderUnexpectedTypeError)
+	return ok
+}
+
+// BuilderKeyMustBeStringError is returned when a key is not of type string.
+type BuilderKeyMustBeStringError struct{}
+
+// Error implements the error interface for BuilderKeyMustBeStringError.
+func (e BuilderKeyMustBeStringError) Error() string {
+	return "builder key must be string"
+}
+
+// IsBuilderKeyMustBeString returns true if the given error is an BuilderKeyMustBeStringError.
+func IsBuilderKeyMustBeString(err error) bool {
+	_, ok := Cause(err).(BuilderKeyMustBeStringError)
+	return ok
+}
+
+// BuilderNeedSubValueError is returned when a RemoveLast is called without any value in an object/array.
+type BuilderNeedSubValueError struct{}
+
+// Error implements the error interface for BuilderNeedSubValueError.
+func (e BuilderNeedSubValueError) Error() string {
+	return "builder need sub value"
+}
+
+// IsBuilderNeedSubValue returns true if the given error is an BuilderNeedSubValueError.
+func IsBuilderNeedSubValue(err error) bool {
+	_, ok := Cause(err).(BuilderNeedSubValueError)
+	return ok
+}
+
+// InvalidUtf8SequenceError indicates an invalid UTF8 (string) sequence.
+type InvalidUtf8SequenceError struct{}
+
+// Error implements the error interface for InvalidUtf8SequenceError.
+func (e InvalidUtf8SequenceError) Error() string {
+	return "invalid utf8 sequence"
+}
+
+// IsInvalidUtf8Sequence returns true if the given error is an InvalidUtf8SequenceError.
+func IsInvalidUtf8Sequence(err error) bool {
+	_, ok := Cause(err).(InvalidUtf8SequenceError)
+	return ok
+}
+
 var (
 	// WithStack is called on every return of an error to add stacktrace information to the error.
 	// When setting this function, also set the Cause function.

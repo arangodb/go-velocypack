@@ -60,9 +60,24 @@ func ASSERT_FALSE(a bool, t *testing.T) {
 	}
 }
 
-func ASSERT_VELOCYPACK_EXCEPTION(errorType func(error) bool, t *testing.T) func(result interface{}, err error) {
-	return func(result interface{}, err error) {
-		if !errorType(err) {
+func ASSERT_NIL(a interface{}, t *testing.T) {
+	if a != nil {
+		t.Errorf("Expected nil, got %v\nat %s", a, callerInfo(2))
+	}
+}
+
+func ASSERT_VELOCYPACK_EXCEPTION(errorType func(error) bool, t *testing.T) func(args ...interface{}) {
+	return func(args ...interface{}) {
+		l := len(args)
+		if l == 0 {
+			t.Fatalf("Expected at least 1 error argument\nat %s", callerInfo(2))
+		}
+		last := args[l-1]
+		if last == nil {
+			t.Errorf("Expected error, got nil\nat %s", callerInfo(2))
+		} else if err, ok := last.(error); !ok {
+			t.Fatalf("Expected last argument to be of type error, got %v\nat %s", args[l-1], callerInfo(2))
+		} else if !errorType(err) {
 			t.Errorf("Expected error, got %s\nat %s", err, callerInfo(2))
 		}
 	}

@@ -22,8 +22,6 @@
 
 package velocypack
 
-import "fmt"
-
 type ObjectIterator struct {
 	s        Slice
 	position ValueLength
@@ -32,7 +30,7 @@ type ObjectIterator struct {
 }
 
 // NewObjectIterator initializes an iterator at position 0 of the given object slice.
-func NewObjectIterator(s Slice) (*ObjectIterator, error) {
+func NewObjectIterator(s Slice, allowRandomIteration ...bool) (*ObjectIterator, error) {
 	if !s.IsObject() {
 		return nil, InvalidTypeError{"Expected Object slice"}
 	}
@@ -48,13 +46,20 @@ func NewObjectIterator(s Slice) (*ObjectIterator, error) {
 	if size > 0 {
 		if h := s.head(); h == 0x14 {
 			i.current, err = s.KeyAt(0, false)
-		} else {
-			// _current = slice.begin() + slice.findDataOffset(h);
-			// TODO
-			return nil, fmt.Errorf("TODO")
+		} else if optionalBool(allowRandomIteration, false) {
+			i.current = s[s.findDataOffset(h):]
 		}
 	}
 	return i, nil
+}
+
+// MustNewObjectIterator initializes an iterator at position 0 of the given object slice.
+func MustNewObjectIterator(s Slice) *ObjectIterator {
+	if it, err := NewObjectIterator(s); err != nil {
+		panic(err)
+	} else {
+		return it
+	}
 }
 
 // IsValid returns true if the given position of the iterator is valid.

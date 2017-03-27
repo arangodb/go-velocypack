@@ -57,6 +57,22 @@ func toInt64(v uint64) int64 {
 	}
 }
 
+func toUInt64(v int64) uint64 {
+	// If v is negative, we need to add 2^63 to make it positive,
+	// before we can cast it to an uint64_t:
+	if v >= 0 {
+		return uint64(v)
+	}
+	shift2 := uint64(1) << 63
+	shift := int64(shift2 - 1)
+	return uint64((v+shift)+1) + shift2
+	//  return v >= 0 ? static_cast<uint64_t>(v)
+	//                : static_cast<uint64_t>((v + shift) + 1) + shift2;
+	// Note that g++ and clang++ with -O3 compile this away to
+	// nothing. Further note that a plain cast from int64_t to
+	// uint64_t is not guaranteed to work for negative values!
+}
+
 // read a variable length integer in unsigned LEB128 format
 func readVariableValueLength(source []byte, reverse bool) ValueLength {
 	length := ValueLength(0)
@@ -76,6 +92,28 @@ func readVariableValueLength(source []byte, reverse bool) ValueLength {
 		}
 	}
 	return length
+}
+
+// store a variable length integer in unsigned LEB128 format
+func storeVariableValueLength(dst []byte, offset, value ValueLength, reverse bool) {
+	VELOCYPACK_ASSERT(value > 0)
+
+	idx := offset
+	if reverse {
+		for value >= 0x80 {
+			dst[idx] = byte(value | 0x80)
+			idx--
+			value >>= 7
+		}
+		dst[idx] = byte(value & 0x7f)
+	} else {
+		for value >= 0x80 {
+			dst[idx] = byte(value | 0x80)
+			idx++
+			value >>= 7
+		}
+		dst[idx] = byte(value & 0x7f)
+	}
 }
 
 // optionalBool returns the first arg element if available, otherwise returns defaultValue.

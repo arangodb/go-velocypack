@@ -53,9 +53,13 @@ func (s Slice) String() string {
 }
 
 // JSONString converts the contents of the slice to JSON.
-func (s Slice) JSONString() (string, error) {
+func (s Slice) JSONString(options ...DumperOptions) (string, error) {
 	buf := &bytes.Buffer{}
-	d := NewDumper(buf)
+	var opt *DumperOptions
+	if len(options) > 0 {
+		opt = &options[0]
+	}
+	d := NewDumper(buf, opt)
 	if err := d.Append(s); err != nil {
 		return "", WithStack(err)
 	}
@@ -64,8 +68,8 @@ func (s Slice) JSONString() (string, error) {
 
 // MustJSONString converts the contents of the slice to JSON.
 // Panics in case of an error.
-func (s Slice) MustJSONString() string {
-	if result, err := s.JSONString(); err != nil {
+func (s Slice) MustJSONString(options ...DumperOptions) string {
+	if result, err := s.JSONString(options...); err != nil {
 		panic(err)
 	} else {
 		return result
@@ -746,6 +750,25 @@ func (s Slice) Get(attribute string) (Slice, error) {
 // Panics in case of an error.
 func (s Slice) MustGet(attribute string) Slice {
 	if result, err := s.Get(attribute); err != nil {
+		panic(err)
+	} else {
+		return result
+	}
+}
+
+// HasKey returns true if the slice is an object that has a given key.
+func (s Slice) HasKey(key string) (bool, error) {
+	if result, err := s.Get(key); err != nil {
+		return false, WithStack(err)
+	} else {
+		return !result.IsNone(), nil
+	}
+}
+
+// MustHasKey returns true if the slice is an object that has a given key.
+// Panics in case of an error.
+func (s Slice) MustHasKey(key string) bool {
+	if result, err := s.HasKey(key); err != nil {
 		panic(err)
 	} else {
 		return result
