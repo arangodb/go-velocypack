@@ -218,3 +218,72 @@ func TestDumperStringMultiBytesEscaped(t *testing.T) {
 		ASSERT_EQ(expected, buf.String(), t)
 	}
 }
+
+func TestDumperDouble(t *testing.T) {
+	tests := []struct {
+		Value    float64
+		Expected string
+	}{
+		{0.0, "0"},
+		{123456.67, "123456.67"},
+		{-123456.67, "-123456.67"},
+		{-0.000442, "-0.000442"},
+		{0.1, "0.1"},
+		{2.41e-109, "2.41e-109"},
+		{-3.423e+78, "-3.423e+78"},
+		{3.423e+123, "3.423e+123"},
+		{3.4239493e+104, "3.4239493e+104"},
+	}
+	for _, test := range tests {
+		b := velocypack.Builder{}
+		b.MustAddValue(velocypack.NewDoubleValue(test.Value))
+
+		s := b.MustSlice()
+		buf := &bytes.Buffer{}
+		d := velocypack.NewDumper(buf, nil)
+		d.Append(s)
+		ASSERT_EQ(test.Expected, buf.String(), t)
+	}
+}
+
+func TestDumperInt(t *testing.T) {
+	tests := []struct {
+		Value    int64
+		Expected string
+	}{
+		{0, "0"},
+		{123456789, "123456789"},
+		{-123456789, "-123456789"},
+	}
+	for _, test := range tests {
+		b := velocypack.Builder{}
+		b.MustAddValue(velocypack.NewIntValue(test.Value))
+
+		s := b.MustSlice()
+		buf := &bytes.Buffer{}
+		d := velocypack.NewDumper(buf, nil)
+		d.Append(s)
+		ASSERT_EQ(test.Expected, buf.String(), t)
+	}
+}
+
+func TestDumperUInt(t *testing.T) {
+	tests := []struct {
+		Value    uint64
+		Expected string
+	}{
+		{0, "0"},
+		{5, "5"},
+		{123456789, "123456789"},
+	}
+	for _, test := range tests {
+		b := velocypack.Builder{}
+		b.MustAddValue(velocypack.NewUIntValue(test.Value))
+
+		s := b.MustSlice()
+		buf := &bytes.Buffer{}
+		d := velocypack.NewDumper(buf, nil)
+		d.Append(s)
+		ASSERT_EQ(test.Expected, buf.String(), t)
+	}
+}
