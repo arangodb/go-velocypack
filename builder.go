@@ -1143,14 +1143,28 @@ func (b *Builder) addInternal(v Value) error {
 }
 
 func (b *Builder) addInternalKeyValue(attrName string, v Value) error {
-	haveReported := false
+	haveReported, err := b.addInternalKey(attrName)
+	if err != nil {
+		return WithStack(err)
+	}
+	if err := b.set(v); err != nil {
+		if haveReported {
+			b.cleanupAdd()
+		}
+		return WithStack(err)
+	}
+	return nil
+}
+
+func (b *Builder) addInternalKey(attrName string) (haveReported bool, err error) {
+	haveReported = false
 	if !b.stack.IsEmpty() {
 		tos := b.stack.Tos()
 		if b.buf[tos] != 0x0b && b.buf[tos] != 0x14 {
-			return WithStack(BuilderNeedOpenObjectError{})
+			return haveReported, WithStack(BuilderNeedOpenObjectError{})
 		}
 		if b.keyWritten {
-			return WithStack(BuilderKeyAlreadyWrittenError{})
+			return haveReported, WithStack(BuilderKeyAlreadyWrittenError{})
 		}
 		b.reportAdd()
 		haveReported = true
@@ -1159,6 +1173,7 @@ func (b *Builder) addInternalKeyValue(attrName string, v Value) error {
 	onError := func() {
 		if haveReported {
 			b.cleanupAdd()
+			haveReported = false
 		}
 	}
 
@@ -1171,30 +1186,22 @@ func (b *Builder) addInternalKeyValue(attrName string, v Value) error {
 			l, err := translated.ByteSize()
 			if err != nil {
 				onError()
-				return WithStack(err)
+				return haveReported, WithStack(err)
 			}
 			checkOverflow(l)
 			b.buf.Write(translated)
 			b.keyWritten = true
-			if err := b.set(v); err != nil {
-				onError()
-				return WithStack(err)
-			}
-			return nil
+			return haveReported, nil
 		}
 		// otherwise fall through to regular behavior
 	}
 
 	if err := b.set(NewStringValue(attrName)); err != nil {
 		onError()
-		return WithStack(err)
+		return haveReported, WithStack(err)
 	}
 	b.keyWritten = true
-	if err := b.set(v); err != nil {
-		onError()
-		return WithStack(err)
-	}
-	return nil
+	return haveReported, nil
 }
 
 func (b *Builder) checkKeyIsString(isString bool) error {

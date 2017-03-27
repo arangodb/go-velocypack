@@ -329,8 +329,12 @@ func (se *structEncoder) encode(b *Builder, v reflect.Value) {
 			continue
 		}
 		// Key
-		b.addString(f.name)
+		_, err := b.addInternalKey(f.name)
+		if err != nil {
+			panic(err)
+		}
 		// Value
+		b.keyWritten = false
 		se.fieldEncs[i](b, fv)
 	}
 	b.MustClose()
@@ -352,7 +356,7 @@ type mapEncoder struct {
 	elemEnc encoderFunc
 }
 
-func (me *mapEncoder) encode(b *Builder, v reflect.Value) {
+func (e *mapEncoder) encode(b *Builder, v reflect.Value) {
 	if v.IsNil() {
 		b.addNull()
 	}
@@ -371,9 +375,13 @@ func (me *mapEncoder) encode(b *Builder, v reflect.Value) {
 
 	for _, kv := range sv {
 		// Key
-		b.addString(kv.s)
+		_, err := b.addInternalKey(kv.s)
+		if err != nil {
+			panic(err)
+		}
 		// Value
-		me.elemEnc(b, v.MapIndex(kv.v))
+		b.keyWritten = false
+		e.elemEnc(b, v.MapIndex(kv.v))
 	}
 	b.MustClose()
 }
