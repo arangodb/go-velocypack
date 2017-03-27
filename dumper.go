@@ -132,7 +132,7 @@ func (d *Dumper) Append(s Slice) error {
 				return WithStack(err)
 			}
 		default:
-			return WithStack(NoJSONEquivalentError{})
+			return WithStack(NoJSONEquivalentError)
 		}
 	}
 
@@ -232,7 +232,7 @@ func (d *Dumper) appendString(v string) error {
 		} else if (c & 0xe0) == 0xc0 {
 			// two-byte sequence
 			if i+1 >= e {
-				return WithStack(InvalidUtf8SequenceError{})
+				return WithStack(InvalidUtf8SequenceError)
 			}
 
 			if d.options.EscapeUnicode {
@@ -245,7 +245,7 @@ func (d *Dumper) appendString(v string) error {
 		} else if (c & 0xf0) == 0xe0 {
 			// three-byte sequence
 			if i+2 >= e {
-				return WithStack(InvalidUtf8SequenceError{})
+				return WithStack(InvalidUtf8SequenceError)
 			}
 
 			if d.options.EscapeUnicode {
@@ -258,7 +258,7 @@ func (d *Dumper) appendString(v string) error {
 		} else if (c & 0xf8) == 0xf0 {
 			// four-byte sequence
 			if i+3 >= e {
-				return WithStack(InvalidUtf8SequenceError{})
+				return WithStack(InvalidUtf8SequenceError)
 			}
 
 			if d.options.EscapeUnicode {

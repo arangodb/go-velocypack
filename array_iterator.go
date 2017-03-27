@@ -75,7 +75,7 @@ func (i *ArrayIterator) IsFirst() bool {
 // Value returns the value of the current position of the iterator
 func (i *ArrayIterator) Value() (Slice, error) {
 	if i.position >= i.size {
-		return nil, WithStack(IndexOutOfBoundsError{})
+		return nil, WithStack(IndexOutOfBoundsError)
 	}
 	if current := i.current; current != nil {
 		return current, nil

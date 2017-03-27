@@ -163,7 +163,7 @@ func (s Slice) ByteSize() (ValueLength, error) {
 		}
 	}
 
-	return 0, InternalError{}
+	return 0, WithStack(InternalError)
 }
 
 // MustByteSize returns the total byte size for the slice, including the head byte.
@@ -264,7 +264,7 @@ func (s Slice) GetInt() (int64, error) {
 			return 0, WithStack(err)
 		}
 		if v > math.MaxInt64 {
-			return 0, NumberOutOfRangeError{}
+			return 0, WithStack(NumberOutOfRangeError)
 		}
 		return int64(v), nil
 	}
@@ -274,7 +274,7 @@ func (s Slice) GetInt() (int64, error) {
 		return s.GetSmallInt()
 	}
 
-	return 0, InvalidTypeError{"Expecting type Int"}
+	return 0, WithStack(InvalidTypeError{"Expecting type Int"})
 }
 
 // MustGetInt returns a Int value from the slice.
@@ -309,7 +309,7 @@ func (s Slice) GetUInt() (uint64, error) {
 			return 0, WithStack(err)
 		}
 		if v < 0 {
-			return 0, NumberOutOfRangeError{}
+			return 0, WithStack(NumberOutOfRangeError)
 		}
 		return uint64(v), nil
 	}
@@ -321,10 +321,10 @@ func (s Slice) GetUInt() (uint64, error) {
 
 	if h >= 0x3a && h <= 0x3f {
 		// Smallint < 0
-		return 0, NumberOutOfRangeError{}
+		return 0, WithStack(NumberOutOfRangeError)
 	}
 
-	return 0, InvalidTypeError{"Expecting type UInt"}
+	return 0, WithStack(InvalidTypeError{"Expecting type UInt"})
 }
 
 // MustGetUInt returns a UInt value from the slice.
@@ -560,7 +560,7 @@ func (s Slice) Length() (ValueLength, error) {
 			return 0, WithStack(err)
 		}
 		if s == 0 {
-			return 0, InternalError{}
+			return 0, WithStack(InternalError)
 		}
 		return (ValueLength(end) - firstSubOffset) / s, nil
 	} else if offsetSize < 8 {
@@ -703,7 +703,7 @@ func (s Slice) Get(attribute string) (Slice, error) {
 		} else if key.IsSmallInt() || key.IsUInt() {
 			// translate key
 			if AttributeTranslator == nil {
-				return nil, WithStack(NeedAttributeTranslatorError{})
+				return nil, WithStack(NeedAttributeTranslatorError)
 			}
 			if eq, err := key.translateUnchecked().IsEqualString(attribute); err != nil {
 				return nil, WithStack(err)
@@ -837,7 +837,7 @@ func (s Slice) getNthOffset(index ValueLength) (ValueLength, error) {
 
 	if h == 0x01 || h == 0x0a {
 		// special case: empty Array or empty Object
-		return 0, IndexOutOfBoundsError{}
+		return 0, WithStack(IndexOutOfBoundsError)
 	}
 
 	offsetSize := indexEntrySize(h)
@@ -855,7 +855,7 @@ func (s Slice) getNthOffset(index ValueLength) (ValueLength, error) {
 			return 0, WithStack(err)
 		}
 		if s == 0 {
-			return 0, InternalError{}
+			return 0, WithStack(InternalError)
 		}
 		n = (end - dataOffset) / s
 	} else if offsetSize < 8 {
@@ -865,7 +865,7 @@ func (s Slice) getNthOffset(index ValueLength) (ValueLength, error) {
 	}
 
 	if index >= n {
-		return 0, IndexOutOfBoundsError{}
+		return 0, WithStack(IndexOutOfBoundsError)
 	}
 
 	// empty array case was already covered
@@ -898,7 +898,7 @@ func (s Slice) getNthOffsetFromCompact(index ValueLength) (ValueLength, error) {
 	end := ValueLength(readVariableValueLength(s, 1, false))
 	n := ValueLength(readVariableValueLength(s, end-1, true))
 	if index >= n {
-		return 0, IndexOutOfBoundsError{}
+		return 0, WithStack(IndexOutOfBoundsError)
 	}
 
 	h := s.head()
@@ -969,7 +969,7 @@ func (s Slice) makeKey() (Slice, error) {
 	}
 	if s.IsSmallInt() || s.IsUInt() {
 		if AttributeTranslator == nil {
-			return nil, WithStack(NeedAttributeTranslatorError{})
+			return nil, WithStack(NeedAttributeTranslatorError)
 		}
 		return s.translateUnchecked(), nil
 	}
@@ -995,7 +995,7 @@ func (s Slice) searchObjectKeyLinear(attribute string, ieBase, offsetSize, n Val
 			// translate key
 			if !useTranslator {
 				// no attribute translator
-				return nil, WithStack(NeedAttributeTranslatorError{})
+				return nil, WithStack(NeedAttributeTranslatorError)
 			}
 			if eq, err := key.translateUnchecked().IsEqualString(attribute); err != nil {
 				return nil, WithStack(err)
@@ -1041,7 +1041,7 @@ func (s Slice) searchObjectKeyBinary(attribute string, ieBase ValueLength, n Val
 			// translate key
 			if !useTranslator {
 				// no attribute translator
-				return nil, NeedAttributeTranslatorError{}
+				return nil, WithStack(NeedAttributeTranslatorError)
 			}
 			res, err = key.translateUnchecked().CompareString(attribute)
 			if err != nil {
@@ -1084,7 +1084,7 @@ func (s Slice) translate() (Slice, error) {
 		return nil, WithStack(InvalidTypeError{"Cannot translate key of this type"})
 	}
 	if AttributeTranslator == nil {
-		return nil, WithStack(NeedAttributeTranslatorError{})
+		return nil, WithStack(NeedAttributeTranslatorError)
 	}
 	return s.translateUnchecked(), nil
 }

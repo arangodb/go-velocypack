@@ -22,7 +22,10 @@
 
 package velocypack
 
-import "reflect"
+import (
+	"errors"
+	"reflect"
+)
 
 // InvalidTypeError is returned when a Slice getter is called on a slice of a different type.
 type InvalidTypeError struct {
@@ -40,145 +43,69 @@ func IsInvalidType(err error) bool {
 	return ok
 }
 
-// NumberOutOfRangeError indicates an out of range error.
-type NumberOutOfRangeError struct {
-}
+var (
+	// NumberOutOfRangeError indicates an out of range error.
+	NumberOutOfRangeError = errors.New("number out of range")
+	// IsNumberOutOfRange returns true if the given error is an NumberOutOfRangeError.
+	IsNumberOutOfRange = isCausedByFunc(NumberOutOfRangeError)
+	// IndexOutOfBoundsError indicates an index outside of array/object bounds.
+	IndexOutOfBoundsError = errors.New("index out of range")
+	// IsIndexOutOfBounds returns true if the given error is an IndexOutOfBoundsError.
+	IsIndexOutOfBounds = isCausedByFunc(IndexOutOfBoundsError)
+	// NeedAttributeTranslatorError indicates a lack of object key translator (smallint|uint -> string).
+	NeedAttributeTranslatorError = errors.New("need attribute translator")
+	// IsNeedAttributeTranslator returns true if the given error is an NeedAttributeTranslatorError.
+	IsNeedAttributeTranslator = isCausedByFunc(NeedAttributeTranslatorError)
+	// InternalError indicates an error that the client cannot prevent.
+	InternalError = errors.New("internal")
+	// IsInternal returns true if the given error is an InternalError.
+	IsInternal = isCausedByFunc(InternalError)
+	// BuilderNeedOpenArrayError indicates an (invalid) attempt to open an array/object when that is not allowed.
+	BuilderNeedOpenArrayError = errors.New("builder need open array")
+	// IsBuilderNeedOpenArray returns true if the given error is an BuilderNeedOpenArrayError.
+	IsBuilderNeedOpenArray = isCausedByFunc(BuilderNeedOpenArrayError)
+	// BuilderNeedOpenObjectError indicates an (invalid) attempt to open an array/object when that is not allowed.
+	BuilderNeedOpenObjectError = errors.New("builder need open object")
+	// IsBuilderNeedOpenObject returns true if the given error is an BuilderNeedOpenObjectError.
+	IsBuilderNeedOpenObject = isCausedByFunc(BuilderNeedOpenObjectError)
+	// BuilderNeedOpenCompoundError indicates an (invalid) attempt to close an array/object that is already closed.
+	BuilderNeedOpenCompoundError = errors.New("builder need open array or object")
+	// IsBuilderNeedOpenCompound returns true if the given error is an BuilderNeedOpenCompoundError.
+	IsBuilderNeedOpenCompound   = isCausedByFunc(BuilderNeedOpenCompoundError)
+	DuplicateAttributeNameError = errors.New("duplicate key name")
+	// IsDuplicateAttributeName returns true if the given error is an DuplicateAttributeNameError.
+	IsDuplicateAttributeName = isCausedByFunc(DuplicateAttributeNameError)
+	// BuilderNotSealedError is returned when a call is made to Builder.Bytes without being closed.
+	BuilderNotSealedError = errors.New("builder not sealed")
+	// IsBuilderNotSealed returns true if the given error is an BuilderNotSealedError.
+	IsBuilderNotSealed = isCausedByFunc(BuilderNotSealedError)
+	// BuilderKeyAlreadyWrittenError is returned when a call is made to Builder.Bytes without being closed.
+	BuilderKeyAlreadyWrittenError = errors.New("builder key already written")
+	// IsBuilderKeyAlreadyWritten returns true if the given error is an BuilderKeyAlreadyWrittenError.
+	IsBuilderKeyAlreadyWritten = isCausedByFunc(BuilderKeyAlreadyWrittenError)
+	// BuilderKeyMustBeStringError is returned when a key is not of type string.
+	BuilderKeyMustBeStringError = errors.New("builder key must be string")
+	// IsBuilderKeyMustBeString returns true if the given error is an BuilderKeyMustBeStringError.
+	IsBuilderKeyMustBeString = isCausedByFunc(BuilderKeyMustBeStringError)
+	// BuilderNeedSubValueError is returned when a RemoveLast is called without any value in an object/array.
+	BuilderNeedSubValueError = errors.New("builder need sub value")
+	// IsBuilderNeedSubValue returns true if the given error is an BuilderNeedSubValueError.
+	IsBuilderNeedSubValue = isCausedByFunc(BuilderNeedSubValueError)
+	// InvalidUtf8SequenceError indicates an invalid UTF8 (string) sequence.
+	InvalidUtf8SequenceError = errors.New("invalid utf8 sequence")
+	// IsInvalidUtf8Sequence returns true if the given error is an InvalidUtf8SequenceError.
+	IsInvalidUtf8Sequence = isCausedByFunc(InvalidUtf8SequenceError)
+	// NoJSONEquivalentError is returned when a Velocypack type cannot be converted to JSON.
+	NoJSONEquivalentError = errors.New("no JSON equivalent")
+	// IsNoJSONEquivalent returns true if the given error is an NoJSONEquivalentError.
+	IsNoJSONEquivalent = isCausedByFunc(NoJSONEquivalentError)
+)
 
-// Error implements the error interface for NumberOutOfRangeError.
-func (e NumberOutOfRangeError) Error() string {
-	return "number out of range"
-}
-
-// IsNumberOutOfRange returns true if the given error is an NumberOutOfRangeError.
-func IsNumberOutOfRange(err error) bool {
-	_, ok := Cause(err).(NumberOutOfRangeError)
-	return ok
-}
-
-// IndexOutOfBoundsError indicates an index outside of array/object bounds.
-type IndexOutOfBoundsError struct{}
-
-// Error implements the error interface for IndexOutOfBoundsError.
-func (e IndexOutOfBoundsError) Error() string {
-	return "index out of range"
-}
-
-// IsIndexOutOfBounds returns true if the given error is an IndexOutOfBoundsError.
-func IsIndexOutOfBounds(err error) bool {
-	_, ok := Cause(err).(IndexOutOfBoundsError)
-	return ok
-}
-
-// NeedAttributeTranslatorError indicates a lack of object key translator (smallint|uint -> string).
-type NeedAttributeTranslatorError struct{}
-
-// Error implements the error interface for NeedAttributeTranslatorError.
-func (e NeedAttributeTranslatorError) Error() string {
-	return "need attribute translator"
-}
-
-// IsNeedAttributeTranslator returns true if the given error is an NeedAttributeTranslatorError.
-func IsNeedAttributeTranslator(err error) bool {
-	_, ok := Cause(err).(NeedAttributeTranslatorError)
-	return ok
-}
-
-// InternalError indicates an error that the client cannot prevent.
-type InternalError struct {
-}
-
-// Error implements the error interface for InternalError.
-func (e InternalError) Error() string {
-	return "internal"
-}
-
-// IsInternal returns true if the given error is an InternalError.
-func IsInternal(err error) bool {
-	_, ok := Cause(err).(InternalError)
-	return ok
-}
-
-// BuilderNeedOpenArrayError indicates an (invalid) attempt to open an array/object when that is not allowed.
-type BuilderNeedOpenArrayError struct{}
-
-// Error implements the error interface for BuilderNeedOpenArrayError.
-func (e BuilderNeedOpenArrayError) Error() string {
-	return "builder need open array"
-}
-
-// IsBuilderNeedOpenArray returns true if the given error is an BuilderNeedOpenArrayError.
-func IsBuilderNeedOpenArray(err error) bool {
-	_, ok := Cause(err).(BuilderNeedOpenArrayError)
-	return ok
-}
-
-// BuilderNeedOpenObjectError indicates an (invalid) attempt to open an array/object when that is not allowed.
-type BuilderNeedOpenObjectError struct{}
-
-// Error implements the error interface for BuilderNeedOpenObjectError.
-func (e BuilderNeedOpenObjectError) Error() string {
-	return "builder need open object"
-}
-
-// IsBuilderNeedOpenObject returns true if the given error is an BuilderNeedOpenObjectError.
-func IsBuilderNeedOpenObject(err error) bool {
-	_, ok := Cause(err).(BuilderNeedOpenObjectError)
-	return ok
-}
-
-// BuilderNeedOpenCompoundError indicates an (invalid) attempt to close an array/object that is already closed.
-type BuilderNeedOpenCompoundError struct{}
-
-// Error implements the error interface for BuilderNeedOpenCompoundError.
-func (e BuilderNeedOpenCompoundError) Error() string {
-	return "builder need open array"
-}
-
-// IsBuilderNeedOpenCompound returns true if the given error is an BuilderNeedOpenCompoundError.
-func IsBuilderNeedOpenCompound(err error) bool {
-	_, ok := Cause(err).(BuilderNeedOpenCompoundError)
-	return ok
-}
-
-type DuplicateAttributeNameError struct{}
-
-// Error implements the error interface for DuplicateAttributeNameError.
-func (e DuplicateAttributeNameError) Error() string {
-	return "duplicate key name"
-}
-
-// IsDuplicateAttributeName returns true if the given error is an DuplicateAttributeNameError.
-func IsDuplicateAttributeName(err error) bool {
-	_, ok := Cause(err).(DuplicateAttributeNameError)
-	return ok
-}
-
-// BuilderNotSealedError is returned when a call is made to Builder.Bytes without being closed.
-type BuilderNotSealedError struct{}
-
-// Error implements the error interface for BuilderNotSealedError.
-func (e BuilderNotSealedError) Error() string {
-	return "builder not sealed"
-}
-
-// IsBuilderNotSealed returns true if the given error is an BuilderNotSealedError.
-func IsBuilderNotSealed(err error) bool {
-	_, ok := Cause(err).(BuilderNotSealedError)
-	return ok
-}
-
-// BuilderKeyAlreadyWrittenError is returned when a call is made to Builder.Bytes without being closed.
-type BuilderKeyAlreadyWrittenError struct{}
-
-// Error implements the error interface for BuilderKeyAlreadyWrittenError.
-func (e BuilderKeyAlreadyWrittenError) Error() string {
-	return "builder key already written"
-}
-
-// IsBuilderKeyAlreadyWritten returns true if the given error is an BuilderKeyAlreadyWrittenError.
-func IsBuilderKeyAlreadyWritten(err error) bool {
-	_, ok := Cause(err).(BuilderKeyAlreadyWrittenError)
-	return ok
+// isCausedByFunc creates an error test function.
+func isCausedByFunc(cause error) func(err error) bool {
+	return func(err error) bool {
+		return Cause(err) == cause
+	}
 }
 
 // BuilderUnexpectedTypeError is returned when a Builder function received an invalid type.
@@ -194,48 +121,6 @@ func (e BuilderUnexpectedTypeError) Error() string {
 // IsBuilderUnexpectedType returns true if the given error is an BuilderUnexpectedTypeError.
 func IsBuilderUnexpectedType(err error) bool {
 	_, ok := Cause(err).(BuilderUnexpectedTypeError)
-	return ok
-}
-
-// BuilderKeyMustBeStringError is returned when a key is not of type string.
-type BuilderKeyMustBeStringError struct{}
-
-// Error implements the error interface for BuilderKeyMustBeStringError.
-func (e BuilderKeyMustBeStringError) Error() string {
-	return "builder key must be string"
-}
-
-// IsBuilderKeyMustBeString returns true if the given error is an BuilderKeyMustBeStringError.
-func IsBuilderKeyMustBeString(err error) bool {
-	_, ok := Cause(err).(BuilderKeyMustBeStringError)
-	return ok
-}
-
-// BuilderNeedSubValueError is returned when a RemoveLast is called without any value in an object/array.
-type BuilderNeedSubValueError struct{}
-
-// Error implements the error interface for BuilderNeedSubValueError.
-func (e BuilderNeedSubValueError) Error() string {
-	return "builder need sub value"
-}
-
-// IsBuilderNeedSubValue returns true if the given error is an BuilderNeedSubValueError.
-func IsBuilderNeedSubValue(err error) bool {
-	_, ok := Cause(err).(BuilderNeedSubValueError)
-	return ok
-}
-
-// InvalidUtf8SequenceError indicates an invalid UTF8 (string) sequence.
-type InvalidUtf8SequenceError struct{}
-
-// Error implements the error interface for InvalidUtf8SequenceError.
-func (e InvalidUtf8SequenceError) Error() string {
-	return "invalid utf8 sequence"
-}
-
-// IsInvalidUtf8Sequence returns true if the given error is an InvalidUtf8SequenceError.
-func IsInvalidUtf8Sequence(err error) bool {
-	_, ok := Cause(err).(InvalidUtf8SequenceError)
 	return ok
 }
 
@@ -269,20 +154,6 @@ func (e UnsupportedTypeError) Error() string {
 // IsUnsupportedType returns true if the given error is an UnsupportedTypeError.
 func IsUnsupportedType(err error) bool {
 	_, ok := Cause(err).(UnsupportedTypeError)
-	return ok
-}
-
-// NoJSONEquivalentError is returned when a Velocypack type cannot be converted to JSON.
-type NoJSONEquivalentError struct{}
-
-// Error implements the error interface for NoJSONEquivalentError.
-func (e NoJSONEquivalentError) Error() string {
-	return "no JSON equivalent"
-}
-
-// IsNoJSONEquivalent returns true if the given error is an NoJSONEquivalentError.
-func IsNoJSONEquivalent(err error) bool {
-	_, ok := Cause(err).(NoJSONEquivalentError)
 	return ok
 }
 

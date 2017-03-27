@@ -75,7 +75,7 @@ func (i *ObjectIterator) IsFirst() bool {
 // Key returns the key of the current position of the iterator
 func (i *ObjectIterator) Key(translate bool) (Slice, error) {
 	if i.position >= i.size {
-		return nil, WithStack(IndexOutOfBoundsError{})
+		return nil, WithStack(IndexOutOfBoundsError)
 	}
 	if current := i.current; current != nil {
 		if translate {
@@ -101,7 +101,7 @@ func (i *ObjectIterator) MustKey(translate bool) Slice {
 // Value returns the value of the current position of the iterator
 func (i *ObjectIterator) Value() (Slice, error) {
 	if i.position >= i.size {
-		return nil, WithStack(IndexOutOfBoundsError{})
+		return nil, WithStack(IndexOutOfBoundsError)
 	}
 	if current := i.current; current != nil {
 		value, err := current.Next()

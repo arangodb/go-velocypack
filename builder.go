@@ -59,7 +59,7 @@ func (b *Builder) Clear() {
 // When the builder is not closed, an error is returned.
 func (b *Builder) Bytes() ([]byte, error) {
 	if !b.IsClosed() {
-		return nil, WithStack(BuilderNotSealedError{})
+		return nil, WithStack(BuilderNotSealedError)
 	}
 	return b.buf, nil
 }
@@ -98,7 +98,7 @@ func (b *Builder) MustSlice() Slice {
 // When the builder is not closed, an error is returned.
 func (b *Builder) WriteTo(w io.Writer) (int64, error) {
 	if !b.IsClosed() {
-		return 0, WithStack(BuilderNotSealedError{})
+		return 0, WithStack(BuilderNotSealedError)
 	}
 	if n, err := w.Write(b.buf); err != nil {
 		return 0, WithStack(err)
@@ -111,7 +111,7 @@ func (b *Builder) WriteTo(w io.Writer) (int64, error) {
 // Returns an error when builder is not closed.
 func (b *Builder) Size() (ValueLength, error) {
 	if !b.IsClosed() {
-		return 0, WithStack(BuilderNotSealedError{})
+		return 0, WithStack(BuilderNotSealedError)
 	}
 	return b.buf.Len(), nil
 }
@@ -194,7 +194,7 @@ func (b *Builder) MustOpenArray(unindexed ...bool) {
 // Close ends an open object or array.
 func (b *Builder) Close() error {
 	if b.IsClosed() {
-		return WithStack(BuilderNeedOpenCompoundError{})
+		return WithStack(BuilderNeedOpenCompoundError)
 	}
 	tos := b.stack.Tos()
 	head := b.buf[tos]
@@ -346,11 +346,11 @@ func (b *Builder) IsClosed() bool {
 // HasKey checks whether an Object value has a specific key attribute.
 func (b *Builder) HasKey(key string) (bool, error) {
 	if b.stack.IsEmpty() {
-		return false, WithStack(BuilderNeedOpenObjectError{})
+		return false, WithStack(BuilderNeedOpenObjectError)
 	}
 	tos := b.stack.Tos()
 	if b.buf[tos] != 0x0b && b.buf[tos] != 0x14 {
-		return false, WithStack(BuilderNeedOpenObjectError{})
+		return false, WithStack(BuilderNeedOpenObjectError)
 	}
 	index := b.index[len(b.stack)-1]
 	if index.IsEmpty() {
@@ -385,11 +385,11 @@ func (b *Builder) MustHasKey(key string) bool {
 // Returns Slice of type None when key is not found.
 func (b *Builder) GetKey(key string) (Slice, error) {
 	if b.stack.IsEmpty() {
-		return nil, WithStack(BuilderNeedOpenObjectError{})
+		return nil, WithStack(BuilderNeedOpenObjectError)
 	}
 	tos := b.stack.Tos()
 	if b.buf[tos] != 0x0b && b.buf[tos] != 0x14 {
-		return nil, WithStack(BuilderNeedOpenObjectError{})
+		return nil, WithStack(BuilderNeedOpenObjectError)
 	}
 	index := b.index[len(b.stack)-1]
 	if index.IsEmpty() {
@@ -428,12 +428,12 @@ func (b *Builder) MustGetKey(key string) Slice {
 // RemoveLast removes last subvalue written to an (unclosed) object or array.
 func (b *Builder) RemoveLast() error {
 	if b.stack.IsEmpty() {
-		return WithStack(BuilderNeedOpenCompoundError{})
+		return WithStack(BuilderNeedOpenCompoundError)
 	}
 	tos := b.stack.Tos()
 	index := &b.index[len(b.stack)-1]
 	if index.IsEmpty() {
-		return WithStack(BuilderNeedSubValueError{})
+		return WithStack(BuilderNeedSubValueError)
 	}
 	newLength := tos + (*index)[len(*index)-1]
 	lastSize := b.buf.Len() - newLength
@@ -612,11 +612,11 @@ func (b *Builder) MustAddKeyValue(key string, v Value) {
 // The array must be opened before a call to this function and the array is left open Intentionally.
 func (b *Builder) AddValuesFromIterator(it *ArrayIterator) error {
 	if b.stack.IsEmpty() {
-		return WithStack(BuilderNeedOpenArrayError{})
+		return WithStack(BuilderNeedOpenArrayError)
 	}
 	tos := b.stack.Tos()
 	if b.buf[tos] != 0x06 && b.buf[tos] != 0x13 {
-		return WithStack(BuilderNeedOpenArrayError{})
+		return WithStack(BuilderNeedOpenArrayError)
 	}
 	for it.IsValid() {
 		v, err := it.Value()
@@ -646,14 +646,14 @@ func (b *Builder) MustAddValuesFromIterator(it *ArrayIterator) {
 // The object must be opened before a call to this function and the object is left open Intentionally.
 func (b *Builder) AddKeyValuesFromIterator(it *ObjectIterator) error {
 	if b.stack.IsEmpty() {
-		return WithStack(BuilderNeedOpenObjectError{})
+		return WithStack(BuilderNeedOpenObjectError)
 	}
 	tos := b.stack.Tos()
 	if b.buf[tos] != 0x0b && b.buf[tos] != 0x14 {
-		return WithStack(BuilderNeedOpenObjectError{})
+		return WithStack(BuilderNeedOpenObjectError)
 	}
 	if b.keyWritten {
-		return WithStack(BuilderKeyAlreadyWrittenError{})
+		return WithStack(BuilderKeyAlreadyWrittenError)
 	}
 	for it.IsValid() {
 		k, err := it.Key(true)
@@ -764,7 +764,7 @@ func (b *Builder) openCompoundValue(vType byte) error {
 		buf := b.buf
 		if !b.keyWritten {
 			if buf[tos] != 0x06 && buf[tos] != 0x13 {
-				return WithStack(BuilderNeedOpenArrayError{})
+				return WithStack(BuilderNeedOpenArrayError)
 			}
 			b.reportAdd()
 			//haveReported = true
@@ -890,7 +890,7 @@ func (b *Builder) checkAttributeUniqueness(obj Slice) error {
 
 			if p == q {
 				// identical key
-				return WithStack(DuplicateAttributeNameError{})
+				return WithStack(DuplicateAttributeNameError)
 			}
 			// re-use already calculated values for next round
 			p = q
@@ -912,7 +912,7 @@ func (b *Builder) checkAttributeUniqueness(obj Slice) error {
 				return WithStack(err)
 			}
 			if _, found := keys[k]; found {
-				return WithStack(DuplicateAttributeNameError{})
+				return WithStack(DuplicateAttributeNameError)
 			}
 			keys[k] = struct{}{}
 		}
@@ -1160,10 +1160,10 @@ func (b *Builder) addInternalKey(attrName string) (haveReported bool, err error)
 	if !b.stack.IsEmpty() {
 		tos := b.stack.Tos()
 		if b.buf[tos] != 0x0b && b.buf[tos] != 0x14 {
-			return haveReported, WithStack(BuilderNeedOpenObjectError{})
+			return haveReported, WithStack(BuilderNeedOpenObjectError)
 		}
 		if b.keyWritten {
-			return haveReported, WithStack(BuilderKeyAlreadyWrittenError{})
+			return haveReported, WithStack(BuilderKeyAlreadyWrittenError)
 		}
 		b.reportAdd()
 		haveReported = true
@@ -1211,7 +1211,7 @@ func (b *Builder) checkKeyIsString(isString bool) error {
 				if isString {
 					b.keyWritten = true
 				} else {
-					return WithStack(BuilderKeyMustBeStringError{})
+					return WithStack(BuilderKeyMustBeStringError)
 				}
 			} else {
 				b.keyWritten = false
