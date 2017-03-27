@@ -334,8 +334,8 @@ func (se *structEncoder) encode(b *Builder, v reflect.Value) {
 			panic(err)
 		}
 		// Value
-		b.keyWritten = false
 		se.fieldEncs[i](b, fv)
+		b.keyWritten = false
 	}
 	b.MustClose()
 }
@@ -380,8 +380,8 @@ func (e *mapEncoder) encode(b *Builder, v reflect.Value) {
 			panic(err)
 		}
 		// Value
-		b.keyWritten = false
 		e.elemEnc(b, v.MapIndex(kv.v))
+		b.keyWritten = false
 	}
 	b.MustClose()
 }
@@ -441,6 +441,7 @@ func (ae *arrayEncoder) encode(b *Builder, v reflect.Value) {
 	b.MustOpenArray()
 	n := v.Len()
 	for i := 0; i < n; i++ {
+		b.reportAdd()
 		ae.elemEnc(b, v.Index(i))
 	}
 	b.MustClose()

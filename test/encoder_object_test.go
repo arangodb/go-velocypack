@@ -23,215 +23,470 @@
 package test
 
 import (
-	"math"
 	"testing"
 
 	velocypack "github.com/arangodb/go-velocypack"
 )
 
-func TestEncoderPrimitiveAddNull(t *testing.T) {
-	bytes, err := velocypack.Marshal(nil)
+func TestEncoderObjectEmpty(t *testing.T) {
+	bytes, err := velocypack.Marshal(struct{}{})
 	ASSERT_NIL(err, t)
 	s := velocypack.Slice(bytes)
-	ASSERT_EQ(s.Type(), velocypack.Null, t)
-	ASSERT_TRUE(s.IsNull(), t)
+
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_TRUE(s.IsEmptyObject(), t)
 }
 
-func TestEncoderPrimitiveAddBool(t *testing.T) {
-	tests := []bool{true, false}
-	for _, test := range tests {
-		bytes, err := velocypack.Marshal(test)
-		ASSERT_NIL(err, t)
-		s := velocypack.Slice(bytes)
+func TestEncoderObjectOneField(t *testing.T) {
+	bytes, err := velocypack.Marshal(struct {
+		Name string
+	}{
+		Name: "Max",
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
 
-		ASSERT_TRUE(s.IsBool(), t)
-		if test {
-			ASSERT_TRUE(s.IsTrue(), t)
-			ASSERT_FALSE(s.IsFalse(), t)
-		} else {
-			ASSERT_FALSE(s.IsTrue(), t)
-			ASSERT_TRUE(s.IsFalse(), t)
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_FALSE(s.IsEmptyObject(), t)
+	ASSERT_EQ(`{"Name":"Max"}`, s.MustJSONString(), t)
+}
+
+func TestEncoderObjectMultipleFields(t *testing.T) {
+	bytes, err := velocypack.Marshal(struct {
+		Name string
+		A    bool
+		D    float64
+		I    int
+	}{
+		Name: "Max",
+		A:    true,
+		D:    123.456,
+		I:    789,
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_FALSE(s.IsEmptyObject(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Max"}`, s.MustJSONString(), t)
+}
+
+func TestEncoderObjectTagRename(t *testing.T) {
+	bytes, err := velocypack.Marshal(struct {
+		Name string  `json:"name"`
+		A    bool    `json:"field9"`
+		D    float64 `json:"field7"`
+		I    int
+	}{
+		Name: "Max",
+		A:    true,
+		D:    123.456,
+		I:    789,
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_FALSE(s.IsEmptyObject(), t)
+	ASSERT_EQ(`{"I":789,"field7":123.456,"field9":true,"name":"Max"}`, s.MustJSONString(), t)
+}
+
+func TestEncoderObjectTagOmitEmptyFull(t *testing.T) {
+	bytes, err := velocypack.Marshal(struct {
+		Name string  `json:"name,omitempty"`
+		A    bool    `json:"field9,omitempty"`
+		D    float64 `json:"field7,omitempty"`
+		I    int     `json:"field8,omitempty"`
+	}{
+		Name: "Jan",
+		A:    true,
+		D:    123.456,
+		I:    789,
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_FALSE(s.IsEmptyObject(), t)
+	ASSERT_EQ(`{"field7":123.456,"field8":789,"field9":true,"name":"Jan"}`, s.MustJSONString(), t)
+}
+
+func TestEncoderObjectTagOmitEmptyEmpty(t *testing.T) {
+	bytes, err := velocypack.Marshal(struct {
+		Name string  `json:"name,omitempty"`
+		A    bool    `json:"field9,omitempty"`
+		D    float64 `json:"field7,omitempty"`
+		I    int     `json:"field8,omitempty"`
+	}{
+		Name: "",
+		A:    false,
+		D:    0.0,
+		I:    0,
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_TRUE(s.IsEmptyObject(), t)
+	ASSERT_EQ(`{}`, s.MustJSONString(), t)
+}
+
+func TestEncoderObjectTagOmitFields(t *testing.T) {
+	bytes, err := velocypack.Marshal(struct {
+		Name string  `json:"name,omitempty"`
+		A    bool    `json:"field9,omitempty"`
+		D    float64 `json:"-"`
+		I    int     `json:"-,"`
+	}{
+		Name: "Jan",
+		A:    true,
+		D:    123.456,
+		I:    789,
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_FALSE(s.IsEmptyObject(), t)
+	ASSERT_EQ(`{"-":789,"field9":true,"name":"Jan"}`, s.MustJSONString(), t)
+}
+
+func TestEncoderObjectNestedStruct(t *testing.T) {
+	bytes, err := velocypack.Marshal(struct {
+		Name   string
+		Nested struct {
+			Foo int
 		}
-	}
+		A bool
+		D float64
+		I int
+	}{
+		Name:   "Jan",
+		Nested: struct{ Foo int }{999},
+		A:      true,
+		D:      123.456,
+		I:      789,
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_FALSE(s.IsEmptyObject(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":{"Foo":999}}`, s.MustJSONString(), t)
 }
 
-func TestEncoderPrimitiveAddDoubleFloat32(t *testing.T) {
-	tests := []float32{10.4, -6, 0.0, -999999999, 24643783456252.4545345, math.MaxFloat32, -math.MaxFloat32}
-	for _, test := range tests {
-		bytes, err := velocypack.Marshal(test)
-		ASSERT_NIL(err, t)
-		s := velocypack.Slice(bytes)
+func TestEncoderObjectNestedStructs(t *testing.T) {
+	bytes, err := velocypack.Marshal(struct {
+		Name   string
+		Nested struct {
+			Foo    int
+			Nested struct {
+				Foo bool
+			}
+		}
+		A bool
+		D float64
+		I int
+	}{
+		Name: "Jan",
+		Nested: struct {
+			Foo    int
+			Nested struct{ Foo bool }
+		}{999, struct{ Foo bool }{true}},
+		A: true,
+		D: 123.456,
+		I: 789,
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
 
-		ASSERT_TRUE(s.IsDouble(), t)
-		ASSERT_DOUBLE_EQ(float64(test), s.MustGetDouble(), t)
-	}
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_FALSE(s.IsEmptyObject(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":{"Foo":999,"Nested":{"Foo":true}}}`, s.MustJSONString(), t)
 }
 
-func TestEncoderPrimitiveAddDoubleFloat64(t *testing.T) {
-	tests := []float64{10.4, -6, 0.0, -999999999, 24643783456252.4545345, math.MaxFloat64, -math.MaxFloat64}
-	for _, test := range tests {
-		bytes, err := velocypack.Marshal(test)
-		ASSERT_NIL(err, t)
-		s := velocypack.Slice(bytes)
+func TestEncoderObjectNestedStructPtr(t *testing.T) {
+	bytes, err := velocypack.Marshal(struct {
+		Name   string
+		Nested *struct {
+			Foo int
+		}
+		A bool
+		D float64
+		I int
+	}{
+		Name:   "Jan",
+		Nested: &struct{ Foo int }{999},
+		A:      true,
+		D:      123.456,
+		I:      789,
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
 
-		ASSERT_TRUE(s.IsDouble(), t)
-		ASSERT_DOUBLE_EQ(test, s.MustGetDouble(), t)
-	}
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_FALSE(s.IsEmptyObject(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":{"Foo":999}}`, s.MustJSONString(), t)
 }
 
-func TestEncoderPrimitiveAddInt(t *testing.T) {
-	tests := []int{10, -7, -34, 344366, -346345324234, 233224, math.MinInt32}
-	for _, test := range tests {
-		bytes, err := velocypack.Marshal(test)
-		ASSERT_NIL(err, t)
-		s := velocypack.Slice(bytes)
+func TestEncoderObjectNestedStructPtrNil(t *testing.T) {
+	bytes, err := velocypack.Marshal(struct {
+		Name   string
+		Nested *struct {
+			Foo int
+		}
+		A bool
+		D float64
+		I int
+	}{
+		Name:   "Jan",
+		Nested: nil,
+		A:      true,
+		D:      123.456,
+		I:      789,
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
 
-		ASSERT_TRUE(s.IsInt(), t)
-		ASSERT_EQ(int64(test), s.MustGetInt(), t)
-	}
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_FALSE(s.IsEmptyObject(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":null}`, s.MustJSONString(), t)
 }
 
-func TestEncoderPrimitiveAddInt8(t *testing.T) {
-	tests := []int8{10, -7, -34, math.MinInt8, math.MaxInt8}
-	for _, test := range tests {
-		bytes, err := velocypack.Marshal(test)
-		ASSERT_NIL(err, t)
-		s := velocypack.Slice(bytes)
+func TestEncoderObjectNestedStructPtrNilOmitEmpty(t *testing.T) {
+	bytes, err := velocypack.Marshal(struct {
+		Name   string
+		Nested *struct {
+			Foo int
+		} `json:",omitempty"`
+		A bool
+		D float64
+		I int
+	}{
+		Name:   "Jan",
+		Nested: nil,
+		A:      true,
+		D:      123.456,
+		I:      789,
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
 
-		ASSERT_TRUE(s.IsInt(), t)
-		ASSERT_EQ(int64(test), s.MustGetInt(), t)
-	}
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_FALSE(s.IsEmptyObject(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan"}`, s.MustJSONString(), t)
 }
 
-func TestEncoderPrimitiveAddInt16(t *testing.T) {
-	tests := []int16{10, -7, -34, math.MinInt16, math.MaxInt16}
-	for _, test := range tests {
-		bytes, err := velocypack.Marshal(test)
-		ASSERT_NIL(err, t)
-		s := velocypack.Slice(bytes)
+func TestEncoderObjectNestedByteSlice(t *testing.T) {
+	bytes, err := velocypack.Marshal(struct {
+		Name   string
+		Nested []byte
+		A      bool
+		D      float64
+		I      int
+	}{
+		Name:   "Jan",
+		Nested: []byte{1, 2, 3, 4, 5},
+		A:      true,
+		D:      123.456,
+		I:      789,
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
 
-		ASSERT_TRUE(s.IsInt(), t)
-		ASSERT_EQ(int64(test), s.MustGetInt(), t)
-	}
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_FALSE(s.IsEmptyObject(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":"(non-representable type Binary)"}`, s.MustJSONString(velocypack.DumperOptions{UnsupportedTypeBehavior: velocypack.ConvertUnsupportedType}), t)
 }
 
-func TestEncoderPrimitiveAddInt32(t *testing.T) {
-	tests := []int32{10, -7, -34, math.MinInt32, math.MaxInt32}
-	for _, test := range tests {
-		bytes, err := velocypack.Marshal(test)
-		ASSERT_NIL(err, t)
-		s := velocypack.Slice(bytes)
+func TestEncoderObjectNestedIntSlice(t *testing.T) {
+	bytes, err := velocypack.Marshal(struct {
+		Name   string
+		Nested []int
+		A      bool
+		D      float64
+		I      int
+	}{
+		Name:   "Jan",
+		Nested: []int{1, 2, 3, 4, 5},
+		A:      true,
+		D:      123.456,
+		I:      789,
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
 
-		ASSERT_TRUE(s.IsInt(), t)
-		ASSERT_EQ(int64(test), s.MustGetInt(), t)
-	}
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_FALSE(s.IsEmptyObject(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":[1,2,3,4,5]}`, s.MustJSONString(), t)
 }
 
-func TestEncoderPrimitiveAddInt64(t *testing.T) {
-	tests := []int64{10, -7, -34, math.MinInt64, math.MaxInt64}
-	for _, test := range tests {
-		bytes, err := velocypack.Marshal(test)
-		ASSERT_NIL(err, t)
-		s := velocypack.Slice(bytes)
+func TestEncoderObjectNestedStringSlice(t *testing.T) {
+	bytes, err := velocypack.Marshal(struct {
+		Name   string
+		Nested []string
+		A      bool
+		D      float64
+		I      int
+	}{
+		Name:   "Jan",
+		Nested: []string{"Aap", "Noot"},
+		A:      true,
+		D:      123.456,
+		I:      789,
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
 
-		ASSERT_TRUE(s.IsInt(), t)
-		ASSERT_EQ(int64(test), s.MustGetInt(), t)
-	}
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_FALSE(s.IsEmptyObject(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":["Aap","Noot"]}`, s.MustJSONString(), t)
 }
 
-func TestEncoderPrimitiveAddUInt(t *testing.T) {
-	tests := []uint{10, 34, math.MaxUint32}
-	for _, test := range tests {
-		bytes, err := velocypack.Marshal(test)
-		ASSERT_NIL(err, t)
-		s := velocypack.Slice(bytes)
+func TestEncoderObjectNestedStringSliceEmpty(t *testing.T) {
+	bytes, err := velocypack.Marshal(struct {
+		Name   string
+		Nested []string
+		A      bool
+		D      float64
+		I      int
+	}{
+		Name:   "Jan",
+		Nested: []string{},
+		A:      true,
+		D:      123.456,
+		I:      789,
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
 
-		ASSERT_TRUE(s.IsUInt(), t)
-		ASSERT_EQ(uint64(test), s.MustGetUInt(), t)
-	}
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_FALSE(s.IsEmptyObject(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":[]}`, s.MustJSONString(), t)
 }
 
-func TestEncoderPrimitiveAddUInt8(t *testing.T) {
-	tests := []uint8{10, 34, math.MaxUint8}
-	for _, test := range tests {
-		bytes, err := velocypack.Marshal(test)
-		ASSERT_NIL(err, t)
-		s := velocypack.Slice(bytes)
+func TestEncoderObjectNestedStringSliceNil(t *testing.T) {
+	bytes, err := velocypack.Marshal(struct {
+		Name   string
+		Nested []string
+		A      bool
+		D      float64
+		I      int
+	}{
+		Name:   "Jan",
+		Nested: nil,
+		A:      true,
+		D:      123.456,
+		I:      789,
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
 
-		ASSERT_TRUE(s.IsUInt(), t)
-		ASSERT_EQ(uint64(test), s.MustGetUInt(), t)
-	}
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_FALSE(s.IsEmptyObject(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":null}`, s.MustJSONString(), t)
 }
 
-func TestEncoderPrimitiveAddUInt16(t *testing.T) {
-	tests := []uint16{10, 34, math.MaxUint16}
-	for _, test := range tests {
-		bytes, err := velocypack.Marshal(test)
-		ASSERT_NIL(err, t)
-		s := velocypack.Slice(bytes)
-
-		ASSERT_TRUE(s.IsUInt(), t)
-		ASSERT_EQ(uint64(test), s.MustGetUInt(), t)
-	}
+type Struct1 struct {
+	Field1 int
+	field2 int // Not exposed, must not be exported
 }
 
-func TestEncoderPrimitiveAddUInt32(t *testing.T) {
-	tests := []uint32{10, 34, 56345344, math.MaxUint32}
-	for _, test := range tests {
-		bytes, err := velocypack.Marshal(test)
-		ASSERT_NIL(err, t)
-		s := velocypack.Slice(bytes)
+func TestEncoderObjectStruct1(t *testing.T) {
+	bytes, err := velocypack.Marshal(Struct1{
+		Field1: 1,
+		field2: 2,
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
 
-		ASSERT_TRUE(s.IsUInt(), t)
-		ASSERT_EQ(uint64(test), s.MustGetUInt(), t)
-	}
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_FALSE(s.IsEmptyObject(), t)
+	ASSERT_EQ(`{"Field1":1}`, s.MustJSONString(), t)
 }
 
-func TestEncoderPrimitiveAddUInt64(t *testing.T) {
-	tests := []uint64{10, 34, 636346346345342355, math.MaxUint64}
-	for _, test := range tests {
-		bytes, err := velocypack.Marshal(test)
-		ASSERT_NIL(err, t)
-		s := velocypack.Slice(bytes)
-
-		ASSERT_TRUE(s.IsUInt(), t)
-		ASSERT_EQ(uint64(test), s.MustGetUInt(), t)
-	}
+type Struct2 struct {
+	Field1  bool
+	Struct1 // Anonymous struct
 }
 
-func TestEncoderPrimitiveAddSmallInt(t *testing.T) {
-	tests := []int{-6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 9}
-	for _, test := range tests {
-		bytes, err := velocypack.Marshal(test)
-		ASSERT_NIL(err, t)
-		s := velocypack.Slice(bytes)
+func TestEncoderObjectStruct2(t *testing.T) {
+	bytes, err := velocypack.Marshal(Struct2{
+		Field1: true,
+		Struct1: Struct1{
+			Field1: 101,
+			field2: 102,
+		},
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
 
-		ASSERT_TRUE(s.IsSmallInt(), t)
-		ASSERT_EQ(int64(test), s.MustGetInt(), t)
-	}
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_FALSE(s.IsEmptyObject(), t)
+	ASSERT_EQ(`{"Field1":true}`, s.MustJSONString(), t)
 }
 
-func TestEncoderPrimitiveAddString(t *testing.T) {
-	tests := []string{"", "foo", "你好，世界", "\t\n\x00", "Some space and stuff"}
-	for _, test := range tests {
-		bytes, err := velocypack.Marshal(test)
-		ASSERT_NIL(err, t)
-		s := velocypack.Slice(bytes)
-
-		ASSERT_TRUE(s.IsString(), t)
-		ASSERT_EQ(test, s.MustGetString(), t)
-	}
+type Struct3 struct {
+	Struct1 // Anonymous struct
+	Field1  bool
 }
 
-func TestEncoderPrimitiveAddBinary(t *testing.T) {
-	tests := [][]byte{[]byte{1, 2, 3}, []byte{}, []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 13, 14, 15, 16, 17, 18, 19, 20}}
-	for _, test := range tests {
-		bytes, err := velocypack.Marshal(test)
-		ASSERT_NIL(err, t)
-		s := velocypack.Slice(bytes)
+func TestEncoderObjectStruct3(t *testing.T) {
+	bytes, err := velocypack.Marshal(Struct3{
+		Struct1: Struct1{
+			Field1: 101,
+			field2: 102,
+		},
+		Field1: true,
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
 
-		ASSERT_EQ(s.Type(), velocypack.Binary, t)
-		ASSERT_TRUE(s.IsBinary(), t)
-		ASSERT_EQ(test, s.MustGetBinary(), t)
-	}
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_FALSE(s.IsEmptyObject(), t)
+	ASSERT_EQ(`{"Field1":true}`, s.MustJSONString(), t)
+}
+
+type Struct4 struct {
+	Field4 bool `json:"a"`
+	Struct5
+}
+
+type Struct5 struct {
+	Field5 int `json:"a"`
+}
+
+func TestEncoderObjectStruct4(t *testing.T) {
+	bytes, err := velocypack.Marshal(Struct4{
+		Field4: true,
+		Struct5: Struct5{
+			Field5: 5,
+		},
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_FALSE(s.IsEmptyObject(), t)
+	ASSERT_EQ(`{"a":true}`, s.MustJSONString(), t)
+}
+
+type Struct6 struct {
+	Field4 bool `json:"a6"`
+	Struct5
+}
+
+func TestEncoderObjectStruct6(t *testing.T) {
+	bytes, err := velocypack.Marshal(Struct6{
+		Field4: true,
+		Struct5: Struct5{
+			Field5: 5,
+		},
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_FALSE(s.IsEmptyObject(), t)
+	ASSERT_EQ(`{"a":5,"a6":true}`, s.MustJSONString(), t)
 }

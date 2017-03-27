@@ -272,6 +272,20 @@ func IsUnsupportedType(err error) bool {
 	return ok
 }
 
+// NoJSONEquivalentError is returned when a Velocypack type cannot be converted to JSON.
+type NoJSONEquivalentError struct{}
+
+// Error implements the error interface for NoJSONEquivalentError.
+func (e NoJSONEquivalentError) Error() string {
+	return "no JSON equivalent"
+}
+
+// IsNoJSONEquivalent returns true if the given error is an NoJSONEquivalentError.
+func IsNoJSONEquivalent(err error) bool {
+	_, ok := Cause(err).(NoJSONEquivalentError)
+	return ok
+}
+
 var (
 	// WithStack is called on every return of an error to add stacktrace information to the error.
 	// When setting this function, also set the Cause function.

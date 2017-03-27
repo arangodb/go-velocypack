@@ -23,6 +23,7 @@
 package velocypack
 
 import (
+	"fmt"
 	"io"
 	"strconv"
 )
@@ -31,8 +32,17 @@ type DumperOptions struct {
 	// EscapeUnicode turns on escapping multi-byte Unicode characters when dumping them to JSON (creates \uxxxx sequences).
 	EscapeUnicode bool
 	// EscapeForwardSlashes turns on escapping forward slashes when serializing VPack values into JSON.
-	EscapeForwardSlashes bool
+	EscapeForwardSlashes    bool
+	UnsupportedTypeBehavior UnsupportedTypeBehavior
 }
+
+type UnsupportedTypeBehavior int
+
+const (
+	NullifyUnsupportedType UnsupportedTypeBehavior = iota
+	ConvertUnsupportedType
+	FailOnUnsupportedType
+)
 
 type Dumper struct {
 	w           io.Writer
@@ -110,6 +120,20 @@ func (d *Dumper) Append(s Slice) error {
 			return WithStack(err)
 		}
 		return nil
+	default:
+		switch d.options.UnsupportedTypeBehavior {
+		case NullifyUnsupportedType:
+			if _, err := w.Write([]byte("null")); err != nil {
+				return WithStack(err)
+			}
+		case ConvertUnsupportedType:
+			msg := fmt.Sprintf("(non-representable type %s)", s.Type().String())
+			if err := d.appendString(msg); err != nil {
+				return WithStack(err)
+			}
+		default:
+			return WithStack(NoJSONEquivalentError{})
+		}
 	}
 
 	return nil
