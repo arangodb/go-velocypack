@@ -110,7 +110,7 @@ func (s Slice) ByteSize() (ValueLength, error) {
 			return 1, nil
 		}
 
-		VELOCYPACK_ASSERT(h > 0x00 && h <= 0x0e)
+		vpackAssert(h > 0x00 && h <= 0x0e)
 		return ValueLength(readIntegerNonEmpty(s[1:], widthMap[h])), nil
 
 	case External:
@@ -123,7 +123,7 @@ func (s Slice) ByteSize() (ValueLength, error) {
 		return ValueLength(1 + (h - 0x1f)), nil
 
 	case String:
-		VELOCYPACK_ASSERT(h == 0xbf)
+		vpackAssert(h == 0xbf)
 		if h < 0xbf {
 			// we cannot get here, because the FixedTypeLengths lookup
 			// above will have kicked in already. however, the compiler
@@ -135,22 +135,22 @@ func (s Slice) ByteSize() (ValueLength, error) {
 		return ValueLength(1 + 8 + readIntegerFixed(s[1:], 8)), nil
 
 	case Binary:
-		VELOCYPACK_ASSERT(h >= 0xc0 && h <= 0xc7)
+		vpackAssert(h >= 0xc0 && h <= 0xc7)
 		return ValueLength(1 + ValueLength(h) - 0xbf + ValueLength(readIntegerNonEmpty(s[1:], uint(h)-0xbf))), nil
 
 	case BCD:
 		if h <= 0xcf {
 			// positive BCD
-			VELOCYPACK_ASSERT(h >= 0xc8 && h < 0xcf)
+			vpackAssert(h >= 0xc8 && h < 0xcf)
 			return ValueLength(1 + ValueLength(h) - 0xc7 + ValueLength(readIntegerNonEmpty(s[1:], uint(h)-0xc7))), nil
 		}
 
 		// negative BCD
-		VELOCYPACK_ASSERT(h >= 0xd0 && h < 0xd7)
+		vpackAssert(h >= 0xd0 && h < 0xd7)
 		return ValueLength(1 + ValueLength(h) - 0xcf + ValueLength(readIntegerNonEmpty(s[1:], uint(h)-0xcf))), nil
 
 	case Custom:
-		VELOCYPACK_ASSERT(h >= 0xf4)
+		vpackAssert(h >= 0xf4)
 		switch h {
 		case 0xf4, 0xf5, 0xf6:
 			return ValueLength(2 + readIntegerFixed(s[1:], 1)), nil
@@ -487,7 +487,7 @@ func (s Slice) GetBinary() ([]byte, error) {
 	}
 
 	h := s.head()
-	VELOCYPACK_ASSERT(h >= 0xc0 && h <= 0xc7)
+	vpackAssert(h >= 0xc0 && h <= 0xc7)
 
 	lengthSize := uint(h - 0xbf)
 	length := readIntegerNonEmpty(s[1:], lengthSize)
@@ -512,7 +512,7 @@ func (s Slice) GetBinaryLength() (ValueLength, error) {
 	}
 
 	h := s.head()
-	VELOCYPACK_ASSERT(h >= 0xc0 && h <= 0xc7)
+	vpackAssert(h >= 0xc0 && h <= 0xc7)
 
 	lengthSize := uint(h - 0xbf)
 	length := readIntegerNonEmpty(s[1:], lengthSize)
@@ -548,7 +548,7 @@ func (s Slice) Length() (ValueLength, error) {
 	}
 
 	offsetSize := indexEntrySize(h)
-	VELOCYPACK_ASSERT(offsetSize > 0)
+	vpackAssert(offsetSize > 0)
 	end := readIntegerNonEmpty(s[1:], offsetSize)
 
 	// find number of items
@@ -650,7 +650,7 @@ func (s Slice) MustValueAt(index ValueLength) Slice {
 }
 
 func indexEntrySize(head byte) uint {
-	VELOCYPACK_ASSERT(head > 0x00 && head <= 0x12)
+	vpackAssert(head > 0x00 && head <= 0x12)
 	return widthMap[head]
 }
 
@@ -674,7 +674,7 @@ func (s Slice) Get(attribute string) (Slice, error) {
 	}
 
 	offsetSize := indexEntrySize(h)
-	VELOCYPACK_ASSERT(offsetSize > 0)
+	vpackAssert(offsetSize > 0)
 	end := ValueLength(readIntegerNonEmpty(s[1:], offsetSize))
 
 	// read number of items
@@ -806,7 +806,7 @@ func (s Slice) getFromCompactObject(attribute string) (Slice, error) {
 
 func (s Slice) findDataOffset(head byte) ValueLength {
 	// Must be called for a nonempty array or object at start():
-	VELOCYPACK_ASSERT(head <= 0x12)
+	vpackAssert(head <= 0x12)
 	fsm := firstSubMap[head]
 	if fsm <= 2 && s[2] != 0 {
 		return 2
@@ -822,7 +822,7 @@ func (s Slice) findDataOffset(head byte) ValueLength {
 
 // get the offset for the nth member from an Array or Object type
 func (s Slice) getNthOffset(index ValueLength) (ValueLength, error) {
-	VELOCYPACK_ASSERT(s.IsArray() || s.IsObject())
+	vpackAssert(s.IsArray() || s.IsObject())
 
 	h := s.head()
 
@@ -869,7 +869,7 @@ func (s Slice) getNthOffset(index ValueLength) (ValueLength, error) {
 	}
 
 	// empty array case was already covered
-	VELOCYPACK_ASSERT(n > 0)
+	vpackAssert(n > 0)
 
 	if h <= 0x05 || n == 1 {
 		// no index table, but all array items have the same length
@@ -926,7 +926,7 @@ func (s Slice) getNthOffsetFromCompact(index ValueLength) (ValueLength, error) {
 
 // extract the nth member from an Array
 func (s Slice) getNth(index ValueLength) (Slice, error) {
-	VELOCYPACK_ASSERT(s.IsArray())
+	vpackAssert(s.IsArray())
 
 	offset, err := s.getNthOffset(index)
 	if err != nil {
@@ -937,7 +937,7 @@ func (s Slice) getNth(index ValueLength) (Slice, error) {
 
 // getNthKey extract the nth member from an Object
 func (s Slice) getNthKey(index ValueLength, translate bool) (Slice, error) {
-	VELOCYPACK_ASSERT(s.Type() == Object)
+	vpackAssert(s.Type() == Object)
 
 	offset, err := s.getNthOffset(index)
 	if err != nil {
@@ -1020,7 +1020,7 @@ func (s Slice) searchObjectKeyLinear(attribute string, ieBase, offsetSize, n Val
 //template<ValueLength offsetSize>
 func (s Slice) searchObjectKeyBinary(attribute string, ieBase ValueLength, n ValueLength, offsetSize ValueLength) (Slice, error) {
 	useTranslator := AttributeTranslator != nil
-	VELOCYPACK_ASSERT(n > 0)
+	vpackAssert(n > 0)
 
 	l := ValueLength(0)
 	r := ValueLength(n - 1)

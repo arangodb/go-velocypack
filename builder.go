@@ -199,8 +199,7 @@ func (b *Builder) Close() error {
 	tos := b.stack.Tos()
 	head := b.buf[tos]
 
-	VELOCYPACK_ASSERT(head == 0x06 || head == 0x0b || head == 0x13 ||
-		head == 0x14)
+	vpackAssert(head == 0x06 || head == 0x0b || head == 0x13 || head == 0x14)
 
 	isArray := (head == 0x06 || head == 0x13)
 	index := b.index[len(b.stack)-1]
@@ -211,7 +210,7 @@ func (b *Builder) Close() error {
 	}
 
 	// From now on index.size() > 0
-	VELOCYPACK_ASSERT(len(index) > 0)
+	vpackAssert(len(index) > 0)
 
 	// check if we can use the compact Array / Object format
 	if head == 0x13 || head == 0x14 ||
@@ -799,7 +798,7 @@ func (b *Builder) closeEmptyArrayOrObject(tos ValueLength, isArray bool) {
 	} else {
 		b.buf[tos] = 0x0a
 	}
-	VELOCYPACK_ASSERT(b.buf.Len() == tos+9)
+	vpackAssert(b.buf.Len() == tos+9)
 	b.buf.Shrink(8)
 	b.stack.Pop()
 }
@@ -810,10 +809,10 @@ func (b *Builder) closeCompactArrayOrObject(tos ValueLength, isArray bool, index
 	// use compact notation
 	nrItems := len(index)
 	nrItemsLen := getVariableValueLength(ValueLength(nrItems))
-	VELOCYPACK_ASSERT(nrItemsLen > 0)
+	vpackAssert(nrItemsLen > 0)
 
 	byteSize := b.buf.Len() - (tos + 8) + nrItemsLen
-	VELOCYPACK_ASSERT(byteSize > 0)
+	vpackAssert(byteSize > 0)
 
 	byteSizeLen := getVariableValueLength(byteSize)
 	byteSize += byteSizeLen
@@ -842,7 +841,7 @@ func (b *Builder) closeCompactArrayOrObject(tos ValueLength, isArray bool, index
 		b.buf.Shrink(uint(8 - byteSizeLen))
 
 		// store byte length
-		VELOCYPACK_ASSERT(byteSize > 0)
+		vpackAssert(byteSize > 0)
 		storeVariableValueLength(b.buf, tos+1, byteSize, false)
 
 		// store nrItems
@@ -858,7 +857,7 @@ func (b *Builder) closeCompactArrayOrObject(tos ValueLength, isArray bool, index
 // checkAttributeUniqueness checks the given slice for duplicate keys.
 // It returns an error when duplicate keys are found, nil otherwise.
 func (b *Builder) checkAttributeUniqueness(obj Slice) error {
-	VELOCYPACK_ASSERT(b.BuilderOptions.CheckAttributeUniqueness)
+	vpackAssert(b.BuilderOptions.CheckAttributeUniqueness)
 	n, err := obj.Length()
 	if err != nil {
 		return WithStack(err)
@@ -882,7 +881,7 @@ func (b *Builder) checkAttributeUniqueness(obj Slice) error {
 				return WithStack(err)
 			}
 			// keyAt() guarantees a string as returned type
-			VELOCYPACK_ASSERT(current.IsString())
+			vpackAssert(current.IsString())
 
 			q, err := current.GetString()
 			if err != nil {
@@ -906,7 +905,7 @@ func (b *Builder) checkAttributeUniqueness(obj Slice) error {
 				return WithStack(err)
 			}
 			// keyAt() guarantees a string as returned type
-			VELOCYPACK_ASSERT(key.IsString())
+			vpackAssert(key.IsString())
 
 			k, err := key.GetString()
 			if err != nil {

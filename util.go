@@ -22,8 +22,8 @@
 
 package velocypack
 
-// VELOCYPACK_ASSERT panics if v is false.
-func VELOCYPACK_ASSERT(v bool) {
+// vpackAssert panics if v is false.
+func vpackAssert(v bool) {
 	if !v {
 		panic("VELOCYPACK_ASSERT failed")
 	}
@@ -95,7 +95,7 @@ func readVariableValueLength(source []byte, offset ValueLength, reverse bool) Va
 
 // store a variable length integer in unsigned LEB128 format
 func storeVariableValueLength(dst []byte, offset, value ValueLength, reverse bool) {
-	VELOCYPACK_ASSERT(value > 0)
+	vpackAssert(value > 0)
 
 	idx := offset
 	if reverse {
