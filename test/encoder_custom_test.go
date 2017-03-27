@@ -23,6 +23,7 @@
 package test
 
 import (
+	"fmt"
 	"testing"
 
 	velocypack "github.com/arangodb/go-velocypack"
@@ -83,4 +84,25 @@ func TestEncoderCustomStruct3(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_EQ(`{"Field":"Hello world"}`, s.MustJSONString(), t)
+}
+
+type CustomText1 struct {
+	I int
+}
+
+func (ct CustomText1) MarshalText() ([]byte, error) {
+	key := fmt.Sprintf("key%d", ct.I)
+	return []byte(key), nil
+}
+
+func TestEncoderCustomText1(t *testing.T) {
+	bytes, err := velocypack.Marshal(map[CustomText1]bool{
+		CustomText1{7}: true,
+		CustomText1{2}: false,
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_EQ(`{"key2":false,"key7":true}`, s.MustJSONString(), t)
 }

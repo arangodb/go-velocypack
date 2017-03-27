@@ -188,13 +188,17 @@ func TestEncoderPrimitiveAddUInt32(t *testing.T) {
 }
 
 func TestEncoderPrimitiveAddUInt64(t *testing.T) {
-	tests := []uint64{10, 34, 636346346345342355, math.MaxUint64}
+	tests := []uint64{10, 34, 636346346345342355, 0, math.MaxUint64}
 	for _, test := range tests {
 		bytes, err := velocypack.Marshal(test)
 		ASSERT_NIL(err, t)
 		s := velocypack.Slice(bytes)
 
-		ASSERT_TRUE(s.IsUInt(), t)
+		if test == 0 {
+			ASSERT_TRUE(s.IsSmallInt(), t)
+		} else {
+			ASSERT_TRUE(s.IsUInt(), t)
+		}
 		ASSERT_EQ(uint64(test), s.MustGetUInt(), t)
 	}
 }
