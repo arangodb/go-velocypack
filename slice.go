@@ -53,9 +53,13 @@ func (s Slice) String() string {
 }
 
 // JSONString converts the contents of the slice to JSON.
-func (s Slice) JSONString() (string, error) {
+func (s Slice) JSONString(options ...DumperOptions) (string, error) {
 	buf := &bytes.Buffer{}
-	d := NewDumper(buf)
+	var opt *DumperOptions
+	if len(options) > 0 {
+		opt = &options[0]
+	}
+	d := NewDumper(buf, opt)
 	if err := d.Append(s); err != nil {
 		return "", WithStack(err)
 	}
@@ -64,8 +68,8 @@ func (s Slice) JSONString() (string, error) {
 
 // MustJSONString converts the contents of the slice to JSON.
 // Panics in case of an error.
-func (s Slice) MustJSONString() string {
-	if result, err := s.JSONString(); err != nil {
+func (s Slice) MustJSONString(options ...DumperOptions) string {
+	if result, err := s.JSONString(options...); err != nil {
 		panic(err)
 	} else {
 		return result

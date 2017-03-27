@@ -457,3 +457,15 @@ func TestBuilderGetKeyCompact(t *testing.T) {
 	ASSERT_TRUE(b.MustGetKey("bark").IsObject(), t)
 	b.Close()
 }
+
+func TestBuilderAddKeysSeparately1(t *testing.T) {
+	var b velocypack.Builder
+	b.MustOpenObject()
+	b.MustAddValue(velocypack.NewStringValue("name"))
+	b.MustAddValue(velocypack.NewStringValue("Neunhoeffer"))
+	b.MustAddValue(velocypack.NewStringValue("firstName"))
+	b.MustAddValue(velocypack.NewStringValue("Max"))
+	b.MustClose()
+
+	ASSERT_EQ(`{"firstName":"Max","name":"Neunhoeffer"}`, b.MustSlice().MustJSONString(), t)
+}

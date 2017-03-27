@@ -223,6 +223,20 @@ func IsBuilderNeedSubValue(err error) bool {
 	return ok
 }
 
+// InvalidUtf8SequenceError indicates an invalid UTF8 (string) sequence.
+type InvalidUtf8SequenceError struct{}
+
+// Error implements the error interface for InvalidUtf8SequenceError.
+func (e InvalidUtf8SequenceError) Error() string {
+	return "invalid utf8 sequence"
+}
+
+// IsInvalidUtf8Sequence returns true if the given error is an InvalidUtf8SequenceError.
+func IsInvalidUtf8Sequence(err error) bool {
+	_, ok := Cause(err).(InvalidUtf8SequenceError)
+	return ok
+}
+
 var (
 	// WithStack is called on every return of an error to add stacktrace information to the error.
 	// When setting this function, also set the Cause function.

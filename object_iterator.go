@@ -30,7 +30,7 @@ type ObjectIterator struct {
 }
 
 // NewObjectIterator initializes an iterator at position 0 of the given object slice.
-func NewObjectIterator(s Slice) (*ObjectIterator, error) {
+func NewObjectIterator(s Slice, allowRandomIteration ...bool) (*ObjectIterator, error) {
 	if !s.IsObject() {
 		return nil, InvalidTypeError{"Expected Object slice"}
 	}
@@ -46,7 +46,7 @@ func NewObjectIterator(s Slice) (*ObjectIterator, error) {
 	if size > 0 {
 		if h := s.head(); h == 0x14 {
 			i.current, err = s.KeyAt(0, false)
-		} else {
+		} else if optionalBool(allowRandomIteration, false) {
 			i.current = s[s.findDataOffset(h):]
 		}
 	}
