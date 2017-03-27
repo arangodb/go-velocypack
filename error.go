@@ -22,6 +22,8 @@
 
 package velocypack
 
+import "reflect"
+
 // InvalidTypeError is returned when a Slice getter is called on a slice of a different type.
 type InvalidTypeError struct {
 	Message string
@@ -234,6 +236,39 @@ func (e InvalidUtf8SequenceError) Error() string {
 // IsInvalidUtf8Sequence returns true if the given error is an InvalidUtf8SequenceError.
 func IsInvalidUtf8Sequence(err error) bool {
 	_, ok := Cause(err).(InvalidUtf8SequenceError)
+	return ok
+}
+
+// MarshalerError is returned when a custom VPack Marshaler returns an error.
+type MarshalerError struct {
+	Type reflect.Type
+	Err  error
+}
+
+// Error implements the error interface for MarshalerError.
+func (e MarshalerError) Error() string {
+	return "error calling MarshalVPack for type " + e.Type.String() + ": " + e.Err.Error()
+}
+
+// IsMarshaler returns true if the given error is an MarshalerError.
+func IsMarshaler(err error) bool {
+	_, ok := Cause(err).(MarshalerError)
+	return ok
+}
+
+// UnsupportedTypeError is returned when a type is marshaled that cannot be marshaled.
+type UnsupportedTypeError struct {
+	Type reflect.Type
+}
+
+// Error implements the error interface for UnsupportedTypeError.
+func (e UnsupportedTypeError) Error() string {
+	return "unsupported type " + e.Type.String()
+}
+
+// IsUnsupportedType returns true if the given error is an UnsupportedTypeError.
+func IsUnsupportedType(err error) bool {
+	_, ok := Cause(err).(UnsupportedTypeError)
 	return ok
 }
 
