@@ -131,6 +131,7 @@ func valueEncoder(v reflect.Value) encoderFunc {
 var (
 	marshalerType     = reflect.TypeOf(new(Marshaler)).Elem()
 	textMarshalerType = reflect.TypeOf(new(encoding.TextMarshaler)).Elem()
+	nullValue         = NewNullValue()
 )
 
 func typeEncoder(t reflect.Type) encoderFunc {
@@ -217,22 +218,22 @@ func newTypeEncoder(t reflect.Type, allowAddr bool) encoderFunc {
 }
 
 func invalidValueEncoder(b *Builder, v reflect.Value) {
-	b.addNull()
+	b.addInternal(nullValue)
 }
 
 func marshalerEncoder(b *Builder, v reflect.Value) {
 	if v.Kind() == reflect.Ptr && v.IsNil() {
-		b.addNull()
+		b.addInternal(nullValue)
 		return
 	}
 	m, ok := v.Interface().(Marshaler)
 	if !ok {
-		b.addNull()
+		b.addInternal(nullValue)
 		return
 	}
 	vpack, err := m.MarshalVPack()
 	if err == nil {
-		b.buf.Write(vpack)
+		b.addInternal(NewSliceValue(vpack))
 	}
 	if err != nil {
 		panic(&MarshalerError{v.Type(), err})
@@ -242,7 +243,7 @@ func marshalerEncoder(b *Builder, v reflect.Value) {
 func addrMarshalerEncoder(b *Builder, v reflect.Value) {
 	va := v.Addr()
 	if va.IsNil() {
-		b.addNull()
+		b.addInternal(nullValue)
 		return
 	}
 	m := va.Interface().(Marshaler)
@@ -258,7 +259,7 @@ func addrMarshalerEncoder(b *Builder, v reflect.Value) {
 
 func textMarshalerEncoder(b *Builder, v reflect.Value) {
 	if v.Kind() == reflect.Ptr && v.IsNil() {
-		b.addNull()
+		b.addInternal(nullValue)
 		return
 	}
 	m := v.Interface().(encoding.TextMarshaler)
@@ -266,13 +267,13 @@ func textMarshalerEncoder(b *Builder, v reflect.Value) {
 	if err != nil {
 		panic(&MarshalerError{v.Type(), err})
 	}
-	b.addString(string(text))
+	b.addInternal(NewStringValue(string(text)))
 }
 
 func addrTextMarshalerEncoder(b *Builder, v reflect.Value) {
 	va := v.Addr()
 	if va.IsNil() {
-		b.addNull()
+		b.addInternal(nullValue)
 		return
 	}
 	m := va.Interface().(encoding.TextMarshaler)
@@ -280,32 +281,32 @@ func addrTextMarshalerEncoder(b *Builder, v reflect.Value) {
 	if err != nil {
 		panic(&MarshalerError{v.Type(), err})
 	}
-	b.addString(string(text))
+	b.addInternal(NewStringValue(string(text)))
 }
 
 func boolEncoder(b *Builder, v reflect.Value) {
-	b.addBool(v.Bool())
+	b.addInternal(NewBoolValue(v.Bool()))
 }
 
 func intEncoder(b *Builder, v reflect.Value) {
-	b.addInt(v.Int())
+	b.addInternal(NewIntValue(v.Int()))
 }
 
 func uintEncoder(b *Builder, v reflect.Value) {
-	b.addUInt(v.Uint())
+	b.addInternal(NewUIntValue(v.Uint()))
 }
 
 func doubleEncoder(b *Builder, v reflect.Value) {
-	b.addDouble(v.Float())
+	b.addInternal(NewDoubleValue(v.Float()))
 }
 
 func stringEncoder(b *Builder, v reflect.Value) {
-	b.addString(v.String())
+	b.addInternal(NewStringValue(v.String()))
 }
 
 func interfaceEncoder(b *Builder, v reflect.Value) {
 	if v.IsNil() {
-		b.addNull()
+		b.addInternal(nullValue)
 		return
 	}
 	vElem := v.Elem()
@@ -335,7 +336,6 @@ func (se *structEncoder) encode(b *Builder, v reflect.Value) {
 		}
 		// Value
 		se.fieldEncs[i](b, fv)
-		b.keyWritten = false
 	}
 	b.MustClose()
 }
@@ -358,20 +358,21 @@ type mapEncoder struct {
 
 func (e *mapEncoder) encode(b *Builder, v reflect.Value) {
 	if v.IsNil() {
-		b.addNull()
+		b.addInternal(nullValue)
+		return
 	}
 	b.MustOpenObject()
 
 	// Extract and sort the keys.
 	keys := v.MapKeys()
-	sv := make([]reflectWithString, len(keys))
+	sv := make(reflectWithStringSlice, len(keys))
 	for i, v := range keys {
 		sv[i].v = v
 		if err := sv[i].resolve(); err != nil {
 			panic(&MarshalerError{v.Type(), err})
 		}
 	}
-	sort.Slice(sv, func(i, j int) bool { return sv[i].s < sv[j].s })
+	sort.Sort(sv)
 
 	for _, kv := range sv {
 		// Key
@@ -381,7 +382,6 @@ func (e *mapEncoder) encode(b *Builder, v reflect.Value) {
 		}
 		// Value
 		e.elemEnc(b, v.MapIndex(kv.v))
-		b.keyWritten = false
 	}
 	b.MustClose()
 }
@@ -402,10 +402,10 @@ func newMapEncoder(t reflect.Type) encoderFunc {
 
 func encodeByteSlice(b *Builder, v reflect.Value) {
 	if v.IsNil() {
-		b.addNull()
+		b.addInternal(nullValue)
 		return
 	}
-	b.addBinary(v.Bytes())
+	b.addInternal(NewBinaryValue(v.Bytes()))
 }
 
 // sliceEncoder just wraps an arrayEncoder, checking to make sure the value isn't nil.
@@ -415,7 +415,7 @@ type sliceEncoder struct {
 
 func (se *sliceEncoder) encode(b *Builder, v reflect.Value) {
 	if v.IsNil() {
-		b.addNull()
+		b.addInternal(nullValue)
 		return
 	}
 	se.arrayEnc(b, v)
@@ -441,7 +441,6 @@ func (ae *arrayEncoder) encode(b *Builder, v reflect.Value) {
 	b.MustOpenArray()
 	n := v.Len()
 	for i := 0; i < n; i++ {
-		b.reportAdd()
 		ae.elemEnc(b, v.Index(i))
 	}
 	b.MustClose()
@@ -458,7 +457,7 @@ type ptrEncoder struct {
 
 func (pe *ptrEncoder) encode(b *Builder, v reflect.Value) {
 	if v.IsNil() {
-		b.addNull()
+		b.addInternal(nullValue)
 		return
 	}
 	pe.elemEnc(b, v.Elem())
@@ -512,4 +511,22 @@ func (w *reflectWithString) resolve() error {
 		return nil
 	}
 	panic("unexpected map key type")
+}
+
+type reflectWithStringSlice []reflectWithString
+
+// Len is the number of elements in the collection.
+func (l reflectWithStringSlice) Len() int {
+	return len(l)
+}
+
+// Less reports whether the element with
+// index i should sort before the element with index j.
+func (l reflectWithStringSlice) Less(i, j int) bool {
+	return l[i].s < l[j].s
+}
+
+// Swap swaps the elements with indexes i and j.
+func (l reflectWithStringSlice) Swap(i, j int) {
+	l[i], l[j] = l[j], l[i]
 }

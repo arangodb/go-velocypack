@@ -3,7 +3,7 @@ SCRIPTDIR := $(shell pwd)
 ROOTDIR := $(shell cd $(SCRIPTDIR) && pwd)
 
 GOBUILDDIR := $(SCRIPTDIR)/.gobuild
-GOVERSION := 1.8-alpine
+GOVERSION := 1.7.5-alpine
 
 TESTOPTIONS := 
 ifdef VERBOSE

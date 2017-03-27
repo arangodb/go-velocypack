@@ -266,6 +266,36 @@ func TestBuilderAddObjectInArray(t *testing.T) {
 	ASSERT_EQ(velocypack.ValueLength(0), ss.MustLength(), t)
 }
 
+func TestBuilderAddNonEmptyObjectsInArray(t *testing.T) {
+	var b velocypack.Builder
+	b.MustOpenArray()
+	for i := 0; i < 5; i++ {
+		b.MustOpenObject()
+		b.MustAddKeyValue("Field1", velocypack.NewIntValue(int64(i+1)))
+		b.MustClose()
+	}
+	b.MustClose()
+
+	s := b.MustSlice()
+	ASSERT_TRUE(s.IsArray(), t)
+	ASSERT_EQ(velocypack.ValueLength(5), s.MustLength(), t)
+	ss := s.MustAt(0)
+	ASSERT_TRUE(ss.IsObject(), t)
+	ASSERT_EQ(velocypack.ValueLength(1), ss.MustLength(), t)
+	ASSERT_EQ(int64(1), ss.MustGet("Field1").MustGetInt(), t)
+
+	it := velocypack.MustNewArrayIterator(s)
+	i := 1
+	for it.IsValid() {
+		ss := it.MustValue()
+		ASSERT_TRUE(ss.IsObject(), t)
+		ASSERT_EQ(velocypack.ValueLength(1), ss.MustLength(), t)
+		ASSERT_EQ(int64(i), ss.MustGet("Field1").MustGetInt(), t)
+		it.Next()
+		i++
+	}
+}
+
 func TestBuilderAddArrayIteratorEmpty(t *testing.T) {
 	var obj velocypack.Builder
 	obj.MustOpenArray()

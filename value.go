@@ -39,7 +39,14 @@ type Value struct {
 // If the given value is not a supported type, a Value of type Illegal is returned.
 func NewValue(value interface{}) Value {
 	v := reflect.ValueOf(value)
-	switch v.Type().Kind() {
+	return NewReflectValue(v)
+}
+
+// NewReflectValue creates a new Value with type derived from Go type of given reflect value.
+// If the given value is not a supported type, a Value of type Illegal is returned.
+func NewReflectValue(v reflect.Value) Value {
+	vt := v.Type()
+	switch vt.Kind() {
 	case reflect.Bool:
 		return NewBoolValue(v.Bool())
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -50,15 +57,21 @@ func NewValue(value interface{}) Value {
 		return NewDoubleValue(v.Float())
 	case reflect.String:
 		return NewStringValue(v.String())
+	case reflect.Slice:
+		if vt.Elem().Kind() == reflect.Uint8 {
+		}
 	}
-	if v, ok := value.([]byte); ok {
-		return NewBinaryValue(v)
-	}
-	if v, ok := value.(Slice); ok {
-		return NewSliceValue(v)
-	}
-	if v, ok := value.(Value); ok {
-		return v
+	if v.CanInterface() {
+		raw := v.Interface()
+		if v, ok := raw.([]byte); ok {
+			return NewBinaryValue(v)
+		}
+		if v, ok := raw.(Slice); ok {
+			return NewSliceValue(v)
+		}
+		if v, ok := raw.(Value); ok {
+			return v
+		}
 	}
 	return Value{Illegal, nil, false}
 }

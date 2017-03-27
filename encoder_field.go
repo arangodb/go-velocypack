@@ -97,6 +97,28 @@ func (x byIndex) Less(i, j int) bool {
 	return len(x[i].index) < len(x[j].index)
 }
 
+// sort field by name, breaking ties with depth, then
+// breaking ties with "name came from json tag", then
+// breaking ties with index sequence.
+type byNameIndexlenTag []field
+
+func (x byNameIndexlenTag) Len() int { return len(x) }
+
+func (x byNameIndexlenTag) Swap(i, j int) { x[i], x[j] = x[j], x[i] }
+
+func (x byNameIndexlenTag) Less(i, j int) bool {
+	if x[i].name != x[j].name {
+		return x[i].name < x[j].name
+	}
+	if len(x[i].index) != len(x[j].index) {
+		return len(x[i].index) < len(x[j].index)
+	}
+	if x[i].tag != x[j].tag {
+		return x[i].tag
+	}
+	return byIndex(x).Less(i, j)
+}
+
 // typeFields returns a list of fields that JSON should recognize for the given type.
 // The algorithm is breadth-first search over the set of structs to include - the top struct
 // and then any reachable anonymous structs.
@@ -195,22 +217,7 @@ func typeFields(t reflect.Type) []field {
 		}
 	}
 
-	sort.Slice(fields, func(i, j int) bool {
-		x := fields
-		// sort field by name, breaking ties with depth, then
-		// breaking ties with "name came from json tag", then
-		// breaking ties with index sequence.
-		if x[i].name != x[j].name {
-			return x[i].name < x[j].name
-		}
-		if len(x[i].index) != len(x[j].index) {
-			return len(x[i].index) < len(x[j].index)
-		}
-		if x[i].tag != x[j].tag {
-			return x[i].tag
-		}
-		return byIndex(x).Less(i, j)
-	})
+	sort.Sort(byNameIndexlenTag(fields))
 
 	// Delete all fields that are hidden by the Go rules for embedded fields,
 	// except that fields with JSON tags are promoted.
