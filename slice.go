@@ -99,7 +99,7 @@ func (s Slice) ByteSize() (ValueLength, error) {
 	case Array, Object:
 		if h == 0x13 || h == 0x14 {
 			// compact Array or Object
-			return readVariableValueLength(s[1:], false), nil
+			return readVariableValueLength(s, 1, false), nil
 		}
 
 		if h == 0x01 || h == 0x0a {
@@ -543,8 +543,8 @@ func (s Slice) Length() (ValueLength, error) {
 
 	if h == 0x13 || h == 0x14 {
 		// compact Array or Object
-		end := readVariableValueLength(s[1:], false)
-		return readVariableValueLength(s[end-1:], true), nil
+		end := readVariableValueLength(s, 1, false)
+		return readVariableValueLength(s, end-1, true), nil
 	}
 
 	offsetSize := indexEntrySize(h)
@@ -895,8 +895,8 @@ func (s Slice) getNthOffset(index ValueLength) (ValueLength, error) {
 
 // get the offset for the nth member from a compact Array or Object type
 func (s Slice) getNthOffsetFromCompact(index ValueLength) (ValueLength, error) {
-	end := ValueLength(readVariableValueLength(s[1:], false))
-	n := ValueLength(readVariableValueLength(s[end-1:], true))
+	end := ValueLength(readVariableValueLength(s, 1, false))
+	n := ValueLength(readVariableValueLength(s, end-1, true))
 	if index >= n {
 		return 0, IndexOutOfBoundsError{}
 	}

@@ -74,18 +74,17 @@ func toUInt64(v int64) uint64 {
 }
 
 // read a variable length integer in unsigned LEB128 format
-func readVariableValueLength(source []byte, reverse bool) ValueLength {
+func readVariableValueLength(source []byte, offset ValueLength, reverse bool) ValueLength {
 	length := ValueLength(0)
 	p := uint(0)
-	idx := 0
 	for {
-		v := ValueLength(source[idx])
+		v := ValueLength(source[offset])
 		length += (v & 0x7f) << p
 		p += 7
 		if reverse {
-			idx--
+			offset--
 		} else {
-			idx++
+			offset++
 		}
 		if v&0x80 == 0 {
 			break
