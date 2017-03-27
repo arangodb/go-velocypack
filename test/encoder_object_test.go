@@ -490,3 +490,18 @@ func TestEncoderObjectStruct6(t *testing.T) {
 	ASSERT_FALSE(s.IsEmptyObject(), t)
 	ASSERT_EQ(`{"a":5,"a6":true}`, s.MustJSONString(), t)
 }
+
+func TestEncoderObjectStructPtr6(t *testing.T) {
+	bytes, err := velocypack.Marshal(&Struct6{
+		Field4: true,
+		Struct5: Struct5{
+			Field5: 5,
+		},
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_FALSE(s.IsEmptyObject(), t)
+	ASSERT_EQ(`{"a":5,"a6":true}`, s.MustJSONString(), t)
+}
