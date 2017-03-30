@@ -30,35 +30,35 @@ import (
 
 func TestBuilderBytesWithOpenObject(t *testing.T) {
 	var b velocypack.Builder
-	ASSERT_EQ(0, len(b.MustBytes()), t)
-	b.MustOpenObject()
+	ASSERT_EQ(0, len(mustBytes(b.Bytes())), t)
+	must(b.OpenObject())
 	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNotSealed, t)(b.Bytes())
-	b.MustClose()
-	ASSERT_EQ(1, len(b.MustBytes()), t)
+	must(b.Close())
+	ASSERT_EQ(1, len(mustBytes(b.Bytes())), t)
 }
 
 func TestBuilderSliceWithOpenObject(t *testing.T) {
 	var b velocypack.Builder
-	ASSERT_EQ(0, len(b.MustSlice()), t)
-	b.MustOpenObject()
+	ASSERT_EQ(0, len(mustSlice(b.Slice())), t)
+	must(b.OpenObject())
 	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNotSealed, t)(b.Slice())
-	b.MustClose()
-	ASSERT_EQ(1, len(b.MustSlice()), t)
+	must(b.Close())
+	ASSERT_EQ(1, len(mustSlice(b.Slice())), t)
 }
 
 func TestBuilderSizeWithOpenObject(t *testing.T) {
 	var b velocypack.Builder
-	ASSERT_EQ(velocypack.ValueLength(0), b.MustSize(), t)
-	b.MustOpenObject()
+	ASSERT_EQ(velocypack.ValueLength(0), mustLength(b.Size()), t)
+	must(b.OpenObject())
 	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNotSealed, t)(b.Size())
-	b.MustClose()
-	ASSERT_EQ(velocypack.ValueLength(1), b.MustSize(), t)
+	must(b.Close())
+	ASSERT_EQ(velocypack.ValueLength(1), mustLength(b.Size()), t)
 }
 
 func TestBuilderIsEmpty(t *testing.T) {
 	var b velocypack.Builder
 	ASSERT_TRUE(b.IsEmpty(), t)
-	b.MustOpenObject()
+	must(b.OpenObject())
 	ASSERT_FALSE(b.IsEmpty(), t)
 }
 
@@ -78,7 +78,7 @@ func TestBuilderIsClosedMixed(t *testing.T) {
 	b.AddValue(velocypack.NewBoolValue(true))
 	ASSERT_FALSE(b.IsClosed(), t)
 
-	b.MustClose()
+	must(b.Close())
 	ASSERT_TRUE(b.IsClosed(), t)
 
 	b.AddValue(velocypack.NewObjectValue())
@@ -93,48 +93,48 @@ func TestBuilderIsClosedMixed(t *testing.T) {
 	b.AddKeyValue("baz", velocypack.NewArrayValue())
 	ASSERT_FALSE(b.IsClosed(), t)
 
-	b.MustClose()
+	must(b.Close())
 	ASSERT_FALSE(b.IsClosed(), t)
 
-	b.MustClose()
+	must(b.Close())
 	ASSERT_TRUE(b.IsClosed(), t)
 }
 
 func TestBuilderIsClosedObject(t *testing.T) {
 	var b velocypack.Builder
 	ASSERT_TRUE(b.IsClosed(), t)
-	b.MustAddValue(velocypack.NewObjectValue())
+	must(b.AddValue(velocypack.NewObjectValue()))
 	ASSERT_FALSE(b.IsClosed(), t)
 
-	b.MustAddKeyValue("foo", velocypack.NewBoolValue(true))
+	must(b.AddKeyValue("foo", velocypack.NewBoolValue(true)))
 	ASSERT_FALSE(b.IsClosed(), t)
 
-	b.MustAddKeyValue("bar", velocypack.NewBoolValue(true))
+	must(b.AddKeyValue("bar", velocypack.NewBoolValue(true)))
 	ASSERT_FALSE(b.IsClosed(), t)
 
-	b.MustAddKeyValue("baz", velocypack.NewObjectValue())
+	must(b.AddKeyValue("baz", velocypack.NewObjectValue()))
 	ASSERT_FALSE(b.IsClosed(), t)
 
-	b.MustClose()
+	must(b.Close())
 	ASSERT_FALSE(b.IsClosed(), t)
 
-	b.MustClose()
+	must(b.Close())
 	ASSERT_TRUE(b.IsClosed(), t)
 }
 
 func TestBuilderCloseClosed(t *testing.T) {
 	var b velocypack.Builder
 	ASSERT_TRUE(b.IsClosed(), t)
-	b.MustAddValue(velocypack.NewObjectValue())
+	must(b.AddValue(velocypack.NewObjectValue()))
 	ASSERT_FALSE(b.IsClosed(), t)
-	b.MustClose()
+	must(b.Close())
 	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNeedOpenCompound, t)(b.Close())
 }
 
 func TestBuilderRemoveLastNonObject(t *testing.T) {
 	var b velocypack.Builder
-	b.MustAddValue(velocypack.NewBoolValue(true))
-	b.MustAddValue(velocypack.NewBoolValue(false))
+	must(b.AddValue(velocypack.NewBoolValue(true)))
+	must(b.AddValue(velocypack.NewBoolValue(false)))
 	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNeedOpenCompound, t)(b.RemoveLast())
 }
 
@@ -145,31 +145,31 @@ func TestBuilderRemoveLastSealed(t *testing.T) {
 
 func TestBuilderRemoveLastEmptyObject(t *testing.T) {
 	var b velocypack.Builder
-	b.MustAddValue(velocypack.NewObjectValue())
+	must(b.AddValue(velocypack.NewObjectValue()))
 	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNeedSubValue, t)(b.RemoveLast())
 }
 
 func TestBuilderRemoveLastObjectInvalid(t *testing.T) {
 	var b velocypack.Builder
-	b.MustAddValue(velocypack.NewObjectValue())
-	b.MustAddKeyValue("foo", velocypack.NewBoolValue(true))
-	b.MustRemoveLast()
+	must(b.AddValue(velocypack.NewObjectValue()))
+	must(b.AddKeyValue("foo", velocypack.NewBoolValue(true)))
+	must(b.RemoveLast())
 	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNeedSubValue, t)(b.RemoveLast())
 }
 
 func TestBuilderRemoveLastObject(t *testing.T) {
 	var b velocypack.Builder
-	b.MustAddValue(velocypack.NewObjectValue())
-	b.MustAddKeyValue("foo", velocypack.NewBoolValue(true))
-	b.MustAddKeyValue("bar", velocypack.NewBoolValue(false))
+	must(b.AddValue(velocypack.NewObjectValue()))
+	must(b.AddKeyValue("foo", velocypack.NewBoolValue(true)))
+	must(b.AddKeyValue("bar", velocypack.NewBoolValue(false)))
 
-	b.MustRemoveLast()
-	b.MustClose()
+	must(b.RemoveLast())
+	must(b.Close())
 
-	s := b.MustSlice()
+	s := mustSlice(b.Slice())
 	ASSERT_TRUE(s.IsObject(), t)
-	ASSERT_EQ(velocypack.ValueLength(1), s.MustLength(), t)
-	ASSERT_TRUE(s.MustHasKey("foo"), t)
-	ASSERT_TRUE(s.MustGet("foo").MustGetBool(), t)
-	ASSERT_FALSE(s.MustHasKey("bar"), t)
+	ASSERT_EQ(velocypack.ValueLength(1), mustLength(s.Length()), t)
+	ASSERT_TRUE(mustBool(s.HasKey("foo")), t)
+	ASSERT_TRUE(mustBool(mustSlice(s.Get("foo")).GetBool()), t)
+	ASSERT_FALSE(mustBool(s.HasKey("bar")), t)
 }

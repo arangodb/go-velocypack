@@ -35,17 +35,17 @@ func TestBuilderEmptyArray(t *testing.T) {
 	b.OpenArray()
 	b.Close()
 
-	s := b.MustSlice()
+	s := mustSlice(b.Slice())
 	ASSERT_TRUE(s.IsArray(), t)
-	ASSERT_EQ(velocypack.ValueLength(0), s.MustLength(), t)
+	ASSERT_EQ(velocypack.ValueLength(0), mustLength(s.Length()), t)
 }
 
 func TestBuilderArrayEmpty(t *testing.T) {
 	var b velocypack.Builder
-	b.MustAddValue(velocypack.NewArrayValue())
-	b.MustClose()
-	l := b.MustSize()
-	result := b.MustBytes()
+	must(b.AddValue(velocypack.NewArrayValue()))
+	must(b.Close())
+	l := mustLength(b.Size())
+	result := mustBytes(b.Bytes())
 
 	correctResult := []byte{0x01}
 
@@ -55,11 +55,11 @@ func TestBuilderArrayEmpty(t *testing.T) {
 
 func TestBuilderArraySingleEntry(t *testing.T) {
 	var b velocypack.Builder
-	b.MustAddValue(velocypack.NewArrayValue())
-	b.MustAddValue(velocypack.NewIntValue(1))
-	b.MustClose()
-	l := b.MustSize()
-	result := b.MustBytes()
+	must(b.AddValue(velocypack.NewArrayValue()))
+	must(b.AddValue(velocypack.NewIntValue(1)))
+	must(b.Close())
+	l := mustLength(b.Size())
+	result := mustBytes(b.Bytes())
 
 	correctResult := []byte{0x02, 0x03, 0x31}
 
@@ -73,11 +73,11 @@ func TestBuilderArraySingleEntryLong(t *testing.T) {
 		"ddddhhhhhhkkkkkkkksssssssssssssssssssssssssssssssssdddddddddddddddddkkkk" +
 		"kkkkkkkkksddddddddddddssssssssssfvvvvvvvvvvvvvvvvvvvvvvvvvvvfvgfff"
 	var b velocypack.Builder
-	b.MustAddValue(velocypack.NewArrayValue())
-	b.MustAddValue(velocypack.NewStringValue(value))
-	b.MustClose()
-	l := b.MustSize()
-	result := b.MustBytes()
+	must(b.AddValue(velocypack.NewArrayValue()))
+	must(b.AddValue(velocypack.NewStringValue(value)))
+	must(b.Close())
+	l := mustLength(b.Size())
+	result := mustBytes(b.Bytes())
 
 	correctResult := []byte{
 		0x03, 0x2c, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xbf, 0x1a, 0x01,
@@ -112,13 +112,13 @@ func TestBuilderArraySingleEntryLong(t *testing.T) {
 
 func TestBuilderArraySameSizeEntries(t *testing.T) {
 	var b velocypack.Builder
-	b.MustAddValue(velocypack.NewArrayValue())
-	b.MustAddValue(velocypack.NewUIntValue(1))
-	b.MustAddValue(velocypack.NewUIntValue(2))
-	b.MustAddValue(velocypack.NewUIntValue(3))
-	b.MustClose()
-	l := b.MustSize()
-	result := b.MustBytes()
+	must(b.AddValue(velocypack.NewArrayValue()))
+	must(b.AddValue(velocypack.NewUIntValue(1)))
+	must(b.AddValue(velocypack.NewUIntValue(2)))
+	must(b.AddValue(velocypack.NewUIntValue(3)))
+	must(b.Close())
+	l := mustLength(b.Size())
+	result := mustBytes(b.Bytes())
 
 	correctResult := []byte{0x02, 0x05, 0x31, 0x32, 0x33}
 
@@ -129,14 +129,14 @@ func TestBuilderArraySameSizeEntries(t *testing.T) {
 func TestBuilderArraySomeEntries(t *testing.T) {
 	var b velocypack.Builder
 	value := 2.3
-	b.MustAddValue(velocypack.NewArrayValue())
-	b.MustAddValue(velocypack.NewUIntValue(1200))
-	b.MustAddValue(velocypack.NewDoubleValue(value))
-	b.MustAddValue(velocypack.NewStringValue("abc"))
-	b.MustAddValue(velocypack.NewBoolValue(true))
-	b.MustClose()
-	l := b.MustSize()
-	result := b.MustBytes()
+	must(b.AddValue(velocypack.NewArrayValue()))
+	must(b.AddValue(velocypack.NewUIntValue(1200)))
+	must(b.AddValue(velocypack.NewDoubleValue(value)))
+	must(b.AddValue(velocypack.NewStringValue("abc")))
+	must(b.AddValue(velocypack.NewBoolValue(true)))
+	must(b.Close())
+	l := mustLength(b.Size())
+	result := mustBytes(b.Bytes())
 
 	correctResult := []byte{
 		0x06, 0x18, 0x04, 0x29, 0xb0, 0x04, // uint(1200) = 0x4b0
@@ -151,14 +151,14 @@ func TestBuilderArraySomeEntries(t *testing.T) {
 func TestBuilderArrayCompact(t *testing.T) {
 	var b velocypack.Builder
 	value := 2.3
-	b.MustAddValue(velocypack.NewArrayValue(true))
-	b.MustAddValue(velocypack.NewUIntValue(1200))
-	b.MustAddValue(velocypack.NewDoubleValue(value))
-	b.MustAddValue(velocypack.NewStringValue("abc"))
-	b.MustAddValue(velocypack.NewBoolValue(true))
-	b.MustClose()
-	l := b.MustSize()
-	result := b.MustBytes()
+	must(b.AddValue(velocypack.NewArrayValue(true)))
+	must(b.AddValue(velocypack.NewUIntValue(1200)))
+	must(b.AddValue(velocypack.NewDoubleValue(value)))
+	must(b.AddValue(velocypack.NewStringValue("abc")))
+	must(b.AddValue(velocypack.NewBoolValue(true)))
+	must(b.Close())
+	l := mustLength(b.Size())
+	result := mustBytes(b.Bytes())
 
 	correctResult := []byte{
 		0x13, 0x14, 0x29, 0xb0, 0x04, 0x1b,
@@ -173,13 +173,13 @@ func TestBuilderArrayCompact(t *testing.T) {
 
 func TestBuilderArrayCompactBytesizeBelowThreshold(t *testing.T) {
 	var b velocypack.Builder
-	b.MustAddValue(velocypack.NewArrayValue(true))
+	must(b.AddValue(velocypack.NewArrayValue(true)))
 	for i := uint64(0); i < 124; i++ {
-		b.MustAddValue(velocypack.NewUIntValue(i % 10))
+		must(b.AddValue(velocypack.NewUIntValue(i % 10)))
 	}
-	b.MustClose()
-	l := b.MustSize()
-	result := b.MustBytes()
+	must(b.Close())
+	l := mustLength(b.Size())
+	result := mustBytes(b.Bytes())
 
 	ASSERT_EQ(velocypack.ValueLength(127), l, t)
 	ASSERT_EQ(byte(0x13), result[0], t)
@@ -192,13 +192,13 @@ func TestBuilderArrayCompactBytesizeBelowThreshold(t *testing.T) {
 
 func TestBuilderArrayCompactBytesizeAboveThreshold(t *testing.T) {
 	var b velocypack.Builder
-	b.MustAddValue(velocypack.NewArrayValue(true))
+	must(b.AddValue(velocypack.NewArrayValue(true)))
 	for i := uint64(0); i < 125; i++ {
-		b.MustAddValue(velocypack.NewUIntValue(i % 10))
+		must(b.AddValue(velocypack.NewUIntValue(i % 10)))
 	}
-	b.MustClose()
-	l := b.MustSize()
-	result := b.MustBytes()
+	must(b.Close())
+	l := mustLength(b.Size())
+	result := mustBytes(b.Bytes())
 
 	ASSERT_EQ(velocypack.ValueLength(129), l, t)
 	ASSERT_EQ(byte(0x13), result[0], t)
@@ -212,13 +212,13 @@ func TestBuilderArrayCompactBytesizeAboveThreshold(t *testing.T) {
 
 func TestBuilderArrayCompactLengthBelowThreshold(t *testing.T) {
 	var b velocypack.Builder
-	b.MustAddValue(velocypack.NewArrayValue(true))
+	must(b.AddValue(velocypack.NewArrayValue(true)))
 	for i := uint64(0); i < 127; i++ {
-		b.MustAddValue(velocypack.NewStringValue("aaa"))
+		must(b.AddValue(velocypack.NewStringValue("aaa")))
 	}
-	b.MustClose()
-	l := b.MustSize()
-	result := b.MustBytes()
+	must(b.Close())
+	l := mustLength(b.Size())
+	result := mustBytes(b.Bytes())
 
 	ASSERT_EQ(velocypack.ValueLength(512), l, t)
 	ASSERT_EQ(byte(0x13), result[0], t)
@@ -232,13 +232,13 @@ func TestBuilderArrayCompactLengthBelowThreshold(t *testing.T) {
 
 func TestBuilderArrayCompactLengthAboveThreshold(t *testing.T) {
 	var b velocypack.Builder
-	b.MustAddValue(velocypack.NewArrayValue(true))
+	must(b.AddValue(velocypack.NewArrayValue(true)))
 	for i := uint64(0); i < 128; i++ {
-		b.MustAddValue(velocypack.NewStringValue("aaa"))
+		must(b.AddValue(velocypack.NewStringValue("aaa")))
 	}
-	b.MustClose()
-	l := b.MustSize()
-	result := b.MustBytes()
+	must(b.Close())
+	l := mustLength(b.Size())
+	result := mustBytes(b.Bytes())
 
 	ASSERT_EQ(velocypack.ValueLength(517), l, t)
 	ASSERT_EQ(byte(0x13), result[0], t)
@@ -258,39 +258,39 @@ func TestBuilderAddObjectInArray(t *testing.T) {
 	b.Close()
 	b.Close()
 
-	s := b.MustSlice()
+	s := mustSlice(b.Slice())
 	ASSERT_TRUE(s.IsArray(), t)
-	ASSERT_EQ(velocypack.ValueLength(1), s.MustLength(), t)
-	ss := s.MustAt(0)
+	ASSERT_EQ(velocypack.ValueLength(1), mustLength(s.Length()), t)
+	ss := mustSlice(s.At(0))
 	ASSERT_TRUE(ss.IsObject(), t)
-	ASSERT_EQ(velocypack.ValueLength(0), ss.MustLength(), t)
+	ASSERT_EQ(velocypack.ValueLength(0), mustLength(ss.Length()), t)
 }
 
 func TestBuilderAddNonEmptyObjectsInArray(t *testing.T) {
 	var b velocypack.Builder
-	b.MustOpenArray()
+	must(b.OpenArray())
 	for i := 0; i < 5; i++ {
-		b.MustOpenObject()
-		b.MustAddKeyValue("Field1", velocypack.NewIntValue(int64(i+1)))
-		b.MustClose()
+		must(b.OpenObject())
+		must(b.AddKeyValue("Field1", velocypack.NewIntValue(int64(i+1))))
+		must(b.Close())
 	}
-	b.MustClose()
+	must(b.Close())
 
-	s := b.MustSlice()
+	s := mustSlice(b.Slice())
 	ASSERT_TRUE(s.IsArray(), t)
-	ASSERT_EQ(velocypack.ValueLength(5), s.MustLength(), t)
-	ss := s.MustAt(0)
+	ASSERT_EQ(velocypack.ValueLength(5), mustLength(s.Length()), t)
+	ss := mustSlice(s.At(0))
 	ASSERT_TRUE(ss.IsObject(), t)
-	ASSERT_EQ(velocypack.ValueLength(1), ss.MustLength(), t)
-	ASSERT_EQ(int64(1), ss.MustGet("Field1").MustGetInt(), t)
+	ASSERT_EQ(velocypack.ValueLength(1), mustLength(ss.Length()), t)
+	ASSERT_EQ(int64(1), mustInt(mustSlice(ss.Get("Field1")).GetInt()), t)
 
-	it := velocypack.MustNewArrayIterator(s)
+	it := mustArrayIterator(velocypack.NewArrayIterator(s))
 	i := 1
 	for it.IsValid() {
-		ss := it.MustValue()
+		ss := mustSlice(it.Value())
 		ASSERT_TRUE(ss.IsObject(), t)
-		ASSERT_EQ(velocypack.ValueLength(1), ss.MustLength(), t)
-		ASSERT_EQ(int64(i), ss.MustGet("Field1").MustGetInt(), t)
+		ASSERT_EQ(velocypack.ValueLength(1), mustLength(ss.Length()), t)
+		ASSERT_EQ(int64(i), mustInt(mustSlice(ss.Get("Field1")).GetInt()), t)
 		it.Next()
 		i++
 	}
@@ -298,131 +298,131 @@ func TestBuilderAddNonEmptyObjectsInArray(t *testing.T) {
 
 func TestBuilderAddArrayIteratorEmpty(t *testing.T) {
 	var obj velocypack.Builder
-	obj.MustOpenArray()
-	obj.MustAddValue(velocypack.NewIntValue(1))
-	obj.MustAddValue(velocypack.NewIntValue(2))
-	obj.MustAddValue(velocypack.NewIntValue(3))
-	obj.MustClose()
-	objSlice := obj.MustSlice()
+	must(obj.OpenArray())
+	must(obj.AddValue(velocypack.NewIntValue(1)))
+	must(obj.AddValue(velocypack.NewIntValue(2)))
+	must(obj.AddValue(velocypack.NewIntValue(3)))
+	must(obj.Close())
+	objSlice := mustSlice(obj.Slice())
 
 	var b velocypack.Builder
 	ASSERT_TRUE(b.IsClosed(), t)
-	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNeedOpenArray, t)(b.AddValuesFromIterator(velocypack.MustNewArrayIterator(objSlice)))
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNeedOpenArray, t)(b.AddValuesFromIterator(mustArrayIterator(velocypack.NewArrayIterator(objSlice))))
 	ASSERT_TRUE(b.IsClosed(), t)
 }
 
 func TestBuilderAddArrayIteratorNonArray(t *testing.T) {
 	var obj velocypack.Builder
-	obj.MustOpenArray()
-	obj.MustAddValue(velocypack.NewIntValue(1))
-	obj.MustAddValue(velocypack.NewIntValue(2))
-	obj.MustAddValue(velocypack.NewIntValue(3))
-	obj.MustClose()
-	objSlice := obj.MustSlice()
+	must(obj.OpenArray())
+	must(obj.AddValue(velocypack.NewIntValue(1)))
+	must(obj.AddValue(velocypack.NewIntValue(2)))
+	must(obj.AddValue(velocypack.NewIntValue(3)))
+	must(obj.Close())
+	objSlice := mustSlice(obj.Slice())
 
 	var b velocypack.Builder
-	b.MustOpenObject()
+	must(b.OpenObject())
 	ASSERT_FALSE(b.IsClosed(), t)
-	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNeedOpenArray, t)(b.AddValuesFromIterator(velocypack.MustNewArrayIterator(objSlice)))
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNeedOpenArray, t)(b.AddValuesFromIterator(mustArrayIterator(velocypack.NewArrayIterator(objSlice))))
 	ASSERT_FALSE(b.IsClosed(), t)
 }
 
 func TestBuilderAddArrayIteratorTop(t *testing.T) {
 	var obj velocypack.Builder
-	obj.MustOpenArray()
-	obj.MustAddValue(velocypack.NewIntValue(1))
-	obj.MustAddValue(velocypack.NewIntValue(2))
-	obj.MustAddValue(velocypack.NewIntValue(3))
-	obj.MustClose()
-	objSlice := obj.MustSlice()
+	must(obj.OpenArray())
+	must(obj.AddValue(velocypack.NewIntValue(1)))
+	must(obj.AddValue(velocypack.NewIntValue(2)))
+	must(obj.AddValue(velocypack.NewIntValue(3)))
+	must(obj.Close())
+	objSlice := mustSlice(obj.Slice())
 
 	var b velocypack.Builder
-	b.MustOpenArray()
+	must(b.OpenArray())
 	ASSERT_FALSE(b.IsClosed(), t)
-	b.MustAddValuesFromIterator(velocypack.MustNewArrayIterator(objSlice))
+	must(b.AddValuesFromIterator(mustArrayIterator(velocypack.NewArrayIterator(objSlice))))
 	ASSERT_FALSE(b.IsClosed(), t)
-	b.MustClose()
-	result := b.MustSlice()
+	must(b.Close())
+	result := mustSlice(b.Slice())
 
-	ASSERT_EQ("[1,2,3]", result.MustJSONString(), t)
+	ASSERT_EQ("[1,2,3]", mustString(result.JSONString()), t)
 }
 
 func TestBuilderAddArrayIteratorReference(t *testing.T) {
 	var obj velocypack.Builder
-	obj.MustOpenArray()
-	obj.MustAddValue(velocypack.NewIntValue(1))
-	obj.MustAddValue(velocypack.NewIntValue(2))
-	obj.MustAddValue(velocypack.NewIntValue(3))
-	obj.MustClose()
-	objSlice := obj.MustSlice()
+	must(obj.OpenArray())
+	must(obj.AddValue(velocypack.NewIntValue(1)))
+	must(obj.AddValue(velocypack.NewIntValue(2)))
+	must(obj.AddValue(velocypack.NewIntValue(3)))
+	must(obj.Close())
+	objSlice := mustSlice(obj.Slice())
 
 	var b velocypack.Builder
-	b.MustOpenArray()
+	must(b.OpenArray())
 	ASSERT_FALSE(b.IsClosed(), t)
-	b.MustAdd(velocypack.MustNewArrayIterator(objSlice))
+	must(b.Add(mustArrayIterator(velocypack.NewArrayIterator(objSlice))))
 	ASSERT_FALSE(b.IsClosed(), t)
-	b.MustClose()
-	result := b.MustSlice()
+	must(b.Close())
+	result := mustSlice(b.Slice())
 
-	ASSERT_EQ("[1,2,3]", result.MustJSONString(), t)
+	ASSERT_EQ("[1,2,3]", mustString(result.JSONString()), t)
 }
 
 func TestBuilderAddArrayIteratorSub(t *testing.T) {
 	var obj velocypack.Builder
-	obj.MustOpenArray()
-	obj.MustAddValue(velocypack.NewIntValue(1))
-	obj.MustAddValue(velocypack.NewIntValue(2))
-	obj.MustAddValue(velocypack.NewIntValue(3))
-	obj.MustClose()
-	objSlice := obj.MustSlice()
+	must(obj.OpenArray())
+	must(obj.AddValue(velocypack.NewIntValue(1)))
+	must(obj.AddValue(velocypack.NewIntValue(2)))
+	must(obj.AddValue(velocypack.NewIntValue(3)))
+	must(obj.Close())
+	objSlice := mustSlice(obj.Slice())
 
 	var b velocypack.Builder
-	b.MustOpenArray()
-	b.MustAddValue(velocypack.NewStringValue("tennis"))
-	b.MustOpenArray()
-	b.MustAdd(velocypack.MustNewArrayIterator(objSlice))
+	must(b.OpenArray())
+	must(b.AddValue(velocypack.NewStringValue("tennis")))
+	must(b.OpenArray())
+	must(b.Add(mustArrayIterator(velocypack.NewArrayIterator(objSlice))))
 	ASSERT_FALSE(b.IsClosed(), t)
-	b.MustClose() // close one level
-	b.MustAddValue(velocypack.NewStringValue("qux"))
+	must(b.Close()) // close one level
+	must(b.AddValue(velocypack.NewStringValue("qux")))
 	ASSERT_FALSE(b.IsClosed(), t)
-	b.MustClose()
-	result := b.MustSlice()
+	must(b.Close())
+	result := mustSlice(b.Slice())
 	ASSERT_TRUE(b.IsClosed(), t)
 
-	ASSERT_EQ("[\"tennis\",[1,2,3],\"qux\"]", result.MustJSONString(), t)
+	ASSERT_EQ("[\"tennis\",[1,2,3],\"qux\"]", mustString(result.JSONString()), t)
 }
 
 func TestBuilderAddAndOpenArray(t *testing.T) {
 	var b1 velocypack.Builder
 	ASSERT_TRUE(b1.IsClosed(), t)
-	b1.MustOpenArray()
+	must(b1.OpenArray())
 	ASSERT_FALSE(b1.IsClosed(), t)
-	b1.MustAddValue(velocypack.NewStringValue("bar"))
-	b1.MustClose()
+	must(b1.AddValue(velocypack.NewStringValue("bar")))
+	must(b1.Close())
 	ASSERT_TRUE(b1.IsClosed(), t)
-	ASSERT_EQ(byte(0x02), b1.MustSlice()[0], t)
+	ASSERT_EQ(byte(0x02), mustSlice(b1.Slice())[0], t)
 
 	var b2 velocypack.Builder
 	ASSERT_TRUE(b2.IsClosed(), t)
-	b2.MustOpenArray()
+	must(b2.OpenArray())
 	ASSERT_FALSE(b2.IsClosed(), t)
-	b2.MustAddValue(velocypack.NewStringValue("bar"))
-	b2.MustClose()
+	must(b2.AddValue(velocypack.NewStringValue("bar")))
+	must(b2.Close())
 	ASSERT_TRUE(b2.IsClosed(), t)
-	ASSERT_EQ(byte(0x02), b2.MustSlice()[0], t)
+	ASSERT_EQ(byte(0x02), mustSlice(b2.Slice())[0], t)
 }
 
 func TestBuilderAddOnNonArray(t *testing.T) {
 	var b velocypack.Builder
-	b.MustAddValue(velocypack.NewObjectValue())
+	must(b.AddValue(velocypack.NewObjectValue()))
 	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderKeyMustBeString, t)(b.AddValue(velocypack.NewBoolValue(true)))
 }
 
 func TestBuilderIsOpenArray(t *testing.T) {
 	var b velocypack.Builder
 	ASSERT_FALSE(b.IsOpenArray(), t)
-	b.MustOpenArray()
+	must(b.OpenArray())
 	ASSERT_TRUE(b.IsOpenArray(), t)
-	b.MustClose()
+	must(b.Close())
 	ASSERT_FALSE(b.IsOpenArray(), t)
 }

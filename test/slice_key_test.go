@@ -33,7 +33,7 @@ func TestSliceMinKey(t *testing.T) {
 
 	ASSERT_EQ(velocypack.MinKey, slice.Type(), t)
 	ASSERT_TRUE(slice.IsMinKey(), t)
-	ASSERT_EQ(velocypack.ValueLength(1), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(1), mustLength(slice.ByteSize()), t)
 }
 
 func TestSliceMaxKey(t *testing.T) {
@@ -41,5 +41,5 @@ func TestSliceMaxKey(t *testing.T) {
 
 	ASSERT_EQ(velocypack.MaxKey, slice.Type(), t)
 	ASSERT_TRUE(slice.IsMaxKey(), t)
-	ASSERT_EQ(velocypack.ValueLength(1), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(1), mustLength(slice.ByteSize()), t)
 }

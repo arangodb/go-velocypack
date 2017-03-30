@@ -36,9 +36,9 @@ func TestSliceSmallInt(t *testing.T) {
 
 		ASSERT_EQ(velocypack.SmallInt, slice.Type(), t)
 		ASSERT_TRUE(slice.IsSmallInt(), t)
-		ASSERT_EQ(velocypack.ValueLength(1), slice.MustByteSize(), t)
+		ASSERT_EQ(velocypack.ValueLength(1), mustLength(slice.ByteSize()), t)
 
-		ASSERT_EQ(expected[i], slice.MustGetSmallInt(), t)
-		ASSERT_EQ(expected[i], slice.MustGetInt(), t)
+		ASSERT_EQ(expected[i], mustInt(slice.GetSmallInt()), t)
+		ASSERT_EQ(expected[i], mustInt(slice.GetInt()), t)
 	}
 }

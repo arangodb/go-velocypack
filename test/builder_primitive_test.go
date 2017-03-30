@@ -37,22 +37,22 @@ func TestBuilderPrimitiveAddNone(t *testing.T) {
 
 func TestBuilderPrimitiveAddNull(t *testing.T) {
 	var b velocypack.Builder
-	b.MustAddValue(velocypack.NewNullValue())
-	s := b.MustSlice()
+	must(b.AddValue(velocypack.NewNullValue()))
+	s := mustSlice(b.Slice())
 	ASSERT_TRUE(s.IsNull(), t)
 }
 
 func TestBuilderPrimitiveAddMinKey(t *testing.T) {
 	var b velocypack.Builder
-	b.MustAddValue(velocypack.NewMinKeyValue())
-	s := b.MustSlice()
+	must(b.AddValue(velocypack.NewMinKeyValue()))
+	s := mustSlice(b.Slice())
 	ASSERT_TRUE(s.IsMinKey(), t)
 }
 
 func TestBuilderPrimitiveAddMaxKey(t *testing.T) {
 	var b velocypack.Builder
-	b.MustAddValue(velocypack.NewMaxKeyValue())
-	s := b.MustSlice()
+	must(b.AddValue(velocypack.NewMaxKeyValue()))
+	s := mustSlice(b.Slice())
 	ASSERT_TRUE(s.IsMaxKey(), t)
 }
 
@@ -62,7 +62,7 @@ func TestBuilderPrimitiveAddBool(t *testing.T) {
 		var b velocypack.Builder
 		b.Add(test)
 
-		s := b.MustSlice()
+		s := mustSlice(b.Slice())
 		ASSERT_TRUE(s.IsBool(), t)
 		if test {
 			ASSERT_TRUE(s.IsTrue(), t)
@@ -80,9 +80,9 @@ func TestBuilderPrimitiveAddDoubleFloat32(t *testing.T) {
 		var b velocypack.Builder
 		b.Add(test)
 
-		s := b.MustSlice()
+		s := mustSlice(b.Slice())
 		ASSERT_TRUE(s.IsDouble(), t)
-		ASSERT_DOUBLE_EQ(float64(test), s.MustGetDouble(), t)
+		ASSERT_DOUBLE_EQ(float64(test), mustDouble(s.GetDouble()), t)
 	}
 }
 
@@ -92,9 +92,9 @@ func TestBuilderPrimitiveAddDoubleFloat64(t *testing.T) {
 		var b velocypack.Builder
 		b.Add(test)
 
-		s := b.MustSlice()
+		s := mustSlice(b.Slice())
 		ASSERT_TRUE(s.IsDouble(), t)
-		ASSERT_DOUBLE_EQ(test, s.MustGetDouble(), t)
+		ASSERT_DOUBLE_EQ(test, mustDouble(s.GetDouble()), t)
 	}
 }
 
@@ -104,9 +104,9 @@ func TestBuilderPrimitiveAddInt(t *testing.T) {
 		var b velocypack.Builder
 		b.Add(test)
 
-		s := b.MustSlice()
+		s := mustSlice(b.Slice())
 		ASSERT_TRUE(s.IsInt(), t)
-		ASSERT_EQ(int64(test), s.MustGetInt(), t)
+		ASSERT_EQ(int64(test), mustInt(s.GetInt()), t)
 	}
 }
 
@@ -116,9 +116,9 @@ func TestBuilderPrimitiveAddInt8(t *testing.T) {
 		var b velocypack.Builder
 		b.Add(test)
 
-		s := b.MustSlice()
+		s := mustSlice(b.Slice())
 		ASSERT_TRUE(s.IsInt(), t)
-		ASSERT_EQ(int64(test), s.MustGetInt(), t)
+		ASSERT_EQ(int64(test), mustInt(s.GetInt()), t)
 	}
 }
 
@@ -128,9 +128,9 @@ func TestBuilderPrimitiveAddInt16(t *testing.T) {
 		var b velocypack.Builder
 		b.Add(test)
 
-		s := b.MustSlice()
+		s := mustSlice(b.Slice())
 		ASSERT_TRUE(s.IsInt(), t)
-		ASSERT_EQ(int64(test), s.MustGetInt(), t)
+		ASSERT_EQ(int64(test), mustInt(s.GetInt()), t)
 	}
 }
 
@@ -140,9 +140,9 @@ func TestBuilderPrimitiveAddInt32(t *testing.T) {
 		var b velocypack.Builder
 		b.Add(test)
 
-		s := b.MustSlice()
+		s := mustSlice(b.Slice())
 		ASSERT_TRUE(s.IsInt(), t)
-		ASSERT_EQ(int64(test), s.MustGetInt(), t)
+		ASSERT_EQ(int64(test), mustInt(s.GetInt()), t)
 	}
 }
 
@@ -152,9 +152,9 @@ func TestBuilderPrimitiveAddInt64(t *testing.T) {
 		var b velocypack.Builder
 		b.Add(test)
 
-		s := b.MustSlice()
+		s := mustSlice(b.Slice())
 		ASSERT_TRUE(s.IsInt(), t)
-		ASSERT_EQ(int64(test), s.MustGetInt(), t)
+		ASSERT_EQ(int64(test), mustInt(s.GetInt()), t)
 	}
 }
 
@@ -164,9 +164,9 @@ func TestBuilderPrimitiveAddUInt(t *testing.T) {
 		var b velocypack.Builder
 		b.Add(test)
 
-		s := b.MustSlice()
+		s := mustSlice(b.Slice())
 		ASSERT_TRUE(s.IsUInt(), t)
-		ASSERT_EQ(uint64(test), s.MustGetUInt(), t)
+		ASSERT_EQ(uint64(test), mustUInt(s.GetUInt()), t)
 	}
 }
 
@@ -176,9 +176,9 @@ func TestBuilderPrimitiveAddUInt8(t *testing.T) {
 		var b velocypack.Builder
 		b.Add(test)
 
-		s := b.MustSlice()
+		s := mustSlice(b.Slice())
 		ASSERT_TRUE(s.IsUInt(), t)
-		ASSERT_EQ(uint64(test), s.MustGetUInt(), t)
+		ASSERT_EQ(uint64(test), mustUInt(s.GetUInt()), t)
 	}
 }
 
@@ -188,9 +188,9 @@ func TestBuilderPrimitiveAddUInt16(t *testing.T) {
 		var b velocypack.Builder
 		b.Add(test)
 
-		s := b.MustSlice()
+		s := mustSlice(b.Slice())
 		ASSERT_TRUE(s.IsUInt(), t)
-		ASSERT_EQ(uint64(test), s.MustGetUInt(), t)
+		ASSERT_EQ(uint64(test), mustUInt(s.GetUInt()), t)
 	}
 }
 
@@ -200,9 +200,9 @@ func TestBuilderPrimitiveAddUInt32(t *testing.T) {
 		var b velocypack.Builder
 		b.Add(test)
 
-		s := b.MustSlice()
+		s := mustSlice(b.Slice())
 		ASSERT_TRUE(s.IsUInt(), t)
-		ASSERT_EQ(uint64(test), s.MustGetUInt(), t)
+		ASSERT_EQ(uint64(test), mustUInt(s.GetUInt()), t)
 	}
 }
 
@@ -212,9 +212,9 @@ func TestBuilderPrimitiveAddUInt64(t *testing.T) {
 		var b velocypack.Builder
 		b.Add(test)
 
-		s := b.MustSlice()
+		s := mustSlice(b.Slice())
 		ASSERT_TRUE(s.IsUInt(), t)
-		ASSERT_EQ(uint64(test), s.MustGetUInt(), t)
+		ASSERT_EQ(uint64(test), mustUInt(s.GetUInt()), t)
 	}
 }
 
@@ -224,9 +224,9 @@ func TestBuilderPrimitiveAddSmallInt(t *testing.T) {
 		var b velocypack.Builder
 		b.Add(test)
 
-		s := b.MustSlice()
+		s := mustSlice(b.Slice())
 		ASSERT_TRUE(s.IsSmallInt(), t)
-		ASSERT_EQ(int64(test), s.MustGetInt(), t)
+		ASSERT_EQ(int64(test), mustInt(s.GetInt()), t)
 	}
 }
 
@@ -236,9 +236,9 @@ func TestBuilderPrimitiveAddString(t *testing.T) {
 		var b velocypack.Builder
 		b.Add(test)
 
-		s := b.MustSlice()
+		s := mustSlice(b.Slice())
 		ASSERT_TRUE(s.IsString(), t)
-		ASSERT_EQ(test, s.MustGetString(), t)
+		ASSERT_EQ(test, mustString(s.GetString()), t)
 	}
 }
 
@@ -248,9 +248,9 @@ func TestBuilderPrimitiveAddBinary(t *testing.T) {
 		var b velocypack.Builder
 		b.Add(test)
 
-		s := b.MustSlice()
+		s := mustSlice(b.Slice())
 		ASSERT_EQ(s.Type(), velocypack.Binary, t)
 		ASSERT_TRUE(s.IsBinary(), t)
-		ASSERT_EQ(test, s.MustGetBinary(), t)
+		ASSERT_EQ(test, mustBytes(s.GetBinary()), t)
 	}
 }

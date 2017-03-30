@@ -49,7 +49,7 @@ func TestEncoderCustomStruct1(t *testing.T) {
 	s := velocypack.Slice(bytes)
 
 	ASSERT_EQ(s.Type(), velocypack.String, t)
-	ASSERT_EQ(`"Hello world"`, s.MustJSONString(), t)
+	ASSERT_EQ(`"Hello world"`, mustString(s.JSONString()), t)
 }
 
 type CustomStruct2 struct {
@@ -66,7 +66,7 @@ func TestEncoderCustomStruct2(t *testing.T) {
 	s := velocypack.Slice(bytes)
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
-	ASSERT_EQ(`{"Field":{"Field1":999222}}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"Field":{"Field1":999222}}`, mustString(s.JSONString()), t)
 }
 
 type CustomStruct3 struct {
@@ -83,7 +83,7 @@ func TestEncoderCustomStruct3(t *testing.T) {
 	s := velocypack.Slice(bytes)
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
-	ASSERT_EQ(`{"Field":"Hello world"}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"Field":"Hello world"}`, mustString(s.JSONString()), t)
 }
 
 type CustomText1 struct {
@@ -104,5 +104,5 @@ func TestEncoderCustomText1(t *testing.T) {
 	s := velocypack.Slice(bytes)
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
-	ASSERT_EQ(`{"key2":false,"key7":true}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"key2":false,"key7":true}`, mustString(s.JSONString()), t)
 }

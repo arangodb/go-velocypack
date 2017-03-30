@@ -35,17 +35,17 @@ func TestBuilderEmptyObject(t *testing.T) {
 	b.OpenObject()
 	b.Close()
 
-	s := b.MustSlice()
+	s := mustSlice(b.Slice())
 	ASSERT_TRUE(s.IsObject(), t)
-	ASSERT_EQ(velocypack.ValueLength(0), s.MustLength(), t)
+	ASSERT_EQ(velocypack.ValueLength(0), mustLength(s.Length()), t)
 }
 
 func TestBuilderObjectEmpty(t *testing.T) {
 	var b velocypack.Builder
-	b.MustAddValue(velocypack.NewObjectValue())
-	b.MustClose()
-	l := b.MustSize()
-	result := b.MustBytes()
+	must(b.AddValue(velocypack.NewObjectValue()))
+	must(b.Close())
+	l := mustLength(b.Size())
+	result := mustBytes(b.Bytes())
 
 	correctResult := []byte{0x0a}
 
@@ -55,10 +55,10 @@ func TestBuilderObjectEmpty(t *testing.T) {
 
 func TestBuilderObjectEmptyCompact(t *testing.T) {
 	var b velocypack.Builder
-	b.MustAddValue(velocypack.NewObjectValue(true))
-	b.MustClose()
-	l := b.MustSize()
-	result := b.MustBytes()
+	must(b.AddValue(velocypack.NewObjectValue(true)))
+	must(b.Close())
+	l := mustLength(b.Size())
+	result := mustBytes(b.Bytes())
 
 	correctResult := []byte{0x0a}
 
@@ -69,14 +69,14 @@ func TestBuilderObjectEmptyCompact(t *testing.T) {
 func TestBuilderObjectSorted(t *testing.T) {
 	var b velocypack.Builder
 	value := 2.3
-	b.MustAddValue(velocypack.NewObjectValue())
-	b.MustAddKeyValue("d", velocypack.NewUIntValue(1200))
-	b.MustAddKeyValue("c", velocypack.NewDoubleValue(value))
-	b.MustAddKeyValue("b", velocypack.NewStringValue("abc"))
-	b.MustAddKeyValue("a", velocypack.NewBoolValue(true))
-	b.MustClose()
-	l := b.MustSize()
-	result := b.MustBytes()
+	must(b.AddValue(velocypack.NewObjectValue()))
+	must(b.AddKeyValue("d", velocypack.NewUIntValue(1200)))
+	must(b.AddKeyValue("c", velocypack.NewDoubleValue(value)))
+	must(b.AddKeyValue("b", velocypack.NewStringValue("abc")))
+	must(b.AddKeyValue("a", velocypack.NewBoolValue(true)))
+	must(b.Close())
+	l := mustLength(b.Size())
+	result := mustBytes(b.Bytes())
 
 	correctResult := []byte{
 		0x0b, 0x20, 0x04, 0x41, 0x64, 0x29, 0xb0, 0x04, // "d": uint(1200) =
@@ -95,14 +95,14 @@ func TestBuilderObjectSorted(t *testing.T) {
 func TestBuilderObjectCompact(t *testing.T) {
 	var b velocypack.Builder
 	value := 2.3
-	b.MustAddValue(velocypack.NewObjectValue(true))
-	b.MustAddKeyValue("d", velocypack.NewUIntValue(1200))
-	b.MustAddKeyValue("c", velocypack.NewDoubleValue(value))
-	b.MustAddKeyValue("b", velocypack.NewStringValue("abc"))
-	b.MustAddKeyValue("a", velocypack.NewBoolValue(true))
-	b.MustClose()
-	l := b.MustSize()
-	result := b.MustBytes()
+	must(b.AddValue(velocypack.NewObjectValue(true)))
+	must(b.AddKeyValue("d", velocypack.NewUIntValue(1200)))
+	must(b.AddKeyValue("c", velocypack.NewDoubleValue(value)))
+	must(b.AddKeyValue("b", velocypack.NewStringValue("abc")))
+	must(b.AddKeyValue("a", velocypack.NewBoolValue(true)))
+	must(b.Close())
+	l := mustLength(b.Size())
+	result := mustBytes(b.Bytes())
 
 	correctResult := []byte{
 		0x14, 0x1c, 0x41, 0x64, 0x29, 0xb0, 0x04, 0x41, 0x63, 0x1b,
@@ -121,10 +121,10 @@ func TestBuilderObjectValue1(t *testing.T) {
 	b.AddKeyValue("test", velocypack.NewUIntValue(u))
 	b.Close()
 
-	s := b.MustSlice()
+	s := mustSlice(b.Slice())
 	ASSERT_TRUE(s.IsObject(), t)
-	ASSERT_EQ(velocypack.ValueLength(1), s.MustLength(), t)
-	ASSERT_EQ(u, s.MustGet("test").MustGetUInt(), t)
+	ASSERT_EQ(velocypack.ValueLength(1), mustLength(s.Length()), t)
+	ASSERT_EQ(u, mustUInt(mustSlice(s.Get("test")).GetUInt()), t)
 }
 
 func TestBuilderObjectValue2(t *testing.T) {
@@ -135,11 +135,11 @@ func TestBuilderObjectValue2(t *testing.T) {
 	b.AddKeyValue("soup", velocypack.NewUIntValue(u*2))
 	b.Close()
 
-	s := b.MustSlice()
+	s := mustSlice(b.Slice())
 	ASSERT_TRUE(s.IsObject(), t)
-	ASSERT_EQ(velocypack.ValueLength(2), s.MustLength(), t)
-	ASSERT_EQ(u, s.MustGet("test").MustGetUInt(), t)
-	ASSERT_EQ(u*2, s.MustGet("soup").MustGetUInt(), t)
+	ASSERT_EQ(velocypack.ValueLength(2), mustLength(s.Length()), t)
+	ASSERT_EQ(u, mustUInt(mustSlice(s.Get("test")).GetUInt()), t)
+	ASSERT_EQ(u*2, mustUInt(mustSlice(s.Get("soup")).GetUInt()), t)
 }
 
 func TestBuilderAddObjectIteratorEmpty(t *testing.T) {
@@ -149,11 +149,11 @@ func TestBuilderAddObjectIteratorEmpty(t *testing.T) {
 	obj.AddKeyValue("2-two", velocypack.NewIntValue(2))
 	obj.AddKeyValue("3-three", velocypack.NewIntValue(3))
 	obj.Close()
-	objSlice := obj.MustSlice()
+	objSlice := mustSlice(obj.Slice())
 
 	var b velocypack.Builder
 	ASSERT_TRUE(b.IsClosed(), t)
-	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNeedOpenObject, t)(b.AddKeyValuesFromIterator(velocypack.MustNewObjectIterator(objSlice)))
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNeedOpenObject, t)(b.AddKeyValuesFromIterator(mustObjectIterator(velocypack.NewObjectIterator(objSlice))))
 	ASSERT_TRUE(b.IsClosed(), t)
 }
 
@@ -164,14 +164,14 @@ func TestBuilderAddObjectIteratorKeyAlreadyWritten(t *testing.T) {
 	obj.AddKeyValue("2-two", velocypack.NewIntValue(2))
 	obj.AddKeyValue("3-three", velocypack.NewIntValue(3))
 	obj.Close()
-	objSlice := obj.MustSlice()
+	objSlice := mustSlice(obj.Slice())
 
 	var b velocypack.Builder
 	ASSERT_TRUE(b.IsClosed(), t)
-	b.MustOpenObject()
-	b.MustAddValue(velocypack.NewStringValue("foo"))
+	must(b.OpenObject())
+	must(b.AddValue(velocypack.NewStringValue("foo")))
 	ASSERT_FALSE(b.IsClosed(), t)
-	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderKeyAlreadyWritten, t)(b.AddKeyValuesFromIterator(velocypack.MustNewObjectIterator(objSlice)))
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderKeyAlreadyWritten, t)(b.AddKeyValuesFromIterator(mustObjectIterator(velocypack.NewObjectIterator(objSlice))))
 	ASSERT_FALSE(b.IsClosed(), t)
 }
 
@@ -182,12 +182,12 @@ func TestBuilderAddObjectIteratorNonObject(t *testing.T) {
 	obj.AddKeyValue("2-two", velocypack.NewIntValue(2))
 	obj.AddKeyValue("3-three", velocypack.NewIntValue(3))
 	obj.Close()
-	objSlice := obj.MustSlice()
+	objSlice := mustSlice(obj.Slice())
 
 	var b velocypack.Builder
-	b.MustOpenArray()
+	must(b.OpenArray())
 	ASSERT_FALSE(b.IsClosed(), t)
-	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNeedOpenObject, t)(b.AddKeyValuesFromIterator(velocypack.MustNewObjectIterator(objSlice)))
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNeedOpenObject, t)(b.AddKeyValuesFromIterator(mustObjectIterator(velocypack.NewObjectIterator(objSlice))))
 	ASSERT_FALSE(b.IsClosed(), t)
 }
 
@@ -198,18 +198,18 @@ func TestBuilderAddObjectIteratorTop(t *testing.T) {
 	obj.AddKeyValue("2-two", velocypack.NewIntValue(2))
 	obj.AddKeyValue("3-three", velocypack.NewIntValue(3))
 	obj.Close()
-	objSlice := obj.MustSlice()
+	objSlice := mustSlice(obj.Slice())
 
 	var b velocypack.Builder
-	b.MustOpenObject()
+	must(b.OpenObject())
 	ASSERT_FALSE(b.IsClosed(), t)
-	b.MustAddKeyValuesFromIterator(velocypack.MustNewObjectIterator(objSlice))
+	must(b.AddKeyValuesFromIterator(mustObjectIterator(velocypack.NewObjectIterator(objSlice))))
 	ASSERT_FALSE(b.IsClosed(), t)
-	b.MustClose()
-	result := b.MustSlice()
+	must(b.Close())
+	result := mustSlice(b.Slice())
 	ASSERT_TRUE(b.IsClosed(), t)
 
-	ASSERT_EQ("{\"1-one\":1,\"2-two\":2,\"3-three\":3}", result.MustJSONString(), t)
+	ASSERT_EQ("{\"1-one\":1,\"2-two\":2,\"3-three\":3}", mustString(result.JSONString()), t)
 }
 
 func TestBuilderAddObjectIteratorReference(t *testing.T) {
@@ -219,18 +219,18 @@ func TestBuilderAddObjectIteratorReference(t *testing.T) {
 	obj.AddKeyValue("2-two", velocypack.NewIntValue(2))
 	obj.AddKeyValue("3-three", velocypack.NewIntValue(3))
 	obj.Close()
-	objSlice := obj.MustSlice()
+	objSlice := mustSlice(obj.Slice())
 
 	var b velocypack.Builder
-	b.MustOpenObject()
+	must(b.OpenObject())
 	ASSERT_FALSE(b.IsClosed(), t)
-	b.MustAdd(velocypack.MustNewObjectIterator(objSlice))
+	must(b.Add(mustObjectIterator(velocypack.NewObjectIterator(objSlice))))
 	ASSERT_FALSE(b.IsClosed(), t)
-	b.MustClose()
-	result := b.MustSlice()
+	must(b.Close())
+	result := mustSlice(b.Slice())
 	ASSERT_TRUE(b.IsClosed(), t)
 
-	ASSERT_EQ("{\"1-one\":1,\"2-two\":2,\"3-three\":3}", result.MustJSONString(), t)
+	ASSERT_EQ("{\"1-one\":1,\"2-two\":2,\"3-three\":3}", mustString(result.JSONString()), t)
 }
 
 func TestBuilderAddObjectIteratorSub(t *testing.T) {
@@ -240,59 +240,59 @@ func TestBuilderAddObjectIteratorSub(t *testing.T) {
 	obj.AddKeyValue("2-two", velocypack.NewIntValue(2))
 	obj.AddKeyValue("3-three", velocypack.NewIntValue(3))
 	obj.Close()
-	objSlice := obj.MustSlice()
+	objSlice := mustSlice(obj.Slice())
 
 	var b velocypack.Builder
-	b.MustOpenObject()
-	b.MustAddKeyValue("1-something", velocypack.NewStringValue("tennis"))
-	b.MustAddValue(velocypack.NewStringValue("2-values"))
-	b.MustOpenObject()
-	b.MustAdd(velocypack.MustNewObjectIterator(objSlice))
+	must(b.OpenObject())
+	must(b.AddKeyValue("1-something", velocypack.NewStringValue("tennis")))
+	must(b.AddValue(velocypack.NewStringValue("2-values")))
+	must(b.OpenObject())
+	must(b.Add(mustObjectIterator(velocypack.NewObjectIterator(objSlice))))
 	ASSERT_FALSE(b.IsClosed(), t)
-	b.MustClose() // close one level
-	b.MustAddKeyValue("3-bark", velocypack.NewStringValue("qux"))
+	must(b.Close()) // close one level
+	must(b.AddKeyValue("3-bark", velocypack.NewStringValue("qux")))
 	ASSERT_FALSE(b.IsClosed(), t)
-	b.MustClose()
-	result := b.MustSlice()
+	must(b.Close())
+	result := mustSlice(b.Slice())
 	ASSERT_TRUE(b.IsClosed(), t)
 
-	ASSERT_EQ("{\"1-something\":\"tennis\",\"2-values\":{\"1-one\":1,\"2-two\":2,\"3-three\":3},\"3-bark\":\"qux\"}", result.MustJSONString(), t)
+	ASSERT_EQ("{\"1-something\":\"tennis\",\"2-values\":{\"1-one\":1,\"2-two\":2,\"3-three\":3},\"3-bark\":\"qux\"}", mustString(result.JSONString()), t)
 }
 
 func TestBuilderAddAndOpenObject(t *testing.T) {
 	var b1 velocypack.Builder
 	ASSERT_TRUE(b1.IsClosed(), t)
-	b1.MustOpenObject()
+	must(b1.OpenObject())
 	ASSERT_FALSE(b1.IsClosed(), t)
-	b1.MustAddKeyValue("foo", velocypack.NewStringValue("bar"))
-	b1.MustClose()
+	must(b1.AddKeyValue("foo", velocypack.NewStringValue("bar")))
+	must(b1.Close())
 	ASSERT_TRUE(b1.IsClosed(), t)
-	ASSERT_EQ(byte(0x14), b1.MustSlice()[0], t)
-	ASSERT_EQ(velocypack.ValueLength(1), b1.MustSlice().MustLength(), t)
+	ASSERT_EQ(byte(0x14), mustSlice(b1.Slice())[0], t)
+	ASSERT_EQ(velocypack.ValueLength(1), mustLength(mustSlice(b1.Slice()).Length()), t)
 
 	var b2 velocypack.Builder
 	ASSERT_TRUE(b2.IsClosed(), t)
-	b2.MustOpenObject()
+	must(b2.OpenObject())
 	ASSERT_FALSE(b2.IsClosed(), t)
-	b2.MustAddKeyValue("foo", velocypack.NewStringValue("bar"))
-	b2.MustClose()
+	must(b2.AddKeyValue("foo", velocypack.NewStringValue("bar")))
+	must(b2.Close())
 	ASSERT_TRUE(b2.IsClosed(), t)
-	ASSERT_EQ(byte(0x14), b2.MustSlice()[0], t)
-	ASSERT_EQ(velocypack.ValueLength(1), b2.MustSlice().MustLength(), t)
+	ASSERT_EQ(byte(0x14), mustSlice(b2.Slice())[0], t)
+	ASSERT_EQ(velocypack.ValueLength(1), mustLength(mustSlice(b2.Slice()).Length()), t)
 }
 
 func TestBuilderAddOnNonObject(t *testing.T) {
 	var b velocypack.Builder
-	b.MustAddValue(velocypack.NewArrayValue())
+	must(b.AddValue(velocypack.NewArrayValue()))
 	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNeedOpenObject, t)(b.AddKeyValue("foo", velocypack.NewBoolValue(true)))
 }
 
 func TestBuilderIsOpenObject(t *testing.T) {
 	var b velocypack.Builder
 	ASSERT_FALSE(b.IsOpenObject(), t)
-	b.MustOpenObject()
+	must(b.OpenObject())
 	ASSERT_TRUE(b.IsOpenObject(), t)
-	b.MustClose()
+	must(b.Close())
 	ASSERT_FALSE(b.IsOpenObject(), t)
 }
 
@@ -312,68 +312,68 @@ func TestBuilderHasKeyArray(t *testing.T) {
 func TestBuilderHasKeyEmptyObject(t *testing.T) {
 	var b velocypack.Builder
 	b.AddValue(velocypack.NewObjectValue())
-	ASSERT_FALSE(b.MustHasKey("foo"), t)
-	ASSERT_FALSE(b.MustHasKey("bar"), t)
-	ASSERT_FALSE(b.MustHasKey("baz"), t)
-	ASSERT_FALSE(b.MustHasKey("quetzalcoatl"), t)
+	ASSERT_FALSE(mustBool(b.HasKey("foo")), t)
+	ASSERT_FALSE(mustBool(b.HasKey("bar")), t)
+	ASSERT_FALSE(mustBool(b.HasKey("baz")), t)
+	ASSERT_FALSE(mustBool(b.HasKey("quetzalcoatl")), t)
 	b.Close()
 }
 
 func TestBuilderHasKeySubObject(t *testing.T) {
 	var b velocypack.Builder
 	b.AddValue(velocypack.NewObjectValue())
-	b.MustAddKeyValue("foo", velocypack.NewIntValue(1))
-	b.MustAddKeyValue("bar", velocypack.NewBoolValue(true))
-	ASSERT_TRUE(b.MustHasKey("foo"), t)
-	ASSERT_TRUE(b.MustHasKey("bar"), t)
-	ASSERT_FALSE(b.MustHasKey("baz"), t)
+	must(b.AddKeyValue("foo", velocypack.NewIntValue(1)))
+	must(b.AddKeyValue("bar", velocypack.NewBoolValue(true)))
+	ASSERT_TRUE(mustBool(b.HasKey("foo")), t)
+	ASSERT_TRUE(mustBool(b.HasKey("bar")), t)
+	ASSERT_FALSE(mustBool(b.HasKey("baz")), t)
 
-	b.MustAddKeyValue("bark", velocypack.NewObjectValue())
-	ASSERT_FALSE(b.MustHasKey("bark"), t)
-	ASSERT_FALSE(b.MustHasKey("foo"), t)
-	ASSERT_FALSE(b.MustHasKey("bar"), t)
-	ASSERT_FALSE(b.MustHasKey("baz"), t)
-	b.MustClose()
+	must(b.AddKeyValue("bark", velocypack.NewObjectValue()))
+	ASSERT_FALSE(mustBool(b.HasKey("bark")), t)
+	ASSERT_FALSE(mustBool(b.HasKey("foo")), t)
+	ASSERT_FALSE(mustBool(b.HasKey("bar")), t)
+	ASSERT_FALSE(mustBool(b.HasKey("baz")), t)
+	must(b.Close())
 
-	ASSERT_TRUE(b.MustHasKey("foo"), t)
-	ASSERT_TRUE(b.MustHasKey("bar"), t)
-	ASSERT_TRUE(b.MustHasKey("bark"), t)
-	ASSERT_FALSE(b.MustHasKey("baz"), t)
+	ASSERT_TRUE(mustBool(b.HasKey("foo")), t)
+	ASSERT_TRUE(mustBool(b.HasKey("bar")), t)
+	ASSERT_TRUE(mustBool(b.HasKey("bark")), t)
+	ASSERT_FALSE(mustBool(b.HasKey("baz")), t)
 
-	b.MustAddKeyValue("baz", velocypack.NewIntValue(42))
-	ASSERT_TRUE(b.MustHasKey("foo"), t)
-	ASSERT_TRUE(b.MustHasKey("bar"), t)
-	ASSERT_TRUE(b.MustHasKey("bark"), t)
-	ASSERT_TRUE(b.MustHasKey("baz"), t)
+	must(b.AddKeyValue("baz", velocypack.NewIntValue(42)))
+	ASSERT_TRUE(mustBool(b.HasKey("foo")), t)
+	ASSERT_TRUE(mustBool(b.HasKey("bar")), t)
+	ASSERT_TRUE(mustBool(b.HasKey("bark")), t)
+	ASSERT_TRUE(mustBool(b.HasKey("baz")), t)
 	b.Close()
 }
 
 func TestBuilderHasKeyCompact(t *testing.T) {
 	var b velocypack.Builder
 	b.AddValue(velocypack.NewObjectValue(true))
-	b.MustAddKeyValue("foo", velocypack.NewIntValue(1))
-	b.MustAddKeyValue("bar", velocypack.NewBoolValue(true))
-	ASSERT_TRUE(b.MustHasKey("foo"), t)
-	ASSERT_TRUE(b.MustHasKey("bar"), t)
-	ASSERT_FALSE(b.MustHasKey("baz"), t)
+	must(b.AddKeyValue("foo", velocypack.NewIntValue(1)))
+	must(b.AddKeyValue("bar", velocypack.NewBoolValue(true)))
+	ASSERT_TRUE(mustBool(b.HasKey("foo")), t)
+	ASSERT_TRUE(mustBool(b.HasKey("bar")), t)
+	ASSERT_FALSE(mustBool(b.HasKey("baz")), t)
 
-	b.MustAddKeyValue("bark", velocypack.NewObjectValue())
-	ASSERT_FALSE(b.MustHasKey("bark"), t)
-	ASSERT_FALSE(b.MustHasKey("foo"), t)
-	ASSERT_FALSE(b.MustHasKey("bar"), t)
-	ASSERT_FALSE(b.MustHasKey("baz"), t)
-	b.MustClose()
+	must(b.AddKeyValue("bark", velocypack.NewObjectValue()))
+	ASSERT_FALSE(mustBool(b.HasKey("bark")), t)
+	ASSERT_FALSE(mustBool(b.HasKey("foo")), t)
+	ASSERT_FALSE(mustBool(b.HasKey("bar")), t)
+	ASSERT_FALSE(mustBool(b.HasKey("baz")), t)
+	must(b.Close())
 
-	ASSERT_TRUE(b.MustHasKey("foo"), t)
-	ASSERT_TRUE(b.MustHasKey("bar"), t)
-	ASSERT_TRUE(b.MustHasKey("bark"), t)
-	ASSERT_FALSE(b.MustHasKey("baz"), t)
+	ASSERT_TRUE(mustBool(b.HasKey("foo")), t)
+	ASSERT_TRUE(mustBool(b.HasKey("bar")), t)
+	ASSERT_TRUE(mustBool(b.HasKey("bark")), t)
+	ASSERT_FALSE(mustBool(b.HasKey("baz")), t)
 
-	b.MustAddKeyValue("baz", velocypack.NewIntValue(42))
-	ASSERT_TRUE(b.MustHasKey("foo"), t)
-	ASSERT_TRUE(b.MustHasKey("bar"), t)
-	ASSERT_TRUE(b.MustHasKey("bark"), t)
-	ASSERT_TRUE(b.MustHasKey("baz"), t)
+	must(b.AddKeyValue("baz", velocypack.NewIntValue(42)))
+	ASSERT_TRUE(mustBool(b.HasKey("foo")), t)
+	ASSERT_TRUE(mustBool(b.HasKey("bar")), t)
+	ASSERT_TRUE(mustBool(b.HasKey("bark")), t)
+	ASSERT_TRUE(mustBool(b.HasKey("baz")), t)
 	b.Close()
 }
 
@@ -393,79 +393,79 @@ func TestBuilderGetKeyArray(t *testing.T) {
 func TestBuilderGetKeyEmptyObject(t *testing.T) {
 	var b velocypack.Builder
 	b.AddValue(velocypack.NewObjectValue())
-	ASSERT_TRUE(b.MustGetKey("foo").IsNone(), t)
-	ASSERT_TRUE(b.MustGetKey("bar").IsNone(), t)
-	ASSERT_TRUE(b.MustGetKey("baz").IsNone(), t)
-	ASSERT_TRUE(b.MustGetKey("quetzalcoatl").IsNone(), t)
+	ASSERT_TRUE(mustSlice(b.GetKey("foo")).IsNone(), t)
+	ASSERT_TRUE(mustSlice(b.GetKey("bar")).IsNone(), t)
+	ASSERT_TRUE(mustSlice(b.GetKey("baz")).IsNone(), t)
+	ASSERT_TRUE(mustSlice(b.GetKey("quetzalcoatl")).IsNone(), t)
 	b.Close()
 }
 
 func TestBuilderGetKeySubObject(t *testing.T) {
 	var b velocypack.Builder
 	b.AddValue(velocypack.NewObjectValue())
-	b.MustAddKeyValue("foo", velocypack.NewIntValue(1))
-	b.MustAddKeyValue("bar", velocypack.NewBoolValue(true))
-	ASSERT_EQ(uint64(1), b.MustGetKey("foo").MustGetUInt(), t)
-	ASSERT_TRUE(b.MustGetKey("bar").IsBool(), t)
-	ASSERT_TRUE(b.MustGetKey("baz").IsNone(), t)
+	must(b.AddKeyValue("foo", velocypack.NewIntValue(1)))
+	must(b.AddKeyValue("bar", velocypack.NewBoolValue(true)))
+	ASSERT_EQ(uint64(1), mustUInt(mustSlice(b.GetKey("foo")).GetUInt()), t)
+	ASSERT_TRUE(mustSlice(b.GetKey("bar")).IsBool(), t)
+	ASSERT_TRUE(mustSlice(b.GetKey("baz")).IsNone(), t)
 
-	b.MustAddKeyValue("bark", velocypack.NewObjectValue())
-	ASSERT_TRUE(b.MustGetKey("bark").IsNone(), t)
-	ASSERT_TRUE(b.MustGetKey("foo").IsNone(), t)
-	ASSERT_TRUE(b.MustGetKey("bar").IsNone(), t)
-	ASSERT_TRUE(b.MustGetKey("baz").IsNone(), t)
-	b.MustClose()
+	must(b.AddKeyValue("bark", velocypack.NewObjectValue()))
+	ASSERT_TRUE(mustSlice(b.GetKey("bark")).IsNone(), t)
+	ASSERT_TRUE(mustSlice(b.GetKey("foo")).IsNone(), t)
+	ASSERT_TRUE(mustSlice(b.GetKey("bar")).IsNone(), t)
+	ASSERT_TRUE(mustSlice(b.GetKey("baz")).IsNone(), t)
+	must(b.Close())
 
-	ASSERT_EQ(uint64(1), b.MustGetKey("foo").MustGetUInt(), t)
-	ASSERT_TRUE(b.MustGetKey("bar").IsBool(), t)
-	ASSERT_TRUE(b.MustGetKey("baz").IsNone(), t)
-	ASSERT_TRUE(b.MustGetKey("bark").IsObject(), t)
+	ASSERT_EQ(uint64(1), mustUInt(mustSlice(b.GetKey("foo")).GetUInt()), t)
+	ASSERT_TRUE(mustSlice(b.GetKey("bar")).IsBool(), t)
+	ASSERT_TRUE(mustSlice(b.GetKey("baz")).IsNone(), t)
+	ASSERT_TRUE(mustSlice(b.GetKey("bark")).IsObject(), t)
 
-	b.MustAddKeyValue("baz", velocypack.NewIntValue(42))
-	ASSERT_EQ(uint64(1), b.MustGetKey("foo").MustGetUInt(), t)
-	ASSERT_TRUE(b.MustGetKey("bar").IsBool(), t)
-	ASSERT_EQ(uint64(42), b.MustGetKey("baz").MustGetUInt(), t)
-	ASSERT_TRUE(b.MustGetKey("bark").IsObject(), t)
+	must(b.AddKeyValue("baz", velocypack.NewIntValue(42)))
+	ASSERT_EQ(uint64(1), mustUInt(mustSlice(b.GetKey("foo")).GetUInt()), t)
+	ASSERT_TRUE(mustSlice(b.GetKey("bar")).IsBool(), t)
+	ASSERT_EQ(uint64(42), mustUInt(mustSlice(b.GetKey("baz")).GetUInt()), t)
+	ASSERT_TRUE(mustSlice(b.GetKey("bark")).IsObject(), t)
 	b.Close()
 }
 
 func TestBuilderGetKeyCompact(t *testing.T) {
 	var b velocypack.Builder
 	b.AddValue(velocypack.NewObjectValue(true))
-	b.MustAddKeyValue("foo", velocypack.NewIntValue(1))
-	b.MustAddKeyValue("bar", velocypack.NewBoolValue(true))
-	ASSERT_EQ(uint64(1), b.MustGetKey("foo").MustGetUInt(), t)
-	ASSERT_TRUE(b.MustGetKey("bar").IsBool(), t)
-	ASSERT_TRUE(b.MustGetKey("baz").IsNone(), t)
+	must(b.AddKeyValue("foo", velocypack.NewIntValue(1)))
+	must(b.AddKeyValue("bar", velocypack.NewBoolValue(true)))
+	ASSERT_EQ(uint64(1), mustUInt(mustSlice(b.GetKey("foo")).GetUInt()), t)
+	ASSERT_TRUE(mustSlice(b.GetKey("bar")).IsBool(), t)
+	ASSERT_TRUE(mustSlice(b.GetKey("baz")).IsNone(), t)
 
-	b.MustAddKeyValue("bark", velocypack.NewObjectValue())
-	ASSERT_TRUE(b.MustGetKey("bark").IsNone(), t)
-	ASSERT_TRUE(b.MustGetKey("foo").IsNone(), t)
-	ASSERT_TRUE(b.MustGetKey("bar").IsNone(), t)
-	ASSERT_TRUE(b.MustGetKey("baz").IsNone(), t)
-	b.MustClose()
+	must(b.AddKeyValue("bark", velocypack.NewObjectValue()))
+	ASSERT_TRUE(mustSlice(b.GetKey("bark")).IsNone(), t)
+	ASSERT_TRUE(mustSlice(b.GetKey("foo")).IsNone(), t)
+	ASSERT_TRUE(mustSlice(b.GetKey("bar")).IsNone(), t)
+	ASSERT_TRUE(mustSlice(b.GetKey("baz")).IsNone(), t)
+	must(b.Close())
 
-	ASSERT_EQ(uint64(1), b.MustGetKey("foo").MustGetUInt(), t)
-	ASSERT_TRUE(b.MustGetKey("bar").IsBool(), t)
-	ASSERT_TRUE(b.MustGetKey("baz").IsNone(), t)
-	ASSERT_TRUE(b.MustGetKey("bark").IsObject(), t)
+	ASSERT_EQ(uint64(1), mustUInt(mustSlice(b.GetKey("foo")).GetUInt()), t)
+	ASSERT_TRUE(mustSlice(b.GetKey("bar")).IsBool(), t)
+	ASSERT_TRUE(mustSlice(b.GetKey("baz")).IsNone(), t)
+	ASSERT_TRUE(mustSlice(b.GetKey("bark")).IsObject(), t)
 
-	b.MustAddKeyValue("baz", velocypack.NewIntValue(42))
-	ASSERT_EQ(uint64(1), b.MustGetKey("foo").MustGetUInt(), t)
-	ASSERT_TRUE(b.MustGetKey("bar").IsBool(), t)
-	ASSERT_EQ(uint64(42), b.MustGetKey("baz").MustGetUInt(), t)
-	ASSERT_TRUE(b.MustGetKey("bark").IsObject(), t)
+	must(b.AddKeyValue("baz", velocypack.NewIntValue(42)))
+	ASSERT_EQ(uint64(1), mustUInt(mustSlice(b.GetKey("foo")).GetUInt()), t)
+	ASSERT_TRUE(mustSlice(b.GetKey("bar")).IsBool(), t)
+	ASSERT_EQ(uint64(42), mustUInt(mustSlice(b.GetKey("baz")).GetUInt()), t)
+	ASSERT_TRUE(mustSlice(b.GetKey("bark")).IsObject(), t)
 	b.Close()
 }
 
 func TestBuilderAddKeysSeparately1(t *testing.T) {
 	var b velocypack.Builder
-	b.MustOpenObject()
-	b.MustAddValue(velocypack.NewStringValue("name"))
-	b.MustAddValue(velocypack.NewStringValue("Neunhoeffer"))
-	b.MustAddValue(velocypack.NewStringValue("firstName"))
-	b.MustAddValue(velocypack.NewStringValue("Max"))
-	b.MustClose()
+	must(b.OpenObject())
+	must(b.AddValue(velocypack.NewStringValue("name")))
+	must(b.AddValue(velocypack.NewStringValue("Neunhoeffer")))
+	must(b.AddValue(velocypack.NewStringValue("firstName")))
+	must(b.AddValue(velocypack.NewStringValue("Max")))
+	must(b.Close())
 
-	ASSERT_EQ(`{"firstName":"Max","name":"Neunhoeffer"}`, b.MustSlice().MustJSONString(), t)
+	ASSERT_EQ(`{"firstName":"Max","name":"Neunhoeffer"}`, mustString(mustSlice(b.Slice()).JSONString()), t)
 }

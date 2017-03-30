@@ -46,7 +46,7 @@ func TestEncoderMapOneField(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"Name":"Max"}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"Name":"Max"}`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderMapMultipleFields(t *testing.T) {
@@ -61,7 +61,7 @@ func TestEncoderMapMultipleFields(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Max"}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Max"}`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderMapMultipleFieldsEmpty(t *testing.T) {
@@ -76,7 +76,7 @@ func TestEncoderMapMultipleFieldsEmpty(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"A":false,"D":0,"I":0,"Name":""}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"A":false,"D":0,"I":0,"Name":""}`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderMapNestedStruct(t *testing.T) {
@@ -94,7 +94,7 @@ func TestEncoderMapNestedStruct(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":{"Foo":999}}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":{"Foo":999}}`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderMapNestedStructs(t *testing.T) {
@@ -115,7 +115,7 @@ func TestEncoderMapNestedStructs(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":{"Foo":999,"Nested":{"Foo":true}}}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":{"Foo":999,"Nested":{"Foo":true}}}`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderMapNestedStructPtr(t *testing.T) {
@@ -135,7 +135,7 @@ func TestEncoderMapNestedStructPtr(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":{"Foo":999}}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":{"Foo":999}}`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderMapNestedStructPtrNil(t *testing.T) {
@@ -151,7 +151,7 @@ func TestEncoderMapNestedStructPtrNil(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":null}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":null}`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderMapNestedByteSlice(t *testing.T) {
@@ -167,7 +167,7 @@ func TestEncoderMapNestedByteSlice(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":"(non-representable type Binary)"}`, s.MustJSONString(velocypack.DumperOptions{UnsupportedTypeBehavior: velocypack.ConvertUnsupportedType}), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":"(non-representable type Binary)"}`, mustString(s.JSONString(velocypack.DumperOptions{UnsupportedTypeBehavior: velocypack.ConvertUnsupportedType})), t)
 }
 
 func TestEncoderMapNestedIntSlice(t *testing.T) {
@@ -183,7 +183,7 @@ func TestEncoderMapNestedIntSlice(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":[1,2,3,4,5]}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":[1,2,3,4,5]}`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderMapNestedStringSlice(t *testing.T) {
@@ -199,7 +199,7 @@ func TestEncoderMapNestedStringSlice(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":["Aap","Noot"]}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":["Aap","Noot"]}`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderMapNestedStringSliceEmpty(t *testing.T) {
@@ -215,5 +215,5 @@ func TestEncoderMapNestedStringSliceEmpty(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":[]}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":[]}`, mustString(s.JSONString()), t)
 }

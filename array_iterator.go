@@ -52,16 +52,6 @@ func NewArrayIterator(s Slice) (*ArrayIterator, error) {
 	return i, nil
 }
 
-// MustNewArrayIterator initializes an iterator at position 0 of the given object slice.
-// Panics in case of an error.
-func MustNewArrayIterator(s Slice) *ArrayIterator {
-	if it, err := NewArrayIterator(s); err != nil {
-		panic(err)
-	} else {
-		return it
-	}
-}
-
 // IsValid returns true if the given position of the iterator is valid.
 func (i *ArrayIterator) IsValid() bool {
 	return i.position < i.size
@@ -82,16 +72,6 @@ func (i *ArrayIterator) Value() (Slice, error) {
 	}
 	value, err := i.s.At(i.position)
 	return value, WithStack(err)
-}
-
-// MustValue returns the value of the current position of the iterator.
-// Panics in case of an error.
-func (i *ArrayIterator) MustValue() Slice {
-	if result, err := i.Value(); err != nil {
-		panic(err)
-	} else {
-		return result
-	}
 }
 
 // Next moves to the next position.
