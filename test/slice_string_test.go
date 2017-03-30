@@ -43,9 +43,9 @@ func TestSliceStringEmpty(t *testing.T) {
 
 	ASSERT_EQ(velocypack.String, slice.Type(), t)
 	ASSERT_TRUE(slice.IsString(), t)
-	ASSERT_EQ(velocypack.ValueLength(1), slice.MustByteSize(), t)
-	ASSERT_EQ("", slice.MustGetString(), t)
-	ASSERT_EQ(velocypack.ValueLength(0), slice.MustGetStringLength(), t)
+	ASSERT_EQ(velocypack.ValueLength(1), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ("", mustString(slice.GetString()), t)
+	ASSERT_EQ(velocypack.ValueLength(0), mustLength(slice.GetStringLength()), t)
 }
 
 func TestSliceStringLengths(t *testing.T) {
@@ -86,9 +86,9 @@ func TestSliceString1(t *testing.T) {
 
 	ASSERT_EQ(velocypack.String, slice.Type(), t)
 	ASSERT_TRUE(slice.IsString(), t)
-	ASSERT_EQ(velocypack.ValueLength(7), slice.MustByteSize(), t)
-	ASSERT_EQ(value, slice.MustGetString(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(value)), slice.MustGetStringLength(), t)
+	ASSERT_EQ(velocypack.ValueLength(7), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(value, mustString(slice.GetString()), t)
+	ASSERT_EQ(velocypack.ValueLength(len(value)), mustLength(slice.GetStringLength()), t)
 }
 
 func TestSliceString2(t *testing.T) {
@@ -97,9 +97,9 @@ func TestSliceString2(t *testing.T) {
 
 	ASSERT_EQ(velocypack.String, slice.Type(), t)
 	ASSERT_TRUE(slice.IsString(), t)
-	ASSERT_EQ(velocypack.ValueLength(9), slice.MustByteSize(), t)
-	ASSERT_EQ("123f\r\t\nx", slice.MustGetString(), t)
-	ASSERT_EQ(velocypack.ValueLength(8), slice.MustGetStringLength(), t)
+	ASSERT_EQ(velocypack.ValueLength(9), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ("123f\r\t\nx", mustString(slice.GetString()), t)
+	ASSERT_EQ(velocypack.ValueLength(8), mustLength(slice.GetStringLength()), t)
 }
 
 func TestSliceStringNullBytes(t *testing.T) {
@@ -108,9 +108,9 @@ func TestSliceStringNullBytes(t *testing.T) {
 
 	ASSERT_EQ(velocypack.String, slice.Type(), t)
 	ASSERT_TRUE(slice.IsString(), t)
-	ASSERT_EQ(velocypack.ValueLength(9), slice.MustByteSize(), t)
-	ASSERT_EQ("\x0012\x0034\x00x", slice.MustGetString(), t)
-	ASSERT_EQ(velocypack.ValueLength(8), slice.MustGetStringLength(), t)
+	ASSERT_EQ(velocypack.ValueLength(9), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ("\x0012\x0034\x00x", mustString(slice.GetString()), t)
+	ASSERT_EQ(velocypack.ValueLength(8), mustLength(slice.GetStringLength()), t)
 }
 
 func TestSliceStringLong(t *testing.T) {
@@ -119,14 +119,14 @@ func TestSliceStringLong(t *testing.T) {
 
 	ASSERT_EQ(velocypack.String, slice.Type(), t)
 	ASSERT_TRUE(slice.IsString(), t)
-	ASSERT_EQ(velocypack.ValueLength(15), slice.MustByteSize(), t)
-	ASSERT_EQ("foobar", slice.MustGetString(), t)
-	ASSERT_EQ(velocypack.ValueLength(6), slice.MustGetStringLength(), t)
+	ASSERT_EQ(velocypack.ValueLength(15), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ("foobar", mustString(slice.GetString()), t)
+	ASSERT_EQ(velocypack.ValueLength(6), mustLength(slice.GetStringLength()), t)
 }
 
 func TestSliceStringToStringNull(t *testing.T) {
 	slice := velocypack.NullSlice()
 	assertEqualFromReader(t, slice)
 
-	ASSERT_EQ("null", slice.MustJSONString(), t)
+	ASSERT_EQ("null", mustString(slice.JSONString()), t)
 }

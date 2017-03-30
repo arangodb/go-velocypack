@@ -66,16 +66,6 @@ func (s Slice) JSONString(options ...DumperOptions) (string, error) {
 	return buf.String(), nil
 }
 
-// MustJSONString converts the contents of the slice to JSON.
-// Panics in case of an error.
-func (s Slice) MustJSONString(options ...DumperOptions) string {
-	if result, err := s.JSONString(options...); err != nil {
-		panic(err)
-	} else {
-		return result
-	}
-}
-
 // head returns the first element of the slice or 0 if the slice is empty.
 func (s Slice) head() byte {
 	if len(s) > 0 {
@@ -166,16 +156,6 @@ func (s Slice) ByteSize() (ValueLength, error) {
 	return 0, WithStack(InternalError)
 }
 
-// MustByteSize returns the total byte size for the slice, including the head byte.
-// Panics in case of an error.
-func (s Slice) MustByteSize() ValueLength {
-	if v, err := s.ByteSize(); err != nil {
-		panic(err)
-	} else {
-		return v
-	}
-}
-
 // Next returns the Slice that directly follows the given slice.
 // Same as s[s.ByteSize:]
 func (s Slice) Next() (Slice, error) {
@@ -184,17 +164,6 @@ func (s Slice) Next() (Slice, error) {
 		return nil, WithStack(err)
 	}
 	return Slice(s[size:]), nil
-}
-
-// MustNext returns the Slice that directly follows the given slice.
-// Same as s[s.ByteSize:]
-// Panics in case of an error.
-func (s Slice) MustNext() Slice {
-	if result, err := s.Next(); err != nil {
-		panic(err)
-	} else {
-		return result
-	}
 }
 
 // GetBool returns a boolean value from the slice.
@@ -206,16 +175,6 @@ func (s Slice) GetBool() (bool, error) {
 	return s.IsTrue(), nil
 }
 
-// MustGetBool returns a boolean value from the slice.
-// Panics if slice is not of type Bool.
-func (s Slice) MustGetBool() bool {
-	if v, err := s.GetBool(); err != nil {
-		panic(err)
-	} else {
-		return v
-	}
-}
-
 // GetDouble returns a Double value from the slice.
 // Returns an error if slice is not of type Double.
 func (s Slice) GetDouble() (float64, error) {
@@ -224,16 +183,6 @@ func (s Slice) GetDouble() (float64, error) {
 	}
 	bits := binary.LittleEndian.Uint64(s[1:])
 	return math.Float64frombits(bits), nil
-}
-
-// MustGetDouble returns a Double value from the slice.
-// Panics if slice is not of type Double.
-func (s Slice) MustGetDouble() float64 {
-	if v, err := s.GetDouble(); err != nil {
-		panic(err)
-	} else {
-		return v
-	}
 }
 
 // GetInt returns a Int value from the slice.
@@ -277,16 +226,6 @@ func (s Slice) GetInt() (int64, error) {
 	return 0, WithStack(InvalidTypeError{"Expecting type Int"})
 }
 
-// MustGetInt returns a Int value from the slice.
-// Panics if slice is not of type Int.
-func (s Slice) MustGetInt() int64 {
-	if v, err := s.GetInt(); err != nil {
-		panic(err)
-	} else {
-		return v
-	}
-}
-
 // GetUInt returns a UInt value from the slice.
 // Returns an error if slice is not of type UInt.
 func (s Slice) GetUInt() (uint64, error) {
@@ -327,16 +266,6 @@ func (s Slice) GetUInt() (uint64, error) {
 	return 0, WithStack(InvalidTypeError{"Expecting type UInt"})
 }
 
-// MustGetUInt returns a UInt value from the slice.
-// Panics if slice is not of type UInt.
-func (s Slice) MustGetUInt() uint64 {
-	if v, err := s.GetUInt(); err != nil {
-		panic(err)
-	} else {
-		return v
-	}
-}
-
 // GetSmallInt returns a SmallInt value from the slice.
 // Returns an error if slice is not of type SmallInt.
 func (s Slice) GetSmallInt() (int64, error) {
@@ -362,16 +291,6 @@ func (s Slice) GetSmallInt() (int64, error) {
 	return 0, InvalidTypeError{"Expecting type SmallInt"}
 }
 
-// MustGetSmallInt returns a SmallInt value from the slice.
-// Panics if slice is not of type SmallInt.
-func (s Slice) MustGetSmallInt() int64 {
-	if v, err := s.GetSmallInt(); err != nil {
-		panic(err)
-	} else {
-		return v
-	}
-}
-
 // GetString return the value for a String object
 func (s Slice) GetString() (string, error) {
 	h := s.head()
@@ -395,16 +314,6 @@ func (s Slice) GetString() (string, error) {
 	return "", InvalidTypeError{"Expecting type String"}
 }
 
-// MustGetString return the value for a String object.
-// Panics in case of an error.
-func (s Slice) MustGetString() string {
-	if result, err := s.GetString(); err != nil {
-		panic(err)
-	} else {
-		return result
-	}
-}
-
 // GetStringLength return the length for a String object
 func (s Slice) GetStringLength() (ValueLength, error) {
 	h := s.head()
@@ -426,16 +335,6 @@ func (s Slice) GetStringLength() (ValueLength, error) {
 	return 0, InvalidTypeError{"Expecting type String"}
 }
 
-// MustGetStringLength return the length for a String object.
-// Panics in case of an error.
-func (s Slice) MustGetStringLength() ValueLength {
-	if result, err := s.GetStringLength(); err != nil {
-		panic(err)
-	} else {
-		return result
-	}
-}
-
 // CompareString compares the string value in the slice with the given string.
 // s == value -> 0
 // s < value -> -1
@@ -448,19 +347,6 @@ func (s Slice) CompareString(value string) (int, error) {
 	return bytes.Compare([]byte(k), []byte(value)), nil
 }
 
-// MustCompareString compares the string value in the slice with the given string.
-// s == value -> 0
-// s < value -> -1
-// s > value -> 1
-// Panics in case of an error.
-func (s Slice) MustCompareString(value string) int {
-	if result, err := s.CompareString(value); err != nil {
-		panic(err)
-	} else {
-		return result
-	}
-}
-
 // IsEqualString compares the string value in the slice with the given string for equivalence.
 func (s Slice) IsEqualString(value string) (bool, error) {
 	k, err := s.GetString()
@@ -468,16 +354,6 @@ func (s Slice) IsEqualString(value string) (bool, error) {
 		return false, WithStack(err)
 	}
 	return k == value, nil
-}
-
-// MustIsEqualString compares the string value in the slice with the given string for equivalence.
-// Panics in case of an error.
-func (s Slice) MustIsEqualString(value string) bool {
-	if result, err := s.IsEqualString(value); err != nil {
-		panic(err)
-	} else {
-		return result
-	}
 }
 
 // GetBinary return the value for a Binary object
@@ -495,16 +371,6 @@ func (s Slice) GetBinary() ([]byte, error) {
 	return s[1+lengthSize : 1+uint64(lengthSize)+length], nil
 }
 
-// MustGetBinary return the value for a Binary object.
-// Panics in case of an error.
-func (s Slice) MustGetBinary() []byte {
-	if result, err := s.GetBinary(); err != nil {
-		panic(err)
-	} else {
-		return result
-	}
-}
-
 // GetBinaryLength return the length for a Binary object
 func (s Slice) GetBinaryLength() (ValueLength, error) {
 	if !s.IsBinary() {
@@ -517,16 +383,6 @@ func (s Slice) GetBinaryLength() (ValueLength, error) {
 	lengthSize := uint(h - 0xbf)
 	length := readIntegerNonEmpty(s[1:], lengthSize)
 	return ValueLength(length), nil
-}
-
-// MustGetBinaryLength return the length for a Binary object.
-// Panics in case of an error.
-func (s Slice) MustGetBinaryLength() ValueLength {
-	if result, err := s.GetBinaryLength(); err != nil {
-		panic(err)
-	} else {
-		return result
-	}
 }
 
 // Length return the number of members for an Array or Object object
@@ -570,16 +426,6 @@ func (s Slice) Length() (ValueLength, error) {
 	return ValueLength(readIntegerNonEmpty(s[end-uint64(offsetSize):], offsetSize)), nil
 }
 
-// MustLength return the number of members for an Array or Object object.
-// Panics in case of error.
-func (s Slice) MustLength() ValueLength {
-	if result, err := s.Length(); err != nil {
-		panic(err)
-	} else {
-		return result
-	}
-}
-
 // At extracts the array value at the specified index.
 func (s Slice) At(index ValueLength) (Slice, error) {
 	if !s.IsArray() {
@@ -593,16 +439,6 @@ func (s Slice) At(index ValueLength) (Slice, error) {
 	}
 }
 
-// MustAt extracts the array value at the specified index.
-// Panics in case of an error.
-func (s Slice) MustAt(index ValueLength) Slice {
-	if result, err := s.At(index); err != nil {
-		panic(err)
-	} else {
-		return result
-	}
-}
-
 // KeyAt extracts a key from an Object at the specified index.
 func (s Slice) KeyAt(index ValueLength, translate ...bool) (Slice, error) {
 	if !s.IsObject() {
@@ -610,16 +446,6 @@ func (s Slice) KeyAt(index ValueLength, translate ...bool) (Slice, error) {
 	}
 
 	return s.getNthKey(index, optionalBool(translate, true))
-}
-
-// MustKeyAt extracts a key from an Object at the specified index.
-// Panics in case of an error.
-func (s Slice) MustKeyAt(index ValueLength, translate ...bool) Slice {
-	if result, err := s.KeyAt(index, translate...); err != nil {
-		panic(err)
-	} else {
-		return result
-	}
 }
 
 // ValueAt extracts a value from an Object at the specified index
@@ -637,16 +463,6 @@ func (s Slice) ValueAt(index ValueLength) (Slice, error) {
 		return nil, WithStack(err)
 	}
 	return Slice(key[byteSize:]), nil
-}
-
-// MustValueAt extracts a value from an Object at the specified index.
-// Panics in case of an error.
-func (s Slice) MustValueAt(index ValueLength) Slice {
-	if result, err := s.ValueAt(index); err != nil {
-		panic(err)
-	} else {
-		return result
-	}
 }
 
 func indexEntrySize(head byte) uint {
@@ -745,33 +561,12 @@ func (s Slice) Get(attribute string) (Slice, error) {
 	return result, WithStack(err)
 }
 
-// MustGet looks for the specified attribute inside an Object
-// returns a Slice(ValueType::None) if not found
-// Panics in case of an error.
-func (s Slice) MustGet(attribute string) Slice {
-	if result, err := s.Get(attribute); err != nil {
-		panic(err)
-	} else {
-		return result
-	}
-}
-
 // HasKey returns true if the slice is an object that has a given key.
 func (s Slice) HasKey(key string) (bool, error) {
 	if result, err := s.Get(key); err != nil {
 		return false, WithStack(err)
 	} else {
 		return !result.IsNone(), nil
-	}
-}
-
-// MustHasKey returns true if the slice is an object that has a given key.
-// Panics in case of an error.
-func (s Slice) MustHasKey(key string) bool {
-	if result, err := s.HasKey(key); err != nil {
-		panic(err)
-	} else {
-		return result
 	}
 }
 

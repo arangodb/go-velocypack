@@ -35,8 +35,8 @@ func TestSliceObjectEmpty(t *testing.T) {
 	ASSERT_EQ(velocypack.Object, slice.Type(), t)
 	ASSERT_TRUE(slice.IsObject(), t)
 	ASSERT_TRUE(slice.IsEmptyObject(), t)
-	ASSERT_EQ(velocypack.ValueLength(1), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(0), slice.MustLength(), t)
+	ASSERT_EQ(velocypack.ValueLength(1), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(0), mustLength(slice.Length()), t)
 }
 
 func TestSliceObjectCases1(t *testing.T) {
@@ -48,11 +48,11 @@ func TestSliceObjectCases1(t *testing.T) {
 	ASSERT_EQ(velocypack.Object, slice.Type(), t)
 	ASSERT_TRUE(slice.IsObject(), t)
 	ASSERT_FALSE(slice.IsEmptyObject(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
-	ss := slice.MustGet("a")
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.Get("a"))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 }
 
 func TestSliceObjectCases2(t *testing.T) {
@@ -64,11 +64,11 @@ func TestSliceObjectCases2(t *testing.T) {
 	ASSERT_EQ(velocypack.Object, slice.Type(), t)
 	ASSERT_TRUE(slice.IsObject(), t)
 	ASSERT_FALSE(slice.IsEmptyObject(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
-	ss := slice.MustGet("a")
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.Get("a"))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 }
 
 func TestSliceObjectCases3(t *testing.T) {
@@ -81,11 +81,11 @@ func TestSliceObjectCases3(t *testing.T) {
 	ASSERT_EQ(velocypack.Object, slice.Type(), t)
 	ASSERT_TRUE(slice.IsObject(), t)
 	ASSERT_FALSE(slice.IsEmptyObject(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
-	ss := slice.MustGet("a")
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.Get("a"))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 }
 
 func TestSliceObjectCases7(t *testing.T) {
@@ -97,11 +97,11 @@ func TestSliceObjectCases7(t *testing.T) {
 	ASSERT_EQ(velocypack.Object, slice.Type(), t)
 	ASSERT_TRUE(slice.IsObject(), t)
 	ASSERT_FALSE(slice.IsEmptyObject(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
-	ss := slice.MustGet("a")
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.Get("a"))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 }
 
 func TestSliceObjectCases8(t *testing.T) {
@@ -114,11 +114,11 @@ func TestSliceObjectCases8(t *testing.T) {
 	ASSERT_EQ(velocypack.Object, slice.Type(), t)
 	ASSERT_TRUE(slice.IsObject(), t)
 	ASSERT_FALSE(slice.IsEmptyObject(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
-	ss := slice.MustGet("a")
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.Get("a"))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 }
 
 func TestSliceObjectCases11(t *testing.T) {
@@ -131,11 +131,11 @@ func TestSliceObjectCases11(t *testing.T) {
 	ASSERT_EQ(velocypack.Object, slice.Type(), t)
 	ASSERT_TRUE(slice.IsObject(), t)
 	ASSERT_FALSE(slice.IsEmptyObject(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
-	ss := slice.MustGet("a")
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.Get("a"))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 }
 
 func TestSliceObjectCases13(t *testing.T) {
@@ -150,11 +150,11 @@ func TestSliceObjectCases13(t *testing.T) {
 	ASSERT_EQ(velocypack.Object, slice.Type(), t)
 	ASSERT_TRUE(slice.IsObject(), t)
 	ASSERT_FALSE(slice.IsEmptyObject(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
-	ss := slice.MustGet("a")
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.Get("a"))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 }
 
 func TestSliceObjectCompact(t *testing.T) {
@@ -166,17 +166,17 @@ func TestSliceObjectCompact(t *testing.T) {
 	ASSERT_EQ(velocypack.Object, slice.Type(), t)
 	ASSERT_TRUE(slice.IsObject(), t)
 	ASSERT_FALSE(slice.IsEmptyObject(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(4), slice.MustLength(), t)
-	ss := slice.MustGet("a")
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(4), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.Get("a"))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(0), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(0), mustInt(ss.GetInt()), t)
 
-	ss = slice.MustGet("b")
+	ss = mustSlice(slice.Get("b"))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 
-	ss = slice.MustGet("d")
+	ss = mustSlice(slice.Get("d"))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(3), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(3), mustInt(ss.GetInt()), t)
 }

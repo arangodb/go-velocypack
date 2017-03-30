@@ -63,7 +63,7 @@ func TestEncoderPrimitiveAddDoubleFloat32(t *testing.T) {
 		s := velocypack.Slice(bytes)
 
 		ASSERT_TRUE(s.IsDouble(), t)
-		ASSERT_DOUBLE_EQ(float64(test), s.MustGetDouble(), t)
+		ASSERT_DOUBLE_EQ(float64(test), mustDouble(s.GetDouble()), t)
 	}
 }
 
@@ -75,7 +75,7 @@ func TestEncoderPrimitiveAddDoubleFloat64(t *testing.T) {
 		s := velocypack.Slice(bytes)
 
 		ASSERT_TRUE(s.IsDouble(), t)
-		ASSERT_DOUBLE_EQ(test, s.MustGetDouble(), t)
+		ASSERT_DOUBLE_EQ(test, mustDouble(s.GetDouble()), t)
 	}
 }
 
@@ -87,7 +87,7 @@ func TestEncoderPrimitiveAddInt(t *testing.T) {
 		s := velocypack.Slice(bytes)
 
 		ASSERT_TRUE(s.IsInt(), t)
-		ASSERT_EQ(int64(test), s.MustGetInt(), t)
+		ASSERT_EQ(int64(test), mustInt(s.GetInt()), t)
 	}
 }
 
@@ -99,7 +99,7 @@ func TestEncoderPrimitiveAddInt8(t *testing.T) {
 		s := velocypack.Slice(bytes)
 
 		ASSERT_TRUE(s.IsInt(), t)
-		ASSERT_EQ(int64(test), s.MustGetInt(), t)
+		ASSERT_EQ(int64(test), mustInt(s.GetInt()), t)
 	}
 }
 
@@ -111,7 +111,7 @@ func TestEncoderPrimitiveAddInt16(t *testing.T) {
 		s := velocypack.Slice(bytes)
 
 		ASSERT_TRUE(s.IsInt(), t)
-		ASSERT_EQ(int64(test), s.MustGetInt(), t)
+		ASSERT_EQ(int64(test), mustInt(s.GetInt()), t)
 	}
 }
 
@@ -123,7 +123,7 @@ func TestEncoderPrimitiveAddInt32(t *testing.T) {
 		s := velocypack.Slice(bytes)
 
 		ASSERT_TRUE(s.IsInt(), t)
-		ASSERT_EQ(int64(test), s.MustGetInt(), t)
+		ASSERT_EQ(int64(test), mustInt(s.GetInt()), t)
 	}
 }
 
@@ -135,7 +135,7 @@ func TestEncoderPrimitiveAddInt64(t *testing.T) {
 		s := velocypack.Slice(bytes)
 
 		ASSERT_TRUE(s.IsInt(), t)
-		ASSERT_EQ(int64(test), s.MustGetInt(), t)
+		ASSERT_EQ(int64(test), mustInt(s.GetInt()), t)
 	}
 }
 
@@ -147,7 +147,7 @@ func TestEncoderPrimitiveAddUInt(t *testing.T) {
 		s := velocypack.Slice(bytes)
 
 		ASSERT_TRUE(s.IsUInt(), t)
-		ASSERT_EQ(uint64(test), s.MustGetUInt(), t)
+		ASSERT_EQ(uint64(test), mustUInt(s.GetUInt()), t)
 	}
 }
 
@@ -159,7 +159,7 @@ func TestEncoderPrimitiveAddUInt8(t *testing.T) {
 		s := velocypack.Slice(bytes)
 
 		ASSERT_TRUE(s.IsUInt(), t)
-		ASSERT_EQ(uint64(test), s.MustGetUInt(), t)
+		ASSERT_EQ(uint64(test), mustUInt(s.GetUInt()), t)
 	}
 }
 
@@ -171,7 +171,7 @@ func TestEncoderPrimitiveAddUInt16(t *testing.T) {
 		s := velocypack.Slice(bytes)
 
 		ASSERT_TRUE(s.IsUInt(), t)
-		ASSERT_EQ(uint64(test), s.MustGetUInt(), t)
+		ASSERT_EQ(uint64(test), mustUInt(s.GetUInt()), t)
 	}
 }
 
@@ -183,7 +183,7 @@ func TestEncoderPrimitiveAddUInt32(t *testing.T) {
 		s := velocypack.Slice(bytes)
 
 		ASSERT_TRUE(s.IsUInt(), t)
-		ASSERT_EQ(uint64(test), s.MustGetUInt(), t)
+		ASSERT_EQ(uint64(test), mustUInt(s.GetUInt()), t)
 	}
 }
 
@@ -199,7 +199,7 @@ func TestEncoderPrimitiveAddUInt64(t *testing.T) {
 		} else {
 			ASSERT_TRUE(s.IsUInt(), t)
 		}
-		ASSERT_EQ(uint64(test), s.MustGetUInt(), t)
+		ASSERT_EQ(uint64(test), mustUInt(s.GetUInt()), t)
 	}
 }
 
@@ -211,7 +211,7 @@ func TestEncoderPrimitiveAddSmallInt(t *testing.T) {
 		s := velocypack.Slice(bytes)
 
 		ASSERT_TRUE(s.IsSmallInt(), t)
-		ASSERT_EQ(int64(test), s.MustGetInt(), t)
+		ASSERT_EQ(int64(test), mustInt(s.GetInt()), t)
 	}
 }
 
@@ -223,7 +223,7 @@ func TestEncoderPrimitiveAddString(t *testing.T) {
 		s := velocypack.Slice(bytes)
 
 		ASSERT_TRUE(s.IsString(), t)
-		ASSERT_EQ(test, s.MustGetString(), t)
+		ASSERT_EQ(test, mustString(s.GetString()), t)
 	}
 }
 
@@ -236,6 +236,6 @@ func TestEncoderPrimitiveAddBinary(t *testing.T) {
 
 		ASSERT_EQ(s.Type(), velocypack.Binary, t)
 		ASSERT_TRUE(s.IsBinary(), t)
-		ASSERT_EQ(test, s.MustGetBinary(), t)
+		ASSERT_EQ(test, mustBytes(s.GetBinary()), t)
 	}
 }

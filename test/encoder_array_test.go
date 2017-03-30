@@ -35,7 +35,7 @@ func TestEncoderArrayEmpty(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Array, t)
 	ASSERT_TRUE(s.IsEmptyArray(), t)
-	ASSERT_EQ(`[]`, s.MustJSONString(), t)
+	ASSERT_EQ(`[]`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderArrayByteSlice(t *testing.T) {
@@ -45,7 +45,7 @@ func TestEncoderArrayByteSlice(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Binary, t)
 	ASSERT_TRUE(s.IsBinary(), t)
-	ASSERT_EQ(`null`, s.MustJSONString(), t)
+	ASSERT_EQ(`null`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderArrayBoolSlice(t *testing.T) {
@@ -55,7 +55,7 @@ func TestEncoderArrayBoolSlice(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Array, t)
 	ASSERT_TRUE(s.IsArray(), t)
-	ASSERT_EQ(`[true,false,false,true]`, s.MustJSONString(), t)
+	ASSERT_EQ(`[true,false,false,true]`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderArrayIntSlice(t *testing.T) {
@@ -65,7 +65,7 @@ func TestEncoderArrayIntSlice(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Array, t)
 	ASSERT_TRUE(s.IsArray(), t)
-	ASSERT_EQ(`[1,2,3,-4,5,6,100000]`, s.MustJSONString(), t)
+	ASSERT_EQ(`[1,2,3,-4,5,6,100000]`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderArrayUIntSlice(t *testing.T) {
@@ -75,7 +75,7 @@ func TestEncoderArrayUIntSlice(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Array, t)
 	ASSERT_TRUE(s.IsArray(), t)
-	ASSERT_EQ(`[1,2,3,4,5,6,100000]`, s.MustJSONString(), t)
+	ASSERT_EQ(`[1,2,3,4,5,6,100000]`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderArrayFloat32Slice(t *testing.T) {
@@ -85,7 +85,7 @@ func TestEncoderArrayFloat32Slice(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Array, t)
 	ASSERT_TRUE(s.IsArray(), t)
-	ASSERT_EQ(`[0,-1.5,66,45]`, s.MustJSONString(), t)
+	ASSERT_EQ(`[0,-1.5,66,45]`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderArrayFloat64Slice(t *testing.T) {
@@ -95,7 +95,7 @@ func TestEncoderArrayFloat64Slice(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Array, t)
 	ASSERT_TRUE(s.IsArray(), t)
-	ASSERT_EQ(`[0,-1.5,6.23,4.5e+11]`, s.MustJSONString(), t)
+	ASSERT_EQ(`[0,-1.5,6.23,4.5e+11]`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderArrayStructSlice(t *testing.T) {
@@ -110,7 +110,7 @@ func TestEncoderArrayStructSlice(t *testing.T) {
 	t.Log(s.String())
 	ASSERT_EQ(s.Type(), velocypack.Array, t)
 	ASSERT_TRUE(s.IsArray(), t)
-	ASSERT_EQ(`[{"Field1":1},{"Field1":10},{"Field1":100}]`, s.MustJSONString(), t)
+	ASSERT_EQ(`[{"Field1":1},{"Field1":10},{"Field1":100}]`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderArrayStructPtrSlice(t *testing.T) {
@@ -127,7 +127,7 @@ func TestEncoderArrayStructPtrSlice(t *testing.T) {
 	t.Log(s.String())
 	ASSERT_EQ(s.Type(), velocypack.Array, t)
 	ASSERT_TRUE(s.IsArray(), t)
-	ASSERT_EQ(`[{"Field1":1},null,{"Field1":10},{"Field1":100},null]`, s.MustJSONString(), t)
+	ASSERT_EQ(`[{"Field1":1},null,{"Field1":10},{"Field1":100},null]`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderArrayNestedArray(t *testing.T) {
@@ -142,5 +142,5 @@ func TestEncoderArrayNestedArray(t *testing.T) {
 	t.Log(s.String())
 	ASSERT_EQ(s.Type(), velocypack.Array, t)
 	ASSERT_TRUE(s.IsArray(), t)
-	ASSERT_EQ(`[[{"Field1":1},{"Field1":3}],[{"Field1":10}],[{"Field1":100}]]`, s.MustJSONString(), t)
+	ASSERT_EQ(`[[{"Field1":1},{"Field1":3}],[{"Field1":10}],[{"Field1":100}]]`, mustString(s.JSONString()), t)
 }

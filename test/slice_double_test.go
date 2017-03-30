@@ -38,8 +38,8 @@ func TestSliceDouble(t *testing.T) {
 
 	ASSERT_EQ(velocypack.Double, slice.Type(), t)
 	ASSERT_TRUE(slice.IsDouble(), t)
-	ASSERT_EQ(velocypack.ValueLength(9), slice.MustByteSize(), t)
-	ASSERT_DOUBLE_EQ(value, slice.MustGetDouble(), t)
+	ASSERT_EQ(velocypack.ValueLength(9), mustLength(slice.ByteSize()), t)
+	ASSERT_DOUBLE_EQ(value, mustDouble(slice.GetDouble()), t)
 }
 
 func TestSliceDoubleNegative(t *testing.T) {
@@ -50,6 +50,6 @@ func TestSliceDoubleNegative(t *testing.T) {
 
 	ASSERT_EQ(velocypack.Double, slice.Type(), t)
 	ASSERT_TRUE(slice.IsDouble(), t)
-	ASSERT_EQ(velocypack.ValueLength(9), slice.MustByteSize(), t)
-	ASSERT_DOUBLE_EQ(value, slice.MustGetDouble(), t)
+	ASSERT_EQ(velocypack.ValueLength(9), mustLength(slice.ByteSize()), t)
+	ASSERT_DOUBLE_EQ(value, mustDouble(slice.GetDouble()), t)
 }

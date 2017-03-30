@@ -35,8 +35,8 @@ func TestSliceArrayEmpty(t *testing.T) {
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
 	ASSERT_TRUE(slice.IsEmptyArray(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(0), slice.MustLength(), t)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(0), mustLength(slice.Length()), t)
 }
 
 func TestSliceArrayCases1(t *testing.T) {
@@ -46,11 +46,11 @@ func TestSliceArrayCases1(t *testing.T) {
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
 	ASSERT_FALSE(slice.IsEmptyArray(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
-	ss := slice.MustAt(0)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.At(0))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 }
 
 func TestSliceArrayCases2(t *testing.T) {
@@ -60,11 +60,11 @@ func TestSliceArrayCases2(t *testing.T) {
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
 	ASSERT_FALSE(slice.IsEmptyArray(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
-	ss := slice.MustAt(0)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.At(0))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 }
 
 func TestSliceArrayCases3(t *testing.T) {
@@ -74,11 +74,11 @@ func TestSliceArrayCases3(t *testing.T) {
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
 	ASSERT_FALSE(slice.IsEmptyArray(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
-	ss := slice.MustAt(0)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.At(0))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 }
 
 func TestSliceArrayCases4(t *testing.T) {
@@ -88,11 +88,11 @@ func TestSliceArrayCases4(t *testing.T) {
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
 	ASSERT_FALSE(slice.IsEmptyArray(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
-	ss := slice.MustAt(0)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.At(0))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 }
 
 func TestSliceArrayCases5(t *testing.T) {
@@ -102,11 +102,11 @@ func TestSliceArrayCases5(t *testing.T) {
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
 	ASSERT_FALSE(slice.IsEmptyArray(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
-	ss := slice.MustAt(0)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.At(0))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 }
 
 func TestSliceArrayCases6(t *testing.T) {
@@ -116,11 +116,11 @@ func TestSliceArrayCases6(t *testing.T) {
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
 	ASSERT_FALSE(slice.IsEmptyArray(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
-	ss := slice.MustAt(0)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.At(0))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 }
 
 func TestSliceArrayCases7(t *testing.T) {
@@ -130,11 +130,11 @@ func TestSliceArrayCases7(t *testing.T) {
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
 	ASSERT_FALSE(slice.IsEmptyArray(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
-	ss := slice.MustAt(0)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.At(0))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 }
 
 func TestSliceArrayCases8(t *testing.T) {
@@ -144,11 +144,11 @@ func TestSliceArrayCases8(t *testing.T) {
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
 	ASSERT_FALSE(slice.IsEmptyArray(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
-	ss := slice.MustAt(0)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.At(0))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 }
 
 func TestSliceArrayCases9(t *testing.T) {
@@ -158,11 +158,11 @@ func TestSliceArrayCases9(t *testing.T) {
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
 	ASSERT_FALSE(slice.IsEmptyArray(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
-	ss := slice.MustAt(0)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.At(0))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 }
 
 func TestSliceArrayCases10(t *testing.T) {
@@ -172,11 +172,11 @@ func TestSliceArrayCases10(t *testing.T) {
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
 	ASSERT_FALSE(slice.IsEmptyArray(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
-	ss := slice.MustAt(0)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.At(0))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 }
 
 func TestSliceArrayCases11(t *testing.T) {
@@ -186,11 +186,11 @@ func TestSliceArrayCases11(t *testing.T) {
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
 	ASSERT_FALSE(slice.IsEmptyArray(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
-	ss := slice.MustAt(0)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.At(0))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 }
 
 func TestSliceArrayCases12(t *testing.T) {
@@ -200,11 +200,11 @@ func TestSliceArrayCases12(t *testing.T) {
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
 	ASSERT_FALSE(slice.IsEmptyArray(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
-	ss := slice.MustAt(0)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.At(0))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 }
 
 func TestSliceArrayCases13(t *testing.T) {
@@ -214,11 +214,11 @@ func TestSliceArrayCases13(t *testing.T) {
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
 	ASSERT_FALSE(slice.IsEmptyArray(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
-	ss := slice.MustAt(0)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.At(0))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 }
 
 func TestSliceArrayCases14(t *testing.T) {
@@ -228,11 +228,11 @@ func TestSliceArrayCases14(t *testing.T) {
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
 	ASSERT_FALSE(slice.IsEmptyArray(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
-	ss := slice.MustAt(0)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.At(0))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 }
 
 func TestSliceArrayCases15(t *testing.T) {
@@ -243,11 +243,11 @@ func TestSliceArrayCases15(t *testing.T) {
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
 	ASSERT_FALSE(slice.IsEmptyArray(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
-	ss := slice.MustAt(0)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.At(0))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 }
 
 func TestSliceArrayCases16(t *testing.T) {
@@ -259,11 +259,11 @@ func TestSliceArrayCases16(t *testing.T) {
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
 	ASSERT_FALSE(slice.IsEmptyArray(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
-	ss := slice.MustAt(0)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.At(0))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 }
 
 func TestSliceArrayCases17(t *testing.T) {
@@ -277,11 +277,11 @@ func TestSliceArrayCases17(t *testing.T) {
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
 	ASSERT_FALSE(slice.IsEmptyArray(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustLength(), t)
-	ss := slice.MustAt(0)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.At(0))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 }
 
 func TestSliceArrayCasesCompact(t *testing.T) {
@@ -291,17 +291,17 @@ func TestSliceArrayCasesCompact(t *testing.T) {
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
 	ASSERT_FALSE(slice.IsEmptyArray(), t)
-	ASSERT_EQ(velocypack.ValueLength(len(slice)), slice.MustByteSize(), t)
-	ASSERT_EQ(velocypack.ValueLength(5), slice.MustLength(), t)
-	ss := slice.MustAt(0)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
+	ASSERT_EQ(velocypack.ValueLength(5), mustLength(slice.Length()), t)
+	ss := mustSlice(slice.At(0))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(0), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(0), mustInt(ss.GetInt()), t)
 
-	ss = slice.MustAt(1)
+	ss = mustSlice(slice.At(1))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(1), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 
-	ss = slice.MustAt(4)
+	ss = mustSlice(slice.At(4))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
-	ASSERT_EQ(int64(4), ss.MustGetInt(), t)
+	ASSERT_EQ(int64(4), mustInt(ss.GetInt()), t)
 }

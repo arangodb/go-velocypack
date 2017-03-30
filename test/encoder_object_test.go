@@ -48,7 +48,7 @@ func TestEncoderObjectOneField(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"Name":"Max"}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"Name":"Max"}`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderObjectMultipleFields(t *testing.T) {
@@ -68,7 +68,7 @@ func TestEncoderObjectMultipleFields(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Max"}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Max"}`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderObjectTagRename(t *testing.T) {
@@ -88,7 +88,7 @@ func TestEncoderObjectTagRename(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"I":789,"field7":123.456,"field9":true,"name":"Max"}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"I":789,"field7":123.456,"field9":true,"name":"Max"}`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderObjectTagOmitEmptyFull(t *testing.T) {
@@ -108,7 +108,7 @@ func TestEncoderObjectTagOmitEmptyFull(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"field7":123.456,"field8":789,"field9":true,"name":"Jan"}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"field7":123.456,"field8":789,"field9":true,"name":"Jan"}`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderObjectTagOmitEmptyEmpty(t *testing.T) {
@@ -128,7 +128,7 @@ func TestEncoderObjectTagOmitEmptyEmpty(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_TRUE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{}`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderObjectTagOmitFields(t *testing.T) {
@@ -148,7 +148,7 @@ func TestEncoderObjectTagOmitFields(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"-":789,"field9":true,"name":"Jan"}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"-":789,"field9":true,"name":"Jan"}`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderObjectNestedStruct(t *testing.T) {
@@ -172,7 +172,7 @@ func TestEncoderObjectNestedStruct(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":{"Foo":999}}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":{"Foo":999}}`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderObjectNestedStructs(t *testing.T) {
@@ -202,7 +202,7 @@ func TestEncoderObjectNestedStructs(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":{"Foo":999,"Nested":{"Foo":true}}}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":{"Foo":999,"Nested":{"Foo":true}}}`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderObjectNestedStructPtr(t *testing.T) {
@@ -226,7 +226,7 @@ func TestEncoderObjectNestedStructPtr(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":{"Foo":999}}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":{"Foo":999}}`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderObjectNestedStructPtrNil(t *testing.T) {
@@ -250,7 +250,7 @@ func TestEncoderObjectNestedStructPtrNil(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":null}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":null}`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderObjectNestedStructPtrNilOmitEmpty(t *testing.T) {
@@ -274,7 +274,7 @@ func TestEncoderObjectNestedStructPtrNilOmitEmpty(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan"}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan"}`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderObjectNestedByteSlice(t *testing.T) {
@@ -296,7 +296,7 @@ func TestEncoderObjectNestedByteSlice(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":"(non-representable type Binary)"}`, s.MustJSONString(velocypack.DumperOptions{UnsupportedTypeBehavior: velocypack.ConvertUnsupportedType}), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":"(non-representable type Binary)"}`, mustString(s.JSONString(velocypack.DumperOptions{UnsupportedTypeBehavior: velocypack.ConvertUnsupportedType})), t)
 }
 
 func TestEncoderObjectNestedIntSlice(t *testing.T) {
@@ -318,7 +318,7 @@ func TestEncoderObjectNestedIntSlice(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":[1,2,3,4,5]}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":[1,2,3,4,5]}`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderObjectNestedStringSlice(t *testing.T) {
@@ -340,7 +340,7 @@ func TestEncoderObjectNestedStringSlice(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":["Aap","Noot"]}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":["Aap","Noot"]}`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderObjectNestedStringSliceEmpty(t *testing.T) {
@@ -362,7 +362,7 @@ func TestEncoderObjectNestedStringSliceEmpty(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":[]}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":[]}`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderObjectNestedStringSliceNil(t *testing.T) {
@@ -384,7 +384,7 @@ func TestEncoderObjectNestedStringSliceNil(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":null}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":null}`, mustString(s.JSONString()), t)
 }
 
 type Struct1 struct {
@@ -402,7 +402,7 @@ func TestEncoderObjectStruct1(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"Field1":1}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"Field1":1}`, mustString(s.JSONString()), t)
 }
 
 type Struct2 struct {
@@ -423,7 +423,7 @@ func TestEncoderObjectStruct2(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"Field1":true}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"Field1":true}`, mustString(s.JSONString()), t)
 }
 
 type Struct3 struct {
@@ -444,7 +444,7 @@ func TestEncoderObjectStruct3(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"Field1":true}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"Field1":true}`, mustString(s.JSONString()), t)
 }
 
 type Struct4 struct {
@@ -468,7 +468,7 @@ func TestEncoderObjectStruct4(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"a":true}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"a":true}`, mustString(s.JSONString()), t)
 }
 
 type Struct6 struct {
@@ -488,7 +488,7 @@ func TestEncoderObjectStruct6(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"a":5,"a6":true}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"a":5,"a6":true}`, mustString(s.JSONString()), t)
 }
 
 func TestEncoderObjectStructPtr6(t *testing.T) {
@@ -503,5 +503,5 @@ func TestEncoderObjectStructPtr6(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
-	ASSERT_EQ(`{"a":5,"a6":true}`, s.MustJSONString(), t)
+	ASSERT_EQ(`{"a":5,"a6":true}`, mustString(s.JSONString()), t)
 }

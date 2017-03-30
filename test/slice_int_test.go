@@ -35,10 +35,10 @@ func TestSliceInt1(t *testing.T) {
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
-	ASSERT_EQ(velocypack.ValueLength(2), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(2), mustLength(slice.ByteSize()), t)
 
-	ASSERT_EQ(value, slice.MustGetInt(), t)
-	ASSERT_EQ(value, slice.MustGetSmallInt(), t)
+	ASSERT_EQ(value, mustInt(slice.GetInt()), t)
+	ASSERT_EQ(value, mustInt(slice.GetSmallInt()), t)
 }
 
 func TestSliceInt2(t *testing.T) {
@@ -47,10 +47,10 @@ func TestSliceInt2(t *testing.T) {
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.ByteSize()), t)
 
-	ASSERT_EQ(int64(0x4223), slice.MustGetInt(), t)
-	ASSERT_EQ(int64(0x4223), slice.MustGetSmallInt(), t)
+	ASSERT_EQ(int64(0x4223), mustInt(slice.GetInt()), t)
+	ASSERT_EQ(int64(0x4223), mustInt(slice.GetSmallInt()), t)
 }
 
 func TestSliceInt3(t *testing.T) {
@@ -59,10 +59,10 @@ func TestSliceInt3(t *testing.T) {
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
-	ASSERT_EQ(velocypack.ValueLength(4), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(4), mustLength(slice.ByteSize()), t)
 
-	ASSERT_EQ(int64(0x664223), slice.MustGetInt(), t)
-	ASSERT_EQ(int64(0x664223), slice.MustGetSmallInt(), t)
+	ASSERT_EQ(int64(0x664223), mustInt(slice.GetInt()), t)
+	ASSERT_EQ(int64(0x664223), mustInt(slice.GetSmallInt()), t)
 }
 
 func TestSliceInt4(t *testing.T) {
@@ -71,10 +71,10 @@ func TestSliceInt4(t *testing.T) {
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
-	ASSERT_EQ(velocypack.ValueLength(5), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(5), mustLength(slice.ByteSize()), t)
 
-	ASSERT_EQ(int64(0x7c664223), slice.MustGetInt(), t)
-	ASSERT_EQ(int64(0x7c664223), slice.MustGetSmallInt(), t)
+	ASSERT_EQ(int64(0x7c664223), mustInt(slice.GetInt()), t)
+	ASSERT_EQ(int64(0x7c664223), mustInt(slice.GetSmallInt()), t)
 }
 
 func TestSliceInt5(t *testing.T) {
@@ -83,10 +83,10 @@ func TestSliceInt5(t *testing.T) {
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
-	ASSERT_EQ(velocypack.ValueLength(6), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(6), mustLength(slice.ByteSize()), t)
 
-	ASSERT_EQ(int64(0x6fac664223), slice.MustGetInt(), t)
-	ASSERT_EQ(int64(0x6fac664223), slice.MustGetSmallInt(), t)
+	ASSERT_EQ(int64(0x6fac664223), mustInt(slice.GetInt()), t)
+	ASSERT_EQ(int64(0x6fac664223), mustInt(slice.GetSmallInt()), t)
 }
 
 func TestSliceInt6(t *testing.T) {
@@ -95,10 +95,10 @@ func TestSliceInt6(t *testing.T) {
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
-	ASSERT_EQ(velocypack.ValueLength(7), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(7), mustLength(slice.ByteSize()), t)
 
-	ASSERT_EQ(int64(0x3fffac664223), slice.MustGetInt(), t)
-	ASSERT_EQ(int64(0x3fffac664223), slice.MustGetSmallInt(), t)
+	ASSERT_EQ(int64(0x3fffac664223), mustInt(slice.GetInt()), t)
+	ASSERT_EQ(int64(0x3fffac664223), mustInt(slice.GetSmallInt()), t)
 }
 
 func TestSliceInt7(t *testing.T) {
@@ -107,10 +107,10 @@ func TestSliceInt7(t *testing.T) {
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
-	ASSERT_EQ(velocypack.ValueLength(8), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(8), mustLength(slice.ByteSize()), t)
 
-	ASSERT_EQ(int64(0x5a3fffac664223), slice.MustGetInt(), t)
-	ASSERT_EQ(int64(0x5a3fffac664223), slice.MustGetSmallInt(), t)
+	ASSERT_EQ(int64(0x5a3fffac664223), mustInt(slice.GetInt()), t)
+	ASSERT_EQ(int64(0x5a3fffac664223), mustInt(slice.GetSmallInt()), t)
 }
 
 func TestSliceInt8(t *testing.T) {
@@ -119,10 +119,10 @@ func TestSliceInt8(t *testing.T) {
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
-	ASSERT_EQ(velocypack.ValueLength(9), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(9), mustLength(slice.ByteSize()), t)
 
-	ASSERT_EQ(int64(0x6ffa3fffac664223), slice.MustGetInt(), t)
-	ASSERT_EQ(int64(0x6ffa3fffac664223), slice.MustGetSmallInt(), t)
+	ASSERT_EQ(int64(0x6ffa3fffac664223), mustInt(slice.GetInt()), t)
+	ASSERT_EQ(int64(0x6ffa3fffac664223), mustInt(slice.GetSmallInt()), t)
 }
 
 func TestSliceIntMax(t *testing.T) {
@@ -134,9 +134,9 @@ func TestSliceIntMax(t *testing.T) {
 
 		ASSERT_EQ(velocypack.Int, slice.Type(), t)
 		ASSERT_TRUE(slice.IsInt(), t)
-		ASSERT_EQ(velocypack.ValueLength(9), slice.MustByteSize(), t)
+		ASSERT_EQ(velocypack.ValueLength(9), mustLength(slice.ByteSize()), t)
 
-		ASSERT_EQ(int64(math.MaxInt64), slice.MustGetInt(), t)
+		ASSERT_EQ(int64(math.MaxInt64), mustInt(slice.GetInt()), t)
 	*/
 }
 
@@ -146,9 +146,9 @@ func TestSliceNegInt1(t *testing.T) {
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
-	ASSERT_EQ(velocypack.ValueLength(2), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(2), mustLength(slice.ByteSize()), t)
 
-	ASSERT_EQ(staticCastInt64(0xffffffffffffffa3), slice.MustGetInt(), t)
+	ASSERT_EQ(staticCastInt64(0xffffffffffffffa3), mustInt(slice.GetInt()), t)
 }
 
 func TestSliceNegInt2(t *testing.T) {
@@ -157,9 +157,9 @@ func TestSliceNegInt2(t *testing.T) {
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
-	ASSERT_EQ(velocypack.ValueLength(3), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(3), mustLength(slice.ByteSize()), t)
 
-	ASSERT_EQ(staticCastInt64(0xffffffffffffe223), slice.MustGetInt(), t)
+	ASSERT_EQ(staticCastInt64(0xffffffffffffe223), mustInt(slice.GetInt()), t)
 }
 
 func TestSliceNegInt3(t *testing.T) {
@@ -168,9 +168,9 @@ func TestSliceNegInt3(t *testing.T) {
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
-	ASSERT_EQ(velocypack.ValueLength(4), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(4), mustLength(slice.ByteSize()), t)
 
-	ASSERT_EQ(staticCastInt64(0xffffffffffd64223), slice.MustGetInt(), t)
+	ASSERT_EQ(staticCastInt64(0xffffffffffd64223), mustInt(slice.GetInt()), t)
 }
 
 func TestSliceNegInt4(t *testing.T) {
@@ -179,9 +179,9 @@ func TestSliceNegInt4(t *testing.T) {
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
-	ASSERT_EQ(velocypack.ValueLength(5), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(5), mustLength(slice.ByteSize()), t)
 
-	ASSERT_EQ(staticCastInt64(0xffffffffac664223), slice.MustGetInt(), t)
+	ASSERT_EQ(staticCastInt64(0xffffffffac664223), mustInt(slice.GetInt()), t)
 }
 
 func TestSliceNegInt5(t *testing.T) {
@@ -190,9 +190,9 @@ func TestSliceNegInt5(t *testing.T) {
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
-	ASSERT_EQ(velocypack.ValueLength(6), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(6), mustLength(slice.ByteSize()), t)
 
-	ASSERT_EQ(staticCastInt64(0xffffffffac664223), slice.MustGetInt(), t)
+	ASSERT_EQ(staticCastInt64(0xffffffffac664223), mustInt(slice.GetInt()), t)
 }
 
 func TestSliceNegInt6(t *testing.T) {
@@ -201,9 +201,9 @@ func TestSliceNegInt6(t *testing.T) {
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
-	ASSERT_EQ(velocypack.ValueLength(7), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(7), mustLength(slice.ByteSize()), t)
 
-	ASSERT_EQ(staticCastInt64(0xffffefffac664223), slice.MustGetInt(), t)
+	ASSERT_EQ(staticCastInt64(0xffffefffac664223), mustInt(slice.GetInt()), t)
 }
 
 func TestSliceNegInt7(t *testing.T) {
@@ -212,9 +212,9 @@ func TestSliceNegInt7(t *testing.T) {
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
-	ASSERT_EQ(velocypack.ValueLength(8), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(8), mustLength(slice.ByteSize()), t)
 
-	ASSERT_EQ(staticCastInt64(0xfffaefffac664223), slice.MustGetInt(), t)
+	ASSERT_EQ(staticCastInt64(0xfffaefffac664223), mustInt(slice.GetInt()), t)
 }
 
 func TestSliceNegInt8(t *testing.T) {
@@ -223,7 +223,7 @@ func TestSliceNegInt8(t *testing.T) {
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
-	ASSERT_EQ(velocypack.ValueLength(9), slice.MustByteSize(), t)
+	ASSERT_EQ(velocypack.ValueLength(9), mustLength(slice.ByteSize()), t)
 
-	ASSERT_EQ(staticCastInt64(0x8efaefffac664223), slice.MustGetInt(), t)
+	ASSERT_EQ(staticCastInt64(0x8efaefffac664223), mustInt(slice.GetInt()), t)
 }

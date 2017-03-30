@@ -55,9 +55,9 @@ func TestDumperTrue(t *testing.T) {
 
 func TestDumperStringSimple(t *testing.T) {
 	b := velocypack.Builder{}
-	b.MustAddValue(velocypack.NewStringValue("foobar"))
+	must(b.AddValue(velocypack.NewStringValue("foobar")))
 
-	s := b.MustSlice()
+	s := mustSlice(b.Slice())
 	buf := &bytes.Buffer{}
 	d := velocypack.NewDumper(buf, nil)
 	d.Append(s)
@@ -66,9 +66,9 @@ func TestDumperStringSimple(t *testing.T) {
 
 func TestDumperStringSpecialChars(t *testing.T) {
 	b := velocypack.Builder{}
-	b.MustAddValue(velocypack.NewStringValue("\"fo\r \n \\to''\\ \\bar\""))
+	must(b.AddValue(velocypack.NewStringValue("\"fo\r \n \\to''\\ \\bar\"")))
 
-	s := b.MustSlice()
+	s := mustSlice(b.Slice())
 	buf := &bytes.Buffer{}
 	d := velocypack.NewDumper(buf, nil)
 	d.Append(s)
@@ -77,9 +77,9 @@ func TestDumperStringSpecialChars(t *testing.T) {
 
 func TestDumperStringControlChars(t *testing.T) {
 	b := velocypack.Builder{}
-	b.MustAddValue(velocypack.NewStringValue("\x00\x01\x02 baz \x03"))
+	must(b.AddValue(velocypack.NewStringValue("\x00\x01\x02 baz \x03")))
 
-	s := b.MustSlice()
+	s := mustSlice(b.Slice())
 	buf := &bytes.Buffer{}
 	d := velocypack.NewDumper(buf, nil)
 	d.Append(s)
@@ -88,9 +88,9 @@ func TestDumperStringControlChars(t *testing.T) {
 
 func TestDumperStringUTF8(t *testing.T) {
 	b := velocypack.Builder{}
-	b.MustAddValue(velocypack.NewStringValue("mötör"))
+	must(b.AddValue(velocypack.NewStringValue("mötör")))
 
-	s := b.MustSlice()
+	s := mustSlice(b.Slice())
 	buf := &bytes.Buffer{}
 	d := velocypack.NewDumper(buf, nil)
 	d.Append(s)
@@ -99,9 +99,9 @@ func TestDumperStringUTF8(t *testing.T) {
 
 func TestDumperStringUTF8Escaped(t *testing.T) {
 	b := velocypack.Builder{}
-	b.MustAddValue(velocypack.NewStringValue("mötör"))
+	must(b.AddValue(velocypack.NewStringValue("mötör")))
 
-	s := b.MustSlice()
+	s := mustSlice(b.Slice())
 	buf := &bytes.Buffer{}
 	d := velocypack.NewDumper(buf, &velocypack.DumperOptions{EscapeUnicode: true})
 	d.Append(s)
@@ -110,9 +110,9 @@ func TestDumperStringUTF8Escaped(t *testing.T) {
 
 func TestDumperStringTwoByteUTF8(t *testing.T) {
 	b := velocypack.Builder{}
-	b.MustAddValue(velocypack.NewStringValue("\xc2\xa2"))
+	must(b.AddValue(velocypack.NewStringValue("\xc2\xa2")))
 
-	s := b.MustSlice()
+	s := mustSlice(b.Slice())
 	buf := &bytes.Buffer{}
 	d := velocypack.NewDumper(buf, nil)
 	d.Append(s)
@@ -121,9 +121,9 @@ func TestDumperStringTwoByteUTF8(t *testing.T) {
 
 func TestDumperStringTwoByteUTF8Escaped(t *testing.T) {
 	b := velocypack.Builder{}
-	b.MustAddValue(velocypack.NewStringValue("\xc2\xa2"))
+	must(b.AddValue(velocypack.NewStringValue("\xc2\xa2")))
 
-	s := b.MustSlice()
+	s := mustSlice(b.Slice())
 	buf := &bytes.Buffer{}
 	d := velocypack.NewDumper(buf, &velocypack.DumperOptions{EscapeUnicode: true})
 	d.Append(s)
@@ -132,9 +132,9 @@ func TestDumperStringTwoByteUTF8Escaped(t *testing.T) {
 
 func TestDumperStringThreeByteUTF8(t *testing.T) {
 	b := velocypack.Builder{}
-	b.MustAddValue(velocypack.NewStringValue("\xe2\x82\xac"))
+	must(b.AddValue(velocypack.NewStringValue("\xe2\x82\xac")))
 
-	s := b.MustSlice()
+	s := mustSlice(b.Slice())
 	buf := &bytes.Buffer{}
 	d := velocypack.NewDumper(buf, nil)
 	d.Append(s)
@@ -143,9 +143,9 @@ func TestDumperStringThreeByteUTF8(t *testing.T) {
 
 func TestDumperStringThreeByteUTF8Escaped(t *testing.T) {
 	b := velocypack.Builder{}
-	b.MustAddValue(velocypack.NewStringValue("\xe2\x82\xac"))
+	must(b.AddValue(velocypack.NewStringValue("\xe2\x82\xac")))
 
-	s := b.MustSlice()
+	s := mustSlice(b.Slice())
 	buf := &bytes.Buffer{}
 	d := velocypack.NewDumper(buf, &velocypack.DumperOptions{EscapeUnicode: true})
 	d.Append(s)
@@ -154,9 +154,9 @@ func TestDumperStringThreeByteUTF8Escaped(t *testing.T) {
 
 func TestDumperStringFourByteUTF8(t *testing.T) {
 	b := velocypack.Builder{}
-	b.MustAddValue(velocypack.NewStringValue("\xf0\xa4\xad\xa2"))
+	must(b.AddValue(velocypack.NewStringValue("\xf0\xa4\xad\xa2")))
 
-	s := b.MustSlice()
+	s := mustSlice(b.Slice())
 	buf := &bytes.Buffer{}
 	d := velocypack.NewDumper(buf, nil)
 	d.Append(s)
@@ -165,9 +165,9 @@ func TestDumperStringFourByteUTF8(t *testing.T) {
 
 func TestDumperStringFourByteUTF8Escaped(t *testing.T) {
 	b := velocypack.Builder{}
-	b.MustAddValue(velocypack.NewStringValue("\xf0\xa4\xad\xa2"))
+	must(b.AddValue(velocypack.NewStringValue("\xf0\xa4\xad\xa2")))
 
-	s := b.MustSlice()
+	s := mustSlice(b.Slice())
 	buf := &bytes.Buffer{}
 	d := velocypack.NewDumper(buf, &velocypack.DumperOptions{EscapeUnicode: true})
 	d.Append(s)
@@ -186,9 +186,9 @@ func TestDumperStringMultiBytes(t *testing.T) {
 	}
 	for _, test := range tests {
 		b := velocypack.Builder{}
-		b.MustAddValue(velocypack.NewStringValue(test))
+		must(b.AddValue(velocypack.NewStringValue(test)))
 
-		s := b.MustSlice()
+		s := mustSlice(b.Slice())
 		buf := &bytes.Buffer{}
 		d := velocypack.NewDumper(buf, nil)
 		d.Append(s)
@@ -208,9 +208,9 @@ func TestDumperStringMultiBytesEscaped(t *testing.T) {
 	}
 	for test, expected := range tests {
 		b := velocypack.Builder{}
-		b.MustAddValue(velocypack.NewStringValue(test))
+		must(b.AddValue(velocypack.NewStringValue(test)))
 
-		s := b.MustSlice()
+		s := mustSlice(b.Slice())
 		buf := &bytes.Buffer{}
 		d := velocypack.NewDumper(buf, &velocypack.DumperOptions{EscapeUnicode: true})
 		d.Append(s)
@@ -236,9 +236,9 @@ func TestDumperDouble(t *testing.T) {
 	}
 	for _, test := range tests {
 		b := velocypack.Builder{}
-		b.MustAddValue(velocypack.NewDoubleValue(test.Value))
+		must(b.AddValue(velocypack.NewDoubleValue(test.Value)))
 
-		s := b.MustSlice()
+		s := mustSlice(b.Slice())
 		buf := &bytes.Buffer{}
 		d := velocypack.NewDumper(buf, nil)
 		d.Append(s)
@@ -257,9 +257,9 @@ func TestDumperInt(t *testing.T) {
 	}
 	for _, test := range tests {
 		b := velocypack.Builder{}
-		b.MustAddValue(velocypack.NewIntValue(test.Value))
+		must(b.AddValue(velocypack.NewIntValue(test.Value)))
 
-		s := b.MustSlice()
+		s := mustSlice(b.Slice())
 		buf := &bytes.Buffer{}
 		d := velocypack.NewDumper(buf, nil)
 		d.Append(s)
@@ -278,9 +278,9 @@ func TestDumperUInt(t *testing.T) {
 	}
 	for _, test := range tests {
 		b := velocypack.Builder{}
-		b.MustAddValue(velocypack.NewUIntValue(test.Value))
+		must(b.AddValue(velocypack.NewUIntValue(test.Value)))
 
-		s := b.MustSlice()
+		s := mustSlice(b.Slice())
 		buf := &bytes.Buffer{}
 		d := velocypack.NewDumper(buf, nil)
 		d.Append(s)
