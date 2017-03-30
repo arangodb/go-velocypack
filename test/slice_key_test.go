@@ -30,6 +30,7 @@ import (
 
 func TestSliceMinKey(t *testing.T) {
 	slice := velocypack.Slice{0x1e}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.MinKey, slice.Type(), t)
 	ASSERT_TRUE(slice.IsMinKey(), t)
@@ -38,6 +39,7 @@ func TestSliceMinKey(t *testing.T) {
 
 func TestSliceMaxKey(t *testing.T) {
 	slice := velocypack.Slice{0x1f}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.MaxKey, slice.Type(), t)
 	ASSERT_TRUE(slice.IsMaxKey(), t)

@@ -30,6 +30,7 @@ import (
 
 func TestSliceInt1(t *testing.T) {
 	slice := velocypack.Slice{0x20, 0x33}
+	assertEqualFromReader(t, slice)
 	value := int64(0x33)
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
@@ -42,6 +43,7 @@ func TestSliceInt1(t *testing.T) {
 
 func TestSliceInt2(t *testing.T) {
 	slice := velocypack.Slice{0x21, 0x23, 0x42}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
@@ -53,6 +55,7 @@ func TestSliceInt2(t *testing.T) {
 
 func TestSliceInt3(t *testing.T) {
 	slice := velocypack.Slice{0x22, 0x23, 0x42, 0x66}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
@@ -64,6 +67,7 @@ func TestSliceInt3(t *testing.T) {
 
 func TestSliceInt4(t *testing.T) {
 	slice := velocypack.Slice{0x23, 0x23, 0x42, 0x66, 0x7c}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
@@ -75,6 +79,7 @@ func TestSliceInt4(t *testing.T) {
 
 func TestSliceInt5(t *testing.T) {
 	slice := velocypack.Slice{0x24, 0x23, 0x42, 0x66, 0xac, 0x6f}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
@@ -86,6 +91,7 @@ func TestSliceInt5(t *testing.T) {
 
 func TestSliceInt6(t *testing.T) {
 	slice := velocypack.Slice{0x25, 0x23, 0x42, 0x66, 0xac, 0xff, 0x3f}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
@@ -97,6 +103,7 @@ func TestSliceInt6(t *testing.T) {
 
 func TestSliceInt7(t *testing.T) {
 	slice := velocypack.Slice{0x26, 0x23, 0x42, 0x66, 0xac, 0xff, 0x3f, 0x5a}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
@@ -108,6 +115,7 @@ func TestSliceInt7(t *testing.T) {
 
 func TestSliceInt8(t *testing.T) {
 	slice := velocypack.Slice{0x27, 0x23, 0x42, 0x66, 0xac, 0xff, 0x3f, 0xfa, 0x6f}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
@@ -134,6 +142,7 @@ func TestSliceIntMax(t *testing.T) {
 
 func TestSliceNegInt1(t *testing.T) {
 	slice := velocypack.Slice{0x20, 0xa3}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
@@ -144,6 +153,7 @@ func TestSliceNegInt1(t *testing.T) {
 
 func TestSliceNegInt2(t *testing.T) {
 	slice := velocypack.Slice{0x21, 0x23, 0xe2}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
@@ -154,6 +164,7 @@ func TestSliceNegInt2(t *testing.T) {
 
 func TestSliceNegInt3(t *testing.T) {
 	slice := velocypack.Slice{0x22, 0x23, 0x42, 0xd6}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
@@ -164,6 +175,7 @@ func TestSliceNegInt3(t *testing.T) {
 
 func TestSliceNegInt4(t *testing.T) {
 	slice := velocypack.Slice{0x23, 0x23, 0x42, 0x66, 0xac}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
@@ -174,6 +186,7 @@ func TestSliceNegInt4(t *testing.T) {
 
 func TestSliceNegInt5(t *testing.T) {
 	slice := velocypack.Slice{0x24, 0x23, 0x42, 0x66, 0xac, 0xff}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
@@ -184,6 +197,7 @@ func TestSliceNegInt5(t *testing.T) {
 
 func TestSliceNegInt6(t *testing.T) {
 	slice := velocypack.Slice{0x25, 0x23, 0x42, 0x66, 0xac, 0xff, 0xef}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
@@ -194,6 +208,7 @@ func TestSliceNegInt6(t *testing.T) {
 
 func TestSliceNegInt7(t *testing.T) {
 	slice := velocypack.Slice{0x26, 0x23, 0x42, 0x66, 0xac, 0xff, 0xef, 0xfa}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)
@@ -204,6 +219,7 @@ func TestSliceNegInt7(t *testing.T) {
 
 func TestSliceNegInt8(t *testing.T) {
 	slice := velocypack.Slice{0x27, 0x23, 0x42, 0x66, 0xac, 0xff, 0xef, 0xfa, 0x8e}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Int, slice.Type(), t)
 	ASSERT_TRUE(slice.IsInt(), t)

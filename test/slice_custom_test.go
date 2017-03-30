@@ -49,6 +49,7 @@ func TestSliceCustomTypeByteSize(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		assertEqualFromReader(t, test)
 		sz := test.MustByteSize()
 		if sz != velocypack.ValueLength(len(test)) {
 			t.Errorf("Invalid ByteSize in '%s', expected %d, got %d", test, len(test), sz)

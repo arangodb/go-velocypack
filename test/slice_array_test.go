@@ -30,6 +30,7 @@ import (
 
 func TestSliceArrayEmpty(t *testing.T) {
 	slice := velocypack.Slice{0x01}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
@@ -40,6 +41,7 @@ func TestSliceArrayEmpty(t *testing.T) {
 
 func TestSliceArrayCases1(t *testing.T) {
 	slice := velocypack.Slice{0x02, 0x05, 0x31, 0x32, 0x33}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
@@ -53,6 +55,7 @@ func TestSliceArrayCases1(t *testing.T) {
 
 func TestSliceArrayCases2(t *testing.T) {
 	slice := velocypack.Slice{0x02, 0x06, 0x00, 0x31, 0x32, 0x33}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
@@ -66,6 +69,7 @@ func TestSliceArrayCases2(t *testing.T) {
 
 func TestSliceArrayCases3(t *testing.T) {
 	slice := velocypack.Slice{0x02, 0x08, 0x00, 0x00, 0x00, 0x31, 0x32, 0x33}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
@@ -79,6 +83,7 @@ func TestSliceArrayCases3(t *testing.T) {
 
 func TestSliceArrayCases4(t *testing.T) {
 	slice := velocypack.Slice{0x02, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x31, 0x32, 0x33}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
@@ -92,6 +97,7 @@ func TestSliceArrayCases4(t *testing.T) {
 
 func TestSliceArrayCases5(t *testing.T) {
 	slice := velocypack.Slice{0x03, 0x06, 0x00, 0x31, 0x32, 0x33}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
@@ -105,6 +111,7 @@ func TestSliceArrayCases5(t *testing.T) {
 
 func TestSliceArrayCases6(t *testing.T) {
 	slice := velocypack.Slice{0x03, 0x08, 0x00, 0x00, 0x00, 0x31, 0x32, 0x33}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
@@ -118,6 +125,7 @@ func TestSliceArrayCases6(t *testing.T) {
 
 func TestSliceArrayCases7(t *testing.T) {
 	slice := velocypack.Slice{0x03, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x31, 0x32, 0x33}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
@@ -131,6 +139,7 @@ func TestSliceArrayCases7(t *testing.T) {
 
 func TestSliceArrayCases8(t *testing.T) {
 	slice := velocypack.Slice{0x04, 0x08, 0x00, 0x00, 0x00, 0x31, 0x32, 0x33}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
@@ -144,6 +153,7 @@ func TestSliceArrayCases8(t *testing.T) {
 
 func TestSliceArrayCases9(t *testing.T) {
 	slice := velocypack.Slice{0x04, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x31, 0x32, 0x33}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
@@ -157,6 +167,7 @@ func TestSliceArrayCases9(t *testing.T) {
 
 func TestSliceArrayCases10(t *testing.T) {
 	slice := velocypack.Slice{0x05, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x31, 0x32, 0x33}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
@@ -170,6 +181,7 @@ func TestSliceArrayCases10(t *testing.T) {
 
 func TestSliceArrayCases11(t *testing.T) {
 	slice := velocypack.Slice{0x06, 0x09, 0x03, 0x31, 0x32, 0x33, 0x03, 0x04, 0x05}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
@@ -183,6 +195,7 @@ func TestSliceArrayCases11(t *testing.T) {
 
 func TestSliceArrayCases12(t *testing.T) {
 	slice := velocypack.Slice{0x06, 0x0b, 0x03, 0x00, 0x00, 0x31, 0x32, 0x33, 0x05, 0x06, 0x07}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
@@ -196,6 +209,7 @@ func TestSliceArrayCases12(t *testing.T) {
 
 func TestSliceArrayCases13(t *testing.T) {
 	slice := velocypack.Slice{0x06, 0x0f, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x31, 0x32, 0x33, 0x09, 0x0a, 0x0b}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
@@ -209,6 +223,7 @@ func TestSliceArrayCases13(t *testing.T) {
 
 func TestSliceArrayCases14(t *testing.T) {
 	slice := velocypack.Slice{0x07, 0x0e, 0x00, 0x03, 0x00, 0x31, 0x32, 0x33, 0x05, 0x00, 0x06, 0x00, 0x07, 0x00}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
@@ -223,6 +238,7 @@ func TestSliceArrayCases14(t *testing.T) {
 func TestSliceArrayCases15(t *testing.T) {
 	slice := velocypack.Slice{0x07, 0x12, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x31, 0x32, 0x33, 0x09, 0x00, 0x0a, 0x00, 0x0b, 0x00}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
@@ -238,6 +254,7 @@ func TestSliceArrayCases16(t *testing.T) {
 	slice := velocypack.Slice{0x08, 0x18, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00,
 		0x00, 0x31, 0x32, 0x33, 0x09, 0x00, 0x00, 0x00,
 		0x0a, 0x00, 0x00, 0x00, 0x0b, 0x00, 0x00, 0x00}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
@@ -255,6 +272,7 @@ func TestSliceArrayCases17(t *testing.T) {
 		0x00, 0x00, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x0b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
@@ -268,6 +286,7 @@ func TestSliceArrayCases17(t *testing.T) {
 
 func TestSliceArrayCasesCompact(t *testing.T) {
 	slice := velocypack.Slice{0x13, 0x08, 0x30, 0x31, 0x32, 0x33, 0x34, 0x05}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Array, slice.Type(), t)
 	ASSERT_TRUE(slice.IsArray(), t)
