@@ -35,8 +35,8 @@ func TestSliceFalse(t *testing.T) {
 	ASSERT_TRUE(slice.IsBool(), t)
 	ASSERT_TRUE(slice.IsFalse(), t)
 	ASSERT_FALSE(slice.IsTrue(), t)
-	ASSERT_EQ(velocypack.ValueLength(1), slice.MustByteSize(), t)
-	ASSERT_FALSE(slice.MustGetBool(), t)
+	ASSERT_EQ(velocypack.ValueLength(1), mustLength(slice.ByteSize()), t)
+	ASSERT_FALSE(mustBool(slice.GetBool()), t)
 }
 
 func TestSliceTrue(t *testing.T) {
@@ -46,6 +46,6 @@ func TestSliceTrue(t *testing.T) {
 	ASSERT_TRUE(slice.IsBool(), t)
 	ASSERT_FALSE(slice.IsFalse(), t)
 	ASSERT_TRUE(slice.IsTrue(), t)
-	ASSERT_EQ(velocypack.ValueLength(1), slice.MustByteSize(), t)
-	ASSERT_TRUE(slice.MustGetBool(), t)
+	ASSERT_EQ(velocypack.ValueLength(1), mustLength(slice.ByteSize()), t)
+	ASSERT_TRUE(mustBool(slice.GetBool()), t)
 }

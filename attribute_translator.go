@@ -59,7 +59,11 @@ func (t *attributeTranslator) Add(key string, id uint64) {
 	t.idToString[id] = key
 	var b Builder
 	b.addUInt(id)
-	t.stringToID[key] = b.MustSlice()
+	s, err := b.Slice()
+	if err != nil {
+		panic(err)
+	}
+	t.stringToID[key] = s
 }
 
 func (t *attributeTranslator) IDToString(id uint64) string {

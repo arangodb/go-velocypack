@@ -53,15 +53,6 @@ func NewObjectIterator(s Slice, allowRandomIteration ...bool) (*ObjectIterator, 
 	return i, nil
 }
 
-// MustNewObjectIterator initializes an iterator at position 0 of the given object slice.
-func MustNewObjectIterator(s Slice) *ObjectIterator {
-	if it, err := NewObjectIterator(s); err != nil {
-		panic(err)
-	} else {
-		return it
-	}
-}
-
 // IsValid returns true if the given position of the iterator is valid.
 func (i *ObjectIterator) IsValid() bool {
 	return i.position < i.size
@@ -88,16 +79,6 @@ func (i *ObjectIterator) Key(translate bool) (Slice, error) {
 	return key, WithStack(err)
 }
 
-// MustKey returns the key of the current position of the iterator.
-// Panics in case of an error.
-func (i *ObjectIterator) MustKey(translate bool) Slice {
-	if result, err := i.Key(translate); err != nil {
-		panic(err)
-	} else {
-		return result
-	}
-}
-
 // Value returns the value of the current position of the iterator
 func (i *ObjectIterator) Value() (Slice, error) {
 	if i.position >= i.size {
@@ -109,16 +90,6 @@ func (i *ObjectIterator) Value() (Slice, error) {
 	}
 	value, err := i.s.getNthValue(i.position)
 	return value, WithStack(err)
-}
-
-// MustValue returns the value of the current position of the iterator.
-// Panics in case of an error.
-func (i *ObjectIterator) MustValue() Slice {
-	if result, err := i.Value(); err != nil {
-		panic(err)
-	} else {
-		return result
-	}
 }
 
 // Next moves to the next position.

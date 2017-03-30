@@ -323,7 +323,9 @@ type structEncoder struct {
 }
 
 func (se *structEncoder) encode(b *Builder, v reflect.Value) {
-	b.MustOpenObject()
+	if err := b.OpenObject(); err != nil {
+		panic(err)
+	}
 	for i, f := range se.fields {
 		fv := fieldByIndex(v, f.index)
 		if !fv.IsValid() || f.omitEmpty && isEmptyValue(fv) {
@@ -337,7 +339,9 @@ func (se *structEncoder) encode(b *Builder, v reflect.Value) {
 		// Value
 		se.fieldEncs[i](b, fv)
 	}
-	b.MustClose()
+	if err := b.Close(); err != nil {
+		panic(err)
+	}
 }
 
 func newStructEncoder(t reflect.Type) encoderFunc {
@@ -361,7 +365,9 @@ func (e *mapEncoder) encode(b *Builder, v reflect.Value) {
 		b.addInternal(nullValue)
 		return
 	}
-	b.MustOpenObject()
+	if err := b.OpenObject(); err != nil {
+		panic(err)
+	}
 
 	// Extract and sort the keys.
 	keys := v.MapKeys()
@@ -383,7 +389,9 @@ func (e *mapEncoder) encode(b *Builder, v reflect.Value) {
 		// Value
 		e.elemEnc(b, v.MapIndex(kv.v))
 	}
-	b.MustClose()
+	if err := b.Close(); err != nil {
+		panic(err)
+	}
 }
 
 func newMapEncoder(t reflect.Type) encoderFunc {
@@ -438,12 +446,16 @@ type arrayEncoder struct {
 }
 
 func (ae *arrayEncoder) encode(b *Builder, v reflect.Value) {
-	b.MustOpenArray()
+	if err := b.OpenArray(); err != nil {
+		panic(err)
+	}
 	n := v.Len()
 	for i := 0; i < n; i++ {
 		ae.elemEnc(b, v.Index(i))
 	}
-	b.MustClose()
+	if err := b.Close(); err != nil {
+		panic(err)
+	}
 }
 
 func newArrayEncoder(t reflect.Type) encoderFunc {

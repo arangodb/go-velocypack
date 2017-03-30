@@ -52,9 +52,9 @@ func TestBuilderAttributeTranslations(t *testing.T) {
 	b.AddKeyValue("mötör", velocypack.NewIntValue(19))
 	b.AddKeyValue("mötörhead", velocypack.NewIntValue(20))
 	b.AddKeyValue("quetzal", velocypack.NewIntValue(21))
-	b.MustClose()
+	must(b.Close())
 
-	result := b.MustBytes()
+	result := mustBytes(b.Bytes())
 
 	correctResult := []byte{
 		0x0b, 0x35, 0x08, 0x31, 0x1a, 0x32, 0x19, 0x33, 0x31, 0x44, 0x62,
@@ -65,15 +65,15 @@ func TestBuilderAttributeTranslations(t *testing.T) {
 
 	ASSERT_EQ(hex.EncodeToString(result), hex.EncodeToString(correctResult), t)
 
-	s := b.MustSlice()
-	ASSERT_TRUE(s.MustHasKey("foo"), t)
-	ASSERT_TRUE(s.MustHasKey("bar"), t)
-	ASSERT_TRUE(s.MustHasKey("baz"), t)
-	ASSERT_TRUE(s.MustHasKey("bart"), t)
-	ASSERT_TRUE(s.MustHasKey("bark"), t)
-	ASSERT_TRUE(s.MustHasKey("mötör"), t)
-	ASSERT_TRUE(s.MustHasKey("mötörhead"), t)
-	ASSERT_TRUE(s.MustHasKey("quetzal"), t)
+	s := mustSlice(b.Slice())
+	ASSERT_TRUE(mustBool(s.HasKey("foo")), t)
+	ASSERT_TRUE(mustBool(s.HasKey("bar")), t)
+	ASSERT_TRUE(mustBool(s.HasKey("baz")), t)
+	ASSERT_TRUE(mustBool(s.HasKey("bart")), t)
+	ASSERT_TRUE(mustBool(s.HasKey("bark")), t)
+	ASSERT_TRUE(mustBool(s.HasKey("mötör")), t)
+	ASSERT_TRUE(mustBool(s.HasKey("mötörhead")), t)
+	ASSERT_TRUE(mustBool(s.HasKey("quetzal")), t)
 }
 
 func TestBuilderAttributeTranslationsSorted(t *testing.T) {
@@ -99,9 +99,9 @@ func TestBuilderAttributeTranslationsSorted(t *testing.T) {
 	b.AddKeyValue("mötör", velocypack.NewIntValue(19))
 	b.AddKeyValue("mötörhead", velocypack.NewIntValue(20))
 	b.AddKeyValue("quetzal", velocypack.NewIntValue(21))
-	b.MustClose()
+	must(b.Close())
 
-	result := b.MustBytes()
+	result := mustBytes(b.Bytes())
 
 	correctResult := []byte{
 		0x0b, 0x35, 0x08, 0x31, 0x1a, 0x32, 0x19, 0x33, 0x31, 0x44, 0x62,
@@ -112,13 +112,13 @@ func TestBuilderAttributeTranslationsSorted(t *testing.T) {
 
 	ASSERT_EQ(hex.EncodeToString(result), hex.EncodeToString(correctResult), t)
 
-	s := b.MustSlice()
-	ASSERT_TRUE(s.MustHasKey("foo"), t)
-	ASSERT_TRUE(s.MustHasKey("bar"), t)
-	ASSERT_TRUE(s.MustHasKey("baz"), t)
-	ASSERT_TRUE(s.MustHasKey("bart"), t)
-	ASSERT_TRUE(s.MustHasKey("bark"), t)
-	ASSERT_TRUE(s.MustHasKey("mötör"), t)
-	ASSERT_TRUE(s.MustHasKey("mötörhead"), t)
-	ASSERT_TRUE(s.MustHasKey("quetzal"), t)
+	s := mustSlice(b.Slice())
+	ASSERT_TRUE(mustBool(s.HasKey("foo")), t)
+	ASSERT_TRUE(mustBool(s.HasKey("bar")), t)
+	ASSERT_TRUE(mustBool(s.HasKey("baz")), t)
+	ASSERT_TRUE(mustBool(s.HasKey("bart")), t)
+	ASSERT_TRUE(mustBool(s.HasKey("bark")), t)
+	ASSERT_TRUE(mustBool(s.HasKey("mötör")), t)
+	ASSERT_TRUE(mustBool(s.HasKey("mötörhead")), t)
+	ASSERT_TRUE(mustBool(s.HasKey("quetzal")), t)
 }
