@@ -157,6 +157,51 @@ func IsUnsupportedType(err error) bool {
 	return ok
 }
 
+// An InvalidUnmarshalError describes an invalid argument passed to Unmarshal.
+// (The argument to Unmarshal must be a non-nil pointer.)
+type InvalidUnmarshalError struct {
+	Type reflect.Type
+}
+
+func (e *InvalidUnmarshalError) Error() string {
+	if e.Type == nil {
+		return "json: Unmarshal(nil)"
+	}
+
+	if e.Type.Kind() != reflect.Ptr {
+		return "json: Unmarshal(non-pointer " + e.Type.String() + ")"
+	}
+	return "json: Unmarshal(nil " + e.Type.String() + ")"
+}
+
+// IsInvalidUnmarshal returns true if the given error is an InvalidUnmarshalError.
+func IsInvalidUnmarshal(err error) bool {
+	_, ok := Cause(err).(*InvalidUnmarshalError)
+	return ok
+}
+
+// An UnmarshalTypeError describes a JSON value that was
+// not appropriate for a value of a specific Go type.
+type UnmarshalTypeError struct {
+	Value  string       // description of JSON value - "bool", "array", "number -5"
+	Type   reflect.Type // type of Go value it could not be assigned to
+	Struct string       // name of the struct type containing the field
+	Field  string       // name of the field holding the Go value
+}
+
+func (e *UnmarshalTypeError) Error() string {
+	if e.Struct != "" || e.Field != "" {
+		return "json: cannot unmarshal " + e.Value + " into Go struct field " + e.Struct + "." + e.Field + " of type " + e.Type.String()
+	}
+	return "json: cannot unmarshal " + e.Value + " into Go value of type " + e.Type.String()
+}
+
+// IsUnmarshalType returns true if the given error is an UnmarshalTypeError.
+func IsUnmarshalType(err error) bool {
+	_, ok := Cause(err).(*UnmarshalTypeError)
+	return ok
+}
+
 var (
 	// WithStack is called on every return of an error to add stacktrace information to the error.
 	// When setting this function, also set the Cause function.
