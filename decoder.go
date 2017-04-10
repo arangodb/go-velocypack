@@ -270,6 +270,9 @@ func (d *decodeState) unmarshalArray(data Slice, v reflect.Value) {
 			d.unmarshalValue(value, v.Index(i))
 		}
 		i++
+		if err := it.Next(); err != nil {
+			d.error(err)
+		}
 	}
 
 	if i < v.Len() {
@@ -464,6 +467,10 @@ func (d *decodeState) unmarshalObject(data Slice, v reflect.Value) {
 
 		d.errorContext.Struct = ""
 		d.errorContext.Field = ""
+
+		if err := it.Next(); err != nil {
+			d.error(err)
+		}
 	}
 }
 
