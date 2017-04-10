@@ -112,16 +112,19 @@ func TestDecoderArrayFloat64Slice(t *testing.T) {
 	ASSERT_EQ(v, expected, t)
 }
 
-/*
 func TestDecoderArrayStructSlice(t *testing.T) {
-	expected := []Struct1{
+	input := []Struct1{
 		Struct1{Field1: 1, field2: 2},
 		Struct1{Field1: 10, field2: 200},
 		Struct1{Field1: 100, field2: 200},
 	}
-	bytes, err := velocypack.Marshal(expected)
+	bytes, err := velocypack.Marshal(input)
 	ASSERT_NIL(err, t)
 	s := velocypack.Slice(bytes)
+	expected := input
+	expected[0].field2 = 0
+	expected[1].field2 = 0
+	expected[2].field2 = 0
 
 	var v []Struct1
 	err = velocypack.Unmarshal(s, &v)
@@ -129,36 +132,45 @@ func TestDecoderArrayStructSlice(t *testing.T) {
 	ASSERT_EQ(v, expected, t)
 }
 
-
 func TestDecoderArrayStructPtrSlice(t *testing.T) {
-	bytes, err := velocypack.Marshal([]*Struct1{
+	input := []*Struct1{
 		&Struct1{Field1: 1, field2: 2},
 		nil,
 		&Struct1{Field1: 10, field2: 200},
 		&Struct1{Field1: 100, field2: 200},
 		nil,
-	})
+	}
+	bytes, err := velocypack.Marshal(input)
 	ASSERT_NIL(err, t)
 	s := velocypack.Slice(bytes)
+	expected := input
+	expected[0].field2 = 0
+	expected[2].field2 = 0
+	expected[3].field2 = 0
 
-	t.Log(s.String())
-	ASSERT_EQ(s.Type(), velocypack.Array, t)
-	ASSERT_TRUE(s.IsArray(), t)
-	ASSERT_EQ(`[{"Field1":1},null,{"Field1":10},{"Field1":100},null]`, mustString(s.JSONString()), t)
+	var v []*Struct1
+	err = velocypack.Unmarshal(s, &v)
+	ASSERT_NIL(err, t)
+	ASSERT_EQ(v, expected, t)
 }
 
 func TestDecoderArrayNestedArray(t *testing.T) {
-	bytes, err := velocypack.Marshal([][]Struct1{
+	input := [][]Struct1{
 		[]Struct1{Struct1{Field1: 1, field2: 2}, Struct1{Field1: 3, field2: 4}},
 		[]Struct1{Struct1{Field1: 10, field2: 200}},
 		[]Struct1{Struct1{Field1: 100, field2: 200}},
-	})
+	}
+	bytes, err := velocypack.Marshal(input)
 	ASSERT_NIL(err, t)
 	s := velocypack.Slice(bytes)
+	expected := input
+	expected[0][0].field2 = 0
+	expected[0][1].field2 = 0
+	expected[1][0].field2 = 0
+	expected[2][0].field2 = 0
 
-	t.Log(s.String())
-	ASSERT_EQ(s.Type(), velocypack.Array, t)
-	ASSERT_TRUE(s.IsArray(), t)
-	ASSERT_EQ(`[[{"Field1":1},{"Field1":3}],[{"Field1":10}],[{"Field1":100}]]`, mustString(s.JSONString()), t)
+	var v [][]Struct1
+	err = velocypack.Unmarshal(s, &v)
+	ASSERT_NIL(err, t)
+	ASSERT_EQ(v, expected, t)
 }
-*/
