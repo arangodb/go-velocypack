@@ -33,12 +33,12 @@ type CustomStruct1 struct {
 	Field1 int
 }
 
-func (cs *CustomStruct1) MarshalVPack() ([]byte, error) {
+func (cs *CustomStruct1) MarshalVPack() (velocypack.Slice, error) {
 	var b velocypack.Builder
 	if err := b.AddValue(velocypack.NewStringValue("Hello world")); err != nil {
 		return nil, err
 	}
-	return b.Bytes()
+	return b.Slice()
 }
 
 func TestEncoderCustomStruct1(t *testing.T) {

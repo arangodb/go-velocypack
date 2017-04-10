@@ -44,7 +44,7 @@ type Decoder struct {
 
 // Unmarshaler is implemented by types that can convert themselves from Velocypack.
 type Unmarshaler interface {
-	UnmarshalVPack([]byte) error
+	UnmarshalVPack(Slice) error
 }
 
 // NewDecoder creates a new Decoder that reads data from the given reader.
@@ -95,7 +95,7 @@ func unmarshalSlice(data Slice, v interface{}) (err error) {
 	// We decode rv not rv.Elem because the Unmarshaler interface
 	// test must be applied at the top level of the value.
 	d.unmarshalValue(data, rv)
-	return
+	return d.savedError
 }
 
 var (
@@ -438,7 +438,7 @@ func (d *decodeState) unmarshalObject(data Slice, v reflect.Value) {
 				kv = reflect.ValueOf(keyStr).Convert(kt)
 			case reflect.PtrTo(kt).Implements(textUnmarshalerType):
 				kv = reflect.New(v.Type().Key())
-				d.literalStore(value, kv, true)
+				d.literalStore(key, kv, true)
 				kv = kv.Elem()
 			default:
 				switch kt.Kind() {
@@ -622,7 +622,7 @@ func (d *decodeState) literalStore(item Slice, v reflect.Value, fromQuoted bool)
 	// Check for unmarshaler.
 	if len(item) == 0 {
 		//Empty string given
-		d.saveError(fmt.Errorf("json: invalid use of ,string struct tag, trying to unmarshal %q into %v", item, v.Type()))
+		d.saveError(fmt.Errorf("json: invalid use of ,string struct tag, trying to unmarshal empty slice into %v", v.Type()))
 		return
 	}
 	isNull := item.IsNull() // null
@@ -638,7 +638,7 @@ func (d *decodeState) literalStore(item Slice, v reflect.Value, fromQuoted bool)
 		if !item.IsString() {
 			//if item[0] != '"' {
 			if fromQuoted {
-				d.saveError(fmt.Errorf("json: invalid use of ,string struct tag, trying to unmarshal %q into %v", item, v.Type()))
+				d.saveError(fmt.Errorf("json: invalid use of ,string struct tag, trying to unmarshal Slice of type %s into %v", item.Type(), v.Type()))
 			} else {
 				val := item.Type().String()
 				d.saveError(&UnmarshalTypeError{Value: val, Type: v.Type()})
@@ -648,13 +648,12 @@ func (d *decodeState) literalStore(item Slice, v reflect.Value, fromQuoted bool)
 		s, err := item.GetString()
 		if err != nil {
 			if fromQuoted {
-				d.error(fmt.Errorf("json: invalid use of ,string struct tag, trying to unmarshal %q into %v", item, v.Type()))
+				d.error(fmt.Errorf("json: invalid use of ,string struct tag, trying to unmarshal slice of type %s into %v", item.Type(), v.Type()))
 			} else {
 				d.error(InternalError) // Out of sync
 			}
 		}
-		err = ut.UnmarshalText([]byte(s))
-		if err != nil {
+		if err := ut.UnmarshalText([]byte(s)); err != nil {
 			d.error(err)
 		}
 		return
