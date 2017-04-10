@@ -435,7 +435,7 @@ func (d *decodeState) unmarshalObject(data Slice, v reflect.Value) {
 			var kv reflect.Value
 			switch {
 			case kt.Kind() == reflect.String:
-				kv = reflect.ValueOf(key).Convert(kt)
+				kv = reflect.ValueOf(keyStr).Convert(kt)
 			case reflect.PtrTo(kt).Implements(textUnmarshalerType):
 				kv = reflect.New(v.Type().Key())
 				d.literalStore(value, kv, true)
@@ -443,7 +443,7 @@ func (d *decodeState) unmarshalObject(data Slice, v reflect.Value) {
 			default:
 				switch kt.Kind() {
 				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-					s := string(key)
+					s := string(keyStr)
 					n, err := strconv.ParseInt(s, 10, 64)
 					if err != nil || reflect.Zero(kt).OverflowInt(n) {
 						d.saveError(&UnmarshalTypeError{Value: "number " + s, Type: kt})
@@ -451,7 +451,7 @@ func (d *decodeState) unmarshalObject(data Slice, v reflect.Value) {
 					}
 					kv = reflect.ValueOf(n).Convert(kt)
 				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-					s := string(key)
+					s := string(keyStr)
 					n, err := strconv.ParseUint(s, 10, 64)
 					if err != nil || reflect.Zero(kt).OverflowUint(n) {
 						d.saveError(&UnmarshalTypeError{Value: "number " + s, Type: kt})
@@ -513,6 +513,11 @@ func (d *decodeState) arrayInterface(data Slice) []interface{} {
 		}
 
 		v = append(v, d.valueInterface(value))
+
+		// Move to next field
+		if err := it.Next(); err != nil {
+			d.error(err)
+		}
 	}
 	return v
 }
@@ -524,7 +529,7 @@ func (d *decodeState) objectInterface(data Slice) map[string]interface{} {
 	if err != nil {
 		d.error(err)
 	}
-	for {
+	for it.IsValid() {
 		key, err := it.Key(true)
 		if err != nil {
 			d.error(err)
@@ -540,6 +545,11 @@ func (d *decodeState) objectInterface(data Slice) map[string]interface{} {
 
 		// Read value.
 		m[keyStr] = d.valueInterface(value)
+
+		// Move to next field
+		if err := it.Next(); err != nil {
+			d.error(err)
+		}
 	}
 	return m
 }
@@ -575,6 +585,11 @@ func (d *decodeState) literalInterface(data Slice) interface{} {
 		v, err := data.GetInt()
 		if err != nil {
 			d.error(err)
+		}
+		intV := int(v)
+		if int64(intV) == v {
+			// Value fits in int
+			return intV
 		}
 		return v
 
@@ -791,7 +806,14 @@ func (d *decodeState) literalStore(item Slice, v reflect.Value, fromQuoted bool)
 				d.error(&UnmarshalTypeError{Value: "number", Type: v.Type()})
 			}
 		case reflect.Interface:
-			n, err := d.convertNumber(value)
+			var n interface{}
+			intValue := int(value)
+			if int64(intValue) == value {
+				// When the value fits in an int, use int type.
+				n, err = d.convertNumber(intValue)
+			} else {
+				n, err = d.convertNumber(value)
+			}
 			if err != nil {
 				d.saveError(err)
 				break
