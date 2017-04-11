@@ -55,6 +55,71 @@ func NewDecoder(r io.Reader) *Decoder {
 }
 
 // Unmarshal reads v from the given Velocypack encoded data slice.
+//
+// Unmarshal uses the inverse of the encodings that
+// Marshal uses, allocating maps, slices, and pointers as necessary,
+// with the following additional rules:
+//
+// To unmarshal VelocyPack into a pointer, Unmarshal first handles the case of
+// the VelocyPack being the VelocyPack literal Null. In that case, Unmarshal sets
+// the pointer to nil. Otherwise, Unmarshal unmarshals the VelocyPack into
+// the value pointed at by the pointer. If the pointer is nil, Unmarshal
+// allocates a new value for it to point to.
+//
+// To unmarshal VelocyPack into a value implementing the Unmarshaler interface,
+// Unmarshal calls that value's UnmarshalVPack method, including
+// when the input is a VelocyPack Null.
+// Otherwise, if the value implements encoding.TextUnmarshaler
+// and the input is a VelocyPack quoted string, Unmarshal calls that value's
+// UnmarshalText method with the unquoted form of the string.
+//
+// To unmarshal VelocyPack into a struct, Unmarshal matches incoming object
+// keys to the keys used by Marshal (either the struct field name or its tag),
+// preferring an exact match but also accepting a case-insensitive match.
+// Unmarshal will only set exported fields of the struct.
+//
+// To unmarshal VelocyPack into an interface value,
+// Unmarshal stores one of these in the interface value:
+//
+//	bool, for VelocyPack Bool's
+//	float64 for VelocyPack Double's
+//  uint64 for VelocyPack UInt's
+//  int64 for VelocyPack Int's
+//	string, for VelocyPack String's
+//	[]interface{}, for VelocyPack Array's
+//	map[string]interface{}, for VelocyPack Object's
+//	nil for VelocyPack Null.
+//  []byte for VelocyPack Binary.
+//
+// To unmarshal a VelocyPack array into a slice, Unmarshal resets the slice length
+// to zero and then appends each element to the slice.
+// As a special case, to unmarshal an empty VelocyPack array into a slice,
+// Unmarshal replaces the slice with a new empty slice.
+//
+// To unmarshal a VelocyPack array into a Go array, Unmarshal decodes
+// VelocyPack array elements into corresponding Go array elements.
+// If the Go array is smaller than the VelocyPack array,
+// the additional VelocyPack array elements are discarded.
+// If the VelocyPack array is smaller than the Go array,
+// the additional Go array elements are set to zero values.
+//
+// To unmarshal a VelocyPack object into a map, Unmarshal first establishes a map to
+// use. If the map is nil, Unmarshal allocates a new map. Otherwise Unmarshal
+// reuses the existing map, keeping existing entries. Unmarshal then stores
+// key-value pairs from the VelocyPack object into the map. The map's key type must
+// either be a string, an integer, or implement encoding.TextUnmarshaler.
+//
+// If a VelocyPack value is not appropriate for a given target type,
+// or if a VelocyPack number overflows the target type, Unmarshal
+// skips that field and completes the unmarshaling as best it can.
+// If no more serious errors are encountered, Unmarshal returns
+// an UnmarshalTypeError describing the earliest such error.
+//
+// The VelocyPack Null value unmarshals into an interface, map, pointer, or slice
+// by setting that Go value to nil. Because null is often used in VelocyPack to mean
+// ``not present,'' unmarshaling a VelocyPack Null into any other Go type has no effect
+// on the value and produces no error.
+//
 func Unmarshal(data []byte, v interface{}) error {
 	s := Slice(data)
 	if err := unmarshalSlice(s, v); err != nil {
