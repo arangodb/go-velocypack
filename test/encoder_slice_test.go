@@ -28,8 +28,8 @@ import (
 	velocypack "github.com/arangodb/go-velocypack"
 )
 
-func TestEncoderArrayEmptyArray(t *testing.T) {
-	bytes, err := velocypack.Marshal([0]struct{}{})
+func TestEncoderArrayEmptySlice(t *testing.T) {
+	bytes, err := velocypack.Marshal([]struct{}{})
 	ASSERT_NIL(err, t)
 	s := velocypack.Slice(bytes)
 
@@ -38,19 +38,19 @@ func TestEncoderArrayEmptyArray(t *testing.T) {
 	ASSERT_EQ(`[]`, mustString(s.JSONString()), t)
 }
 
-func TestEncoderArrayByteArray(t *testing.T) {
-	bytes, err := velocypack.Marshal([5]byte{1, 2, 3, 4, 5})
+func TestEncoderArrayByteSlice(t *testing.T) {
+	bytes, err := velocypack.Marshal([]byte{1, 2, 3, 4, 5})
 	ASSERT_NIL(err, t)
 	s := velocypack.Slice(bytes)
 
-	ASSERT_EQ(s.Type(), velocypack.Array, t) // Byte slices are converted to Binary, byte arrays not.
-	ASSERT_TRUE(s.IsArray(), t)
-	ASSERT_EQ(`[1,2,3,4,5]`, mustString(s.JSONString()), t)
-	ASSERT_EQ(velocypack.ValueLength(5), mustLength(s.Length()), t)
+	ASSERT_EQ(s.Type(), velocypack.Binary, t)
+	ASSERT_TRUE(s.IsBinary(), t)
+	ASSERT_EQ(`null`, mustString(s.JSONString()), t) // Dumper does not support Binary data
+	ASSERT_EQ(velocypack.ValueLength(5), mustLength(s.GetBinaryLength()), t)
 }
 
-func TestEncoderArrayBoolArray(t *testing.T) {
-	bytes, err := velocypack.Marshal([4]bool{true, false, false, true})
+func TestEncoderArrayBoolSlice(t *testing.T) {
+	bytes, err := velocypack.Marshal([]bool{true, false, false, true})
 	ASSERT_NIL(err, t)
 	s := velocypack.Slice(bytes)
 
@@ -59,8 +59,8 @@ func TestEncoderArrayBoolArray(t *testing.T) {
 	ASSERT_EQ(`[true,false,false,true]`, mustString(s.JSONString()), t)
 }
 
-func TestEncoderArrayIntArray(t *testing.T) {
-	bytes, err := velocypack.Marshal([7]int{1, 2, 3, -4, 5, 6, 100000})
+func TestEncoderArrayIntSlice(t *testing.T) {
+	bytes, err := velocypack.Marshal([]int{1, 2, 3, -4, 5, 6, 100000})
 	ASSERT_NIL(err, t)
 	s := velocypack.Slice(bytes)
 
@@ -69,8 +69,8 @@ func TestEncoderArrayIntArray(t *testing.T) {
 	ASSERT_EQ(`[1,2,3,-4,5,6,100000]`, mustString(s.JSONString()), t)
 }
 
-func TestEncoderArrayUIntArray(t *testing.T) {
-	bytes, err := velocypack.Marshal([7]uint{1, 2, 3, 4, 5, 6, 100000})
+func TestEncoderArrayUIntSlice(t *testing.T) {
+	bytes, err := velocypack.Marshal([]uint{1, 2, 3, 4, 5, 6, 100000})
 	ASSERT_NIL(err, t)
 	s := velocypack.Slice(bytes)
 
@@ -79,8 +79,8 @@ func TestEncoderArrayUIntArray(t *testing.T) {
 	ASSERT_EQ(`[1,2,3,4,5,6,100000]`, mustString(s.JSONString()), t)
 }
 
-func TestEncoderArrayFloat32Array(t *testing.T) {
-	bytes, err := velocypack.Marshal([4]float32{0.0, -1.5, 66, 45})
+func TestEncoderArrayFloat32Slice(t *testing.T) {
+	bytes, err := velocypack.Marshal([]float32{0.0, -1.5, 66, 45})
 	ASSERT_NIL(err, t)
 	s := velocypack.Slice(bytes)
 
@@ -89,8 +89,8 @@ func TestEncoderArrayFloat32Array(t *testing.T) {
 	ASSERT_EQ(`[0,-1.5,66,45]`, mustString(s.JSONString()), t)
 }
 
-func TestEncoderArrayFloat64Array(t *testing.T) {
-	bytes, err := velocypack.Marshal([4]float64{0.0, -1.5, 6.23, 45e+10})
+func TestEncoderArrayFloat64Slice(t *testing.T) {
+	bytes, err := velocypack.Marshal([]float64{0.0, -1.5, 6.23, 45e+10})
 	ASSERT_NIL(err, t)
 	s := velocypack.Slice(bytes)
 
@@ -99,8 +99,8 @@ func TestEncoderArrayFloat64Array(t *testing.T) {
 	ASSERT_EQ(`[0,-1.5,6.23,4.5e+11]`, mustString(s.JSONString()), t)
 }
 
-func TestEncoderArrayStructArray(t *testing.T) {
-	bytes, err := velocypack.Marshal([3]Struct1{
+func TestEncoderArrayStructSlice(t *testing.T) {
+	bytes, err := velocypack.Marshal([]Struct1{
 		Struct1{Field1: 1, field2: 2},
 		Struct1{Field1: 10, field2: 200},
 		Struct1{Field1: 100, field2: 200},
@@ -114,8 +114,8 @@ func TestEncoderArrayStructArray(t *testing.T) {
 	ASSERT_EQ(`[{"Field1":1},{"Field1":10},{"Field1":100}]`, mustString(s.JSONString()), t)
 }
 
-func TestEncoderArrayStructPtrArray(t *testing.T) {
-	bytes, err := velocypack.Marshal([5]*Struct1{
+func TestEncoderArrayStructPtrSlice(t *testing.T) {
+	bytes, err := velocypack.Marshal([]*Struct1{
 		&Struct1{Field1: 1, field2: 2},
 		nil,
 		&Struct1{Field1: 10, field2: 200},
@@ -131,8 +131,8 @@ func TestEncoderArrayStructPtrArray(t *testing.T) {
 	ASSERT_EQ(`[{"Field1":1},null,{"Field1":10},{"Field1":100},null]`, mustString(s.JSONString()), t)
 }
 
-func TestEncoderArrayNestedArray(t *testing.T) {
-	bytes, err := velocypack.Marshal([3][]Struct1{
+func TestEncoderArrayNestedSlice(t *testing.T) {
+	bytes, err := velocypack.Marshal([][]Struct1{
 		[]Struct1{Struct1{Field1: 1, field2: 2}, Struct1{Field1: 3, field2: 4}},
 		[]Struct1{Struct1{Field1: 10, field2: 200}},
 		[]Struct1{Struct1{Field1: 100, field2: 200}},

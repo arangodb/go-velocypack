@@ -287,3 +287,22 @@ func TestDumperUInt(t *testing.T) {
 		ASSERT_EQ(test.Expected, buf.String(), t)
 	}
 }
+
+func TestDumperBinary(t *testing.T) {
+	tests := []struct {
+		Value    []byte
+		Expected string
+	}{
+		{[]byte{1, 2, 3, 4}, "null"}, // Binary data is not supported by the Dumper
+	}
+	for _, test := range tests {
+		b := velocypack.Builder{}
+		must(b.AddValue(velocypack.NewBinaryValue(test.Value)))
+
+		s := mustSlice(b.Slice())
+		buf := &bytes.Buffer{}
+		d := velocypack.NewDumper(buf, nil)
+		d.Append(s)
+		ASSERT_EQ(test.Expected, buf.String(), t)
+	}
+}
