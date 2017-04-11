@@ -126,3 +126,31 @@ func TestEncoderCustomJSONStruct1(t *testing.T) {
 	ASSERT_EQ(s.Type(), velocypack.String, t)
 	ASSERT_EQ(`"Hello JSON"`, mustString(s.JSONString()), t)
 }
+
+type CustomJSONVPACKStruct1 struct {
+	Field1 int
+}
+
+func (cs *CustomJSONVPACKStruct1) MarshalVPack() (velocypack.Slice, error) {
+	var b velocypack.Builder
+	if err := b.AddValue(velocypack.NewStringValue("Hello VPACK, goodbye JSON")); err != nil {
+		return nil, err
+	}
+	return b.Slice()
+}
+
+func (cs *CustomJSONVPACKStruct1) MarshalJSON() ([]byte, error) {
+	return json.Marshal("Hello JSON, goodbye VPACK")
+}
+
+func TestEncoderCustomJSONVPACKStruct1(t *testing.T) {
+	// MarshalVPack is preferred over MarshalJSON
+	bytes, err := velocypack.Marshal(&CustomJSONVPACKStruct1{
+		Field1: 999,
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+
+	ASSERT_EQ(s.Type(), velocypack.String, t)
+	ASSERT_EQ(`"Hello VPACK, goodbye JSON"`, mustString(s.JSONString()), t)
+}

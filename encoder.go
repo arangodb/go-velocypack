@@ -60,7 +60,11 @@ func NewEncoder(w io.Writer) *Encoder {
 // Marshal traverses the value v recursively.
 // If an encountered value implements the Marshaler interface
 // and is not a nil pointer, Marshal calls its MarshalVPack method
-// to produce Velocypack. If no MarshalVPack method is present but the
+// to produce Velocypack.
+// If an encountered value implements the json.Marshaler interface
+// and is not a nil pointer, Marshal calls its MarshalJSON method
+// to produce JSON and converts the resulting JSON to VelocyPack.
+// If no MarshalVPack or MarshalJSON method is present but the
 // value implements encoding.TextMarshaler instead, Marshal calls
 // its MarshalText method and encodes the result as a Velocypack string.
 // The nil pointer exception is not strictly necessary

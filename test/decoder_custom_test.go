@@ -174,3 +174,45 @@ func TestDecoderCustomJSONStruct1(t *testing.T) {
 	ASSERT_NIL(err, t)
 	ASSERT_EQ(v, expected, t)
 }
+
+func (cs *CustomJSONVPACKStruct1) UnmarshalVPack(slice velocypack.Slice) error {
+	s, err := slice.GetString()
+	if err != nil {
+		return err
+	}
+	if s != "Hello VPACK, goodbye JSON" {
+		return fmt.Errorf("Expected 'Hello VPACK, goodbye JSON' got '%s'", s)
+	}
+	cs.Field1 = 99
+	return nil
+}
+
+func (cs *CustomJSONVPACKStruct1) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+	if s != "Hello JSON, goodbye VPACK" {
+		return fmt.Errorf("Expected 'Hello JSON, goodbye VPACK' got '%s'", s)
+	}
+	cs.Field1 = 88
+	return nil
+}
+
+func TestDecoderCustomJSONVPACKStruct1(t *testing.T) {
+	// UnmarshalVPack is preferred over UnmarshalJSON
+	input := &CustomJSONVPACKStruct1{
+		Field1: 999,
+	}
+	bytes, err := velocypack.Marshal(input)
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+	expected := CustomJSONVPACKStruct1{
+		Field1: 99,
+	}
+
+	var v CustomJSONVPACKStruct1
+	err = velocypack.Unmarshal(s, &v)
+	ASSERT_NIL(err, t)
+	ASSERT_EQ(v, expected, t)
+}
