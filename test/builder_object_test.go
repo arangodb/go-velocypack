@@ -24,7 +24,9 @@ package test
 
 import (
 	"encoding/binary"
+	"fmt"
 	"math"
+	"strings"
 	"testing"
 
 	velocypack "github.com/arangodb/go-velocypack"
@@ -468,4 +470,21 @@ func TestBuilderAddKeysSeparately1(t *testing.T) {
 	must(b.Close())
 
 	ASSERT_EQ(`{"firstName":"Max","name":"Neunhoeffer"}`, mustString(mustSlice(b.Slice()).JSONString()), t)
+}
+
+func TestBuilderObjectLarge(t *testing.T) {
+	var obj velocypack.Builder
+	max := math.MaxInt16 * 2
+	expected := make([]string, max)
+	must(obj.OpenObject())
+	for i := 0; i < max; i++ {
+		must(obj.AddValue(velocypack.NewStringValue(fmt.Sprintf("x%06d", i))))
+		must(obj.AddValue(velocypack.NewIntValue(int64(i))))
+		expected[i] = fmt.Sprintf(`"x%06d":%d`, i, i)
+	}
+	must(obj.Close())
+	objSlice := mustSlice(obj.Slice())
+
+	expectedJSON := "{" + strings.Join(expected, ",") + "}"
+	ASSERT_EQ(expectedJSON, mustString(objSlice.JSONString()), t)
 }

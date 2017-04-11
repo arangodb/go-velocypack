@@ -23,8 +23,11 @@
 package test
 
 import (
+	"bytes"
 	"encoding/binary"
 	"math"
+	"strconv"
+	"strings"
 	"testing"
 
 	velocypack "github.com/arangodb/go-velocypack"
@@ -425,4 +428,45 @@ func TestBuilderIsOpenArray(t *testing.T) {
 	ASSERT_TRUE(b.IsOpenArray(), t)
 	must(b.Close())
 	ASSERT_FALSE(b.IsOpenArray(), t)
+}
+
+func TestBuilderWriteTo(t *testing.T) {
+	var b velocypack.Builder
+	must(b.OpenArray())
+	must(b.Close())
+	var buf bytes.Buffer
+	_, err := b.WriteTo(&buf)
+	ASSERT_NIL(err, t)
+}
+
+func TestBuilderWriteToNotClosed(t *testing.T) {
+	var b velocypack.Builder
+	must(b.OpenArray())
+	var buf bytes.Buffer
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNotSealed, t)(b.WriteTo(&buf))
+}
+
+func TestBuilderClear(t *testing.T) {
+	var b velocypack.Builder
+	must(b.OpenArray())
+	ASSERT_FALSE(b.IsClosed(), t)
+	b.Clear()
+	ASSERT_TRUE(b.IsClosed(), t)
+	ASSERT_EQ(0, len(mustBytes(b.Bytes())), t)
+}
+
+func TestBuilderArrayLarge(t *testing.T) {
+	var obj velocypack.Builder
+	max := math.MaxInt16 * 2
+	expected := make([]string, max)
+	must(obj.OpenArray())
+	for i := 0; i < max; i++ {
+		must(obj.AddValue(velocypack.NewIntValue(int64(i))))
+		expected[i] = strconv.Itoa(i)
+	}
+	must(obj.Close())
+	objSlice := mustSlice(obj.Slice())
+
+	expectedJSON := "[" + strings.Join(expected, ",") + "]"
+	ASSERT_EQ(expectedJSON, mustString(objSlice.JSONString()), t)
 }
