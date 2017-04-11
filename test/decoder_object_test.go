@@ -40,6 +40,16 @@ func TestDecoderObjectEmpty(t *testing.T) {
 	ASSERT_EQ(v, expected, t)
 }
 
+func TestDecoderObjectEmptyInvalidDestination(t *testing.T) {
+	b := velocypack.Builder{}
+	must(b.OpenObject())
+	must(b.Close())
+	s := mustSlice(b.Slice())
+
+	var v int64
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsUnmarshalType, t)(velocypack.Unmarshal(s, &v))
+}
+
 func TestDecoderObjectOneField(t *testing.T) {
 	expected := struct {
 		Name string

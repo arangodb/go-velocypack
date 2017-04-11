@@ -248,3 +248,40 @@ func TestDecoderMapNestedStringSliceEmpty(t *testing.T) {
 	ASSERT_NIL(err, t)
 	ASSERT_EQ(v, expected, t)
 }
+
+func TestDecoderMapInt8Keys(t *testing.T) {
+	expected := map[int8]interface{}{
+		0:   "Jan",
+		1:   []interface{}{"foo", "monkey"},
+		7:   true,
+		11:  123.456,
+		23:  789,
+		-45: false,
+	}
+	bytes, err := velocypack.Marshal(expected)
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+
+	var v map[int8]interface{}
+	err = velocypack.Unmarshal(s, &v)
+	ASSERT_NIL(err, t)
+	ASSERT_EQ(v, expected, t)
+}
+
+func TestDecoderMapUInt16Keys(t *testing.T) {
+	expected := map[uint16]interface{}{
+		0:  "Jan",
+		1:  []interface{}{"foo", "monkey"},
+		7:  true,
+		11: 123.456,
+		23: 789,
+	}
+	bytes, err := velocypack.Marshal(expected)
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+
+	var v map[uint16]interface{}
+	err = velocypack.Unmarshal(s, &v)
+	ASSERT_NIL(err, t)
+	ASSERT_EQ(v, expected, t)
+}

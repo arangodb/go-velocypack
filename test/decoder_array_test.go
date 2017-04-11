@@ -201,3 +201,19 @@ func TestDecoderArrayExtraLengthInArray(t *testing.T) {
 	ASSERT_NIL(err, t)
 	ASSERT_EQ(v, expected, t)
 }
+
+func TestDecoderArrayInterface(t *testing.T) {
+	input := []interface{}{1, false, Struct1{}, "foo", []byte{1, 2, 3, 4, 5}}
+	bytes, err := velocypack.Marshal(input)
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+	expected := input
+	expected[2] = map[string]interface{}{
+		"Field1": 0,
+	}
+
+	var v []interface{}
+	err = velocypack.Unmarshal(s, &v)
+	ASSERT_NIL(err, t)
+	ASSERT_EQ(v, expected, t)
+}

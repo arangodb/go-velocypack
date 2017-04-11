@@ -443,18 +443,16 @@ func (d *decodeState) unmarshalObject(data Slice, v reflect.Value) {
 			default:
 				switch kt.Kind() {
 				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-					s := string(keyStr)
-					n, err := strconv.ParseInt(s, 10, 64)
+					n, err := strconv.ParseInt(keyStr, 10, 64)
 					if err != nil || reflect.Zero(kt).OverflowInt(n) {
-						d.saveError(&UnmarshalTypeError{Value: "number " + s, Type: kt})
+						d.saveError(&UnmarshalTypeError{Value: "number " + keyStr, Type: kt})
 						return
 					}
 					kv = reflect.ValueOf(n).Convert(kt)
 				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-					s := string(keyStr)
-					n, err := strconv.ParseUint(s, 10, 64)
+					n, err := strconv.ParseUint(keyStr, 10, 64)
 					if err != nil || reflect.Zero(kt).OverflowUint(n) {
-						d.saveError(&UnmarshalTypeError{Value: "number " + s, Type: kt})
+						d.saveError(&UnmarshalTypeError{Value: "number " + keyStr, Type: kt})
 						return
 					}
 					kv = reflect.ValueOf(n).Convert(kt)
