@@ -441,7 +441,7 @@ func TestBuilderWriteToNotClosed(t *testing.T) {
 	var b velocypack.Builder
 	must(b.OpenArray())
 	var buf bytes.Buffer
-	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNotSealed, t)(b.WriteTo(&buf))
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNotClosed, t)(b.WriteTo(&buf))
 }
 
 func TestBuilderClear(t *testing.T) {

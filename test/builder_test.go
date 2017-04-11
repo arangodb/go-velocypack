@@ -32,7 +32,7 @@ func TestBuilderBytesWithOpenObject(t *testing.T) {
 	var b velocypack.Builder
 	ASSERT_EQ(0, len(mustBytes(b.Bytes())), t)
 	must(b.OpenObject())
-	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNotSealed, t)(b.Bytes())
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNotClosed, t)(b.Bytes())
 	must(b.Close())
 	ASSERT_EQ(1, len(mustBytes(b.Bytes())), t)
 }
@@ -41,7 +41,7 @@ func TestBuilderSliceWithOpenObject(t *testing.T) {
 	var b velocypack.Builder
 	ASSERT_EQ(0, len(mustSlice(b.Slice())), t)
 	must(b.OpenObject())
-	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNotSealed, t)(b.Slice())
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNotClosed, t)(b.Slice())
 	must(b.Close())
 	ASSERT_EQ(1, len(mustSlice(b.Slice())), t)
 }
@@ -50,7 +50,7 @@ func TestBuilderSizeWithOpenObject(t *testing.T) {
 	var b velocypack.Builder
 	ASSERT_EQ(velocypack.ValueLength(0), mustLength(b.Size()), t)
 	must(b.OpenObject())
-	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNotSealed, t)(b.Size())
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsBuilderNotClosed, t)(b.Size())
 	must(b.Close())
 	ASSERT_EQ(velocypack.ValueLength(1), mustLength(b.Size()), t)
 }

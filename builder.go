@@ -59,7 +59,7 @@ func (b *Builder) Clear() {
 // When the builder is not closed, an error is returned.
 func (b *Builder) Bytes() ([]byte, error) {
 	if !b.IsClosed() {
-		return nil, WithStack(BuilderNotSealedError)
+		return nil, WithStack(BuilderNotClosedError)
 	}
 	return b.buf, nil
 }
@@ -77,7 +77,7 @@ func (b *Builder) Slice() (Slice, error) {
 // When the builder is not closed, an error is returned.
 func (b *Builder) WriteTo(w io.Writer) (int64, error) {
 	if !b.IsClosed() {
-		return 0, WithStack(BuilderNotSealedError)
+		return 0, WithStack(BuilderNotClosedError)
 	}
 	if n, err := w.Write(b.buf); err != nil {
 		return 0, WithStack(err)
@@ -90,7 +90,7 @@ func (b *Builder) WriteTo(w io.Writer) (int64, error) {
 // Returns an error when builder is not closed.
 func (b *Builder) Size() (ValueLength, error) {
 	if !b.IsClosed() {
-		return 0, WithStack(BuilderNotSealedError)
+		return 0, WithStack(BuilderNotClosedError)
 	}
 	return b.buf.Len(), nil
 }

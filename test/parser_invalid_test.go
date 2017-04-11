@@ -39,8 +39,8 @@ func TestParserGarbage(t *testing.T) {
 		`--11`:           velocypack.IsParse,
 		`[[}`:            velocypack.IsParse,
 		`5.6.7`:          velocypack.IsParse,
-		`[`:              velocypack.IsBuilderNotSealed,
-		`{`:              velocypack.IsBuilderNotSealed,
+		`[`:              velocypack.IsBuilderNotClosed,
+		`{`:              velocypack.IsBuilderNotClosed,
 	}
 	for test, errFunc := range tests {
 		ASSERT_VELOCYPACK_EXCEPTION(errFunc, t)(velocypack.ParseJSONFromString(test))

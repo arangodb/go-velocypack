@@ -75,10 +75,10 @@ var (
 	DuplicateAttributeNameError = errors.New("duplicate key name")
 	// IsDuplicateAttributeName returns true if the given error is an DuplicateAttributeNameError.
 	IsDuplicateAttributeName = isCausedByFunc(DuplicateAttributeNameError)
-	// BuilderNotSealedError is returned when a call is made to Builder.Bytes without being closed.
-	BuilderNotSealedError = errors.New("builder not sealed")
-	// IsBuilderNotSealed returns true if the given error is an BuilderNotSealedError.
-	IsBuilderNotSealed = isCausedByFunc(BuilderNotSealedError)
+	// BuilderNotClosedError is returned when a call is made to Builder.Bytes without being closed.
+	BuilderNotClosedError = errors.New("builder not closed")
+	// IsBuilderNotClosed returns true if the given error is an BuilderNotClosedError.
+	IsBuilderNotClosed = isCausedByFunc(BuilderNotClosedError)
 	// BuilderKeyAlreadyWrittenError is returned when a call is made to Builder.Bytes without being closed.
 	BuilderKeyAlreadyWrittenError = errors.New("builder key already written")
 	// IsBuilderKeyAlreadyWritten returns true if the given error is an BuilderKeyAlreadyWrittenError.
