@@ -68,6 +68,84 @@ func TestDecoderCustomStruct1(t *testing.T) {
 }
 
 /*
+type CustomStruct1Object struct {
+	Field1 int
+}
+*/
+
+func (cs *CustomStruct1Object) UnmarshalVPack(slice velocypack.Slice) error {
+	ss, err := slice.Get("foo")
+	if err != nil {
+		return err
+	}
+	s, err := ss.GetString()
+	if err != nil {
+		return err
+	}
+	if s != "Hello world" {
+		return fmt.Errorf("Expected 'Hello world' got '%s'", s)
+	}
+	cs.Field1 = 42
+	return nil
+}
+
+func TestDecoderCustomCustomStruct1Object(t *testing.T) {
+	input := &CustomStruct1Object{
+		Field1: 999,
+	}
+	bytes, err := velocypack.Marshal(input)
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+	expected := CustomStruct1Object{
+		Field1: 42,
+	}
+
+	var v CustomStruct1Object
+	err = velocypack.Unmarshal(s, &v)
+	ASSERT_NIL(err, t)
+	ASSERT_EQ(v, expected, t)
+}
+
+/*
+type CustomStruct1Array struct {
+	Field1 int
+}
+*/
+
+func (cs *CustomStruct1Array) UnmarshalVPack(slice velocypack.Slice) error {
+	ss, err := slice.At(0)
+	if err != nil {
+		return err
+	}
+	s, err := ss.GetString()
+	if err != nil {
+		return err
+	}
+	if s != "Hello world Array" {
+		return fmt.Errorf("Expected 'Hello world Array' got '%s'", s)
+	}
+	cs.Field1 = 987
+	return nil
+}
+
+func TestDecoderCustomCustomStruct1Array(t *testing.T) {
+	input := &CustomStruct1Array{
+		Field1: 999,
+	}
+	bytes, err := velocypack.Marshal(input)
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+	expected := CustomStruct1Array{
+		Field1: 987,
+	}
+
+	var v CustomStruct1Array
+	err = velocypack.Unmarshal(s, &v)
+	ASSERT_NIL(err, t)
+	ASSERT_EQ(v, expected, t)
+}
+
+/*
 type CustomStruct2 struct {
 	Field CustomStruct1
 }
@@ -170,6 +248,66 @@ func TestDecoderCustomJSONStruct1(t *testing.T) {
 	}
 
 	var v CustomJSONStruct1
+	err = velocypack.Unmarshal(s, &v)
+	ASSERT_NIL(err, t)
+	ASSERT_EQ(v, expected, t)
+}
+
+func (cs *CustomJSONStruct1Object) UnmarshalJSON(data []byte) error {
+	var s struct {
+		Foo string `json:"foo"`
+	}
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+	if s.Foo != "Hello JSON Object" {
+		return fmt.Errorf("Expected 'Hello JSON Object' got '%s'", s.Foo)
+	}
+	cs.Field1 = 222
+	return nil
+}
+
+func TestDecoderCustomJSONStruct1Object(t *testing.T) {
+	input := &CustomJSONStruct1Object{
+		Field1: 999,
+	}
+	bytes, err := velocypack.Marshal(input)
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+	expected := CustomJSONStruct1Object{
+		Field1: 222,
+	}
+
+	var v CustomJSONStruct1Object
+	err = velocypack.Unmarshal(s, &v)
+	ASSERT_NIL(err, t)
+	ASSERT_EQ(v, expected, t)
+}
+
+func (cs *CustomJSONStruct1Array) UnmarshalJSON(data []byte) error {
+	var s []string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+	if s[0] != "Hello JSON Array" {
+		return fmt.Errorf("Expected 'Hello JSON Array' got '%s'", s[0])
+	}
+	cs.Field1 = 456
+	return nil
+}
+
+func TestDecoderCustomJSONStruct1Array(t *testing.T) {
+	input := &CustomJSONStruct1Array{
+		Field1: 999,
+	}
+	bytes, err := velocypack.Marshal(input)
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+	expected := CustomJSONStruct1Array{
+		Field1: 456,
+	}
+
+	var v CustomJSONStruct1Array
 	err = velocypack.Unmarshal(s, &v)
 	ASSERT_NIL(err, t)
 	ASSERT_EQ(v, expected, t)

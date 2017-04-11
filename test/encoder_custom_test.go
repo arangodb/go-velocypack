@@ -53,6 +53,72 @@ func TestEncoderCustomStruct1(t *testing.T) {
 	ASSERT_EQ(`"Hello world"`, mustString(s.JSONString()), t)
 }
 
+type CustomStruct1Object struct {
+	Field1 int
+}
+
+func (cs *CustomStruct1Object) MarshalVPack() (velocypack.Slice, error) {
+	var b velocypack.Builder
+	if err := b.OpenObject(); err != nil {
+		return nil, err
+	}
+	if err := b.AddKeyValue("foo", velocypack.NewStringValue("Hello world")); err != nil {
+		return nil, err
+	}
+	if err := b.Close(); err != nil {
+		return nil, err
+	}
+	return b.Slice()
+}
+
+func TestEncoderCustomCustomStruct1Object(t *testing.T) {
+	bytes, err := velocypack.Marshal(&CustomStruct1Object{
+		Field1: 999,
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_EQ(velocypack.ValueLength(1), mustLength(s.Length()), t)
+
+	ss := mustSlice(s.Get("foo"))
+	ASSERT_EQ(ss.Type(), velocypack.String, t)
+	ASSERT_EQ(`"Hello world"`, mustString(ss.JSONString()), t)
+}
+
+type CustomStruct1Array struct {
+	Field1 int
+}
+
+func (cs *CustomStruct1Array) MarshalVPack() (velocypack.Slice, error) {
+	var b velocypack.Builder
+	if err := b.OpenArray(); err != nil {
+		return nil, err
+	}
+	if err := b.AddValue(velocypack.NewStringValue("Hello world Array")); err != nil {
+		return nil, err
+	}
+	if err := b.Close(); err != nil {
+		return nil, err
+	}
+	return b.Slice()
+}
+
+func TestEncoderCustomCustomStruct1Array(t *testing.T) {
+	bytes, err := velocypack.Marshal(&CustomStruct1Array{
+		Field1: 999,
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+
+	ASSERT_EQ(s.Type(), velocypack.Array, t)
+	ASSERT_EQ(velocypack.ValueLength(1), mustLength(s.Length()), t)
+
+	ss := mustSlice(s.At(0))
+	ASSERT_EQ(ss.Type(), velocypack.String, t)
+	ASSERT_EQ(`"Hello world Array"`, mustString(ss.JSONString()), t)
+}
+
 type CustomStruct2 struct {
 	Field CustomStruct1
 }
@@ -125,6 +191,52 @@ func TestEncoderCustomJSONStruct1(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.String, t)
 	ASSERT_EQ(`"Hello JSON"`, mustString(s.JSONString()), t)
+}
+
+type CustomJSONStruct1Object struct {
+	Field1 int
+}
+
+func (cs *CustomJSONStruct1Object) MarshalJSON() ([]byte, error) {
+	return []byte(`{"foo":"Hello JSON Object"}`), nil
+}
+
+func TestEncoderCustomJSONStruct1Object(t *testing.T) {
+	bytes, err := velocypack.Marshal(&CustomJSONStruct1Object{
+		Field1: 999,
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_EQ(velocypack.ValueLength(1), mustLength(s.Length()), t)
+
+	ss := mustSlice(s.Get("foo"))
+	ASSERT_EQ(ss.Type(), velocypack.String, t)
+	ASSERT_EQ(`"Hello JSON Object"`, mustString(ss.JSONString()), t)
+}
+
+type CustomJSONStruct1Array struct {
+	Field1 int
+}
+
+func (cs *CustomJSONStruct1Array) MarshalJSON() ([]byte, error) {
+	return []byte(`["Hello JSON Array"]`), nil
+}
+
+func TestEncoderCustomJSONStruct1Array(t *testing.T) {
+	bytes, err := velocypack.Marshal(&CustomJSONStruct1Array{
+		Field1: 999,
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+
+	ASSERT_EQ(s.Type(), velocypack.Array, t)
+	ASSERT_EQ(velocypack.ValueLength(1), mustLength(s.Length()), t)
+
+	ss := mustSlice(s.At(0))
+	ASSERT_EQ(ss.Type(), velocypack.String, t)
+	ASSERT_EQ(`"Hello JSON Array"`, mustString(ss.JSONString()), t)
 }
 
 type CustomJSONVPACKStruct1 struct {
