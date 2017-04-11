@@ -23,6 +23,7 @@
 package test
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -140,6 +141,35 @@ func TestDecoderCustomText1(t *testing.T) {
 	s := velocypack.Slice(bytes)
 
 	var v map[CustomText1]bool
+	err = velocypack.Unmarshal(s, &v)
+	ASSERT_NIL(err, t)
+	ASSERT_EQ(v, expected, t)
+}
+
+func (cs *CustomJSONStruct1) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+	if s != "Hello JSON" {
+		return fmt.Errorf("Expected 'Hello JSON' got '%s'", s)
+	}
+	cs.Field1 = 88
+	return nil
+}
+
+func TestDecoderCustomJSONStruct1(t *testing.T) {
+	input := &CustomJSONStruct1{
+		Field1: 999,
+	}
+	bytes, err := velocypack.Marshal(input)
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+	expected := CustomJSONStruct1{
+		Field1: 88,
+	}
+
+	var v CustomJSONStruct1
 	err = velocypack.Unmarshal(s, &v)
 	ASSERT_NIL(err, t)
 	ASSERT_EQ(v, expected, t)

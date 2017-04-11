@@ -23,6 +23,7 @@
 package test
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -105,4 +106,23 @@ func TestEncoderCustomText1(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_EQ(`{"key2":false,"key7":true}`, mustString(s.JSONString()), t)
+}
+
+type CustomJSONStruct1 struct {
+	Field1 int
+}
+
+func (cs *CustomJSONStruct1) MarshalJSON() ([]byte, error) {
+	return json.Marshal("Hello JSON")
+}
+
+func TestEncoderCustomJSONStruct1(t *testing.T) {
+	bytes, err := velocypack.Marshal(&CustomJSONStruct1{
+		Field1: 999,
+	})
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+
+	ASSERT_EQ(s.Type(), velocypack.String, t)
+	ASSERT_EQ(`"Hello JSON"`, mustString(s.JSONString()), t)
 }

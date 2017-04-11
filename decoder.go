@@ -158,7 +158,7 @@ func (d *decodeState) unmarshalValue(data Slice, v reflect.Value) {
 // until it gets to a non-pointer.
 // if it encounters an Unmarshaler, indirect stops and returns that.
 // if decodingNull is true, indirect stops at the last pointer so it can be set to nil.
-func (d *decodeState) indirect(v reflect.Value, decodingNull bool) (Unmarshaler, encoding.TextUnmarshaler, reflect.Value) {
+func (d *decodeState) indirect(v reflect.Value, decodingNull bool) (Unmarshaler, json.Unmarshaler, encoding.TextUnmarshaler, reflect.Value) {
 	// If v is a named type and is addressable,
 	// start with its address, so that if the type has pointer methods,
 	// we find them.
@@ -188,27 +188,40 @@ func (d *decodeState) indirect(v reflect.Value, decodingNull bool) (Unmarshaler,
 		}
 		if v.Type().NumMethod() > 0 {
 			if u, ok := v.Interface().(Unmarshaler); ok {
-				return u, nil, reflect.Value{}
+				return u, nil, nil, reflect.Value{}
+			}
+			if u, ok := v.Interface().(json.Unmarshaler); ok {
+				return nil, u, nil, reflect.Value{}
 			}
 			if !decodingNull {
 				if u, ok := v.Interface().(encoding.TextUnmarshaler); ok {
-					return nil, u, reflect.Value{}
+					return nil, nil, u, reflect.Value{}
 				}
 			}
 		}
 		v = v.Elem()
 	}
-	return nil, nil, v
+	return nil, nil, nil, v
 }
 
 // unmarshalArray unmarshals an array slice into given v.
 func (d *decodeState) unmarshalArray(data Slice, v reflect.Value) {
 	// Check for unmarshaler.
-	u, ut, pv := d.indirect(v, false)
+	u, ju, ut, pv := d.indirect(v, false)
 	if u != nil {
-		err := u.UnmarshalVPack(data)
+		if err := u.UnmarshalVPack(data); err != nil {
+			d.error(err)
+		}
+		return
+	}
+	if ju != nil {
+		json, err := data.JSONString()
 		if err != nil {
 			d.error(err)
+		} else {
+			if err := ju.UnmarshalJSON([]byte(json)); err != nil {
+				d.error(err)
+			}
 		}
 		return
 	}
@@ -294,11 +307,21 @@ func (d *decodeState) unmarshalArray(data Slice, v reflect.Value) {
 // unmarshalObject unmarshals an object slice into given v.
 func (d *decodeState) unmarshalObject(data Slice, v reflect.Value) {
 	// Check for unmarshaler.
-	u, ut, pv := d.indirect(v, false)
+	u, ju, ut, pv := d.indirect(v, false)
 	if u != nil {
-		err := u.UnmarshalVPack(data)
+		if err := u.UnmarshalVPack(data); err != nil {
+			d.error(err)
+		}
+		return
+	}
+	if ju != nil {
+		json, err := data.JSONString()
 		if err != nil {
 			d.error(err)
+		} else {
+			if err := ju.UnmarshalJSON([]byte(json)); err != nil {
+				d.error(err)
+			}
 		}
 		return
 	}
@@ -624,11 +647,21 @@ func (d *decodeState) literalStore(item Slice, v reflect.Value, fromQuoted bool)
 		return
 	}
 	isNull := item.IsNull() // null
-	u, ut, pv := d.indirect(v, isNull)
+	u, ju, ut, pv := d.indirect(v, isNull)
 	if u != nil {
-		err := u.UnmarshalVPack(item)
+		if err := u.UnmarshalVPack(item); err != nil {
+			d.error(err)
+		}
+		return
+	}
+	if ju != nil {
+		json, err := item.JSONString()
 		if err != nil {
 			d.error(err)
+		} else {
+			if err := ju.UnmarshalJSON([]byte(json)); err != nil {
+				d.error(err)
+			}
 		}
 		return
 	}
