@@ -37,6 +37,12 @@ func TestParserNull(t *testing.T) {
 	ASSERT_TRUE(s.IsNull(), t)
 }
 
+func TestParserWhitespace(t *testing.T) {
+	s := mustSlice(velocypack.ParseJSONFromString(" "))
+
+	ASSERT_TRUE(s.IsNone(), t)
+}
+
 func TestParserFalse(t *testing.T) {
 	s := mustSlice(velocypack.ParseJSONFromString("false"))
 
@@ -82,8 +88,8 @@ func TestParserUInt(t *testing.T) {
 }
 
 func TestParserDouble(t *testing.T) {
-	tests := []float64{10.77, 23.88, 456.01, 10e45}
-	jsons := []string{"10.77", "23.88", "456.01", "10e45"}
+	tests := []float64{10.77, 23.88, 456.01, 10e45, -9223372036854775809 /*MinInt64-1*/, 18446744073709551616 /*MaxUint64+1*/}
+	jsons := []string{"10.77", "23.88", "456.01", "10e45", "-9223372036854775809", "18446744073709551616"}
 	for i, test := range tests {
 		s := mustSlice(velocypack.ParseJSONFromString(jsons[i]))
 

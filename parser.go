@@ -25,7 +25,7 @@ package velocypack
 import (
 	"encoding/json"
 	"io"
-	"math"
+	"strconv"
 	"strings"
 )
 
@@ -59,8 +59,10 @@ func ParseJSONFromString(json string) (Slice, error) {
 // NewParser initializes a new Parser with JSON from the given reader and
 // it will store the parsers output in the given builder.
 func NewParser(r io.Reader, builder *Builder) *Parser {
+	d := json.NewDecoder(r)
+	d.UseNumber()
 	return &Parser{
-		decoder: json.NewDecoder(r),
+		decoder: d,
 		builder: builder,
 	}
 }
@@ -72,8 +74,10 @@ func (p *Parser) Parse() error {
 		t, err := p.decoder.Token()
 		if err == io.EOF {
 			break
+		} else if serr, ok := err.(*json.SyntaxError); ok {
+			return WithStack(&ParseError{msg: err.Error(), Offset: serr.Offset})
 		} else if err != nil {
-			return WithStack(err)
+			return WithStack(&ParseError{msg: err.Error()})
 		}
 		switch x := t.(type) {
 		case nil:
@@ -84,36 +88,22 @@ func (p *Parser) Parse() error {
 			if err := p.builder.AddValue(NewBoolValue(x)); err != nil {
 				return WithStack(err)
 			}
-		case float64:
-			if math.Trunc(x) == x {
-				// It's an integer
-				if x < 0 {
-					if x >= math.MinInt64 {
-						if err := p.builder.AddValue(NewIntValue(int64(x))); err != nil {
-							return WithStack(err)
-						}
-					} else {
-						// Does not fit in int64
-						if err := p.builder.AddValue(NewDoubleValue(x)); err != nil {
-							return WithStack(err)
-						}
-					}
-				} else {
-					if x <= math.MaxUint64 {
-						if err := p.builder.AddValue(NewUIntValue(uint64(x))); err != nil {
-							return WithStack(err)
-						}
-					} else {
-						// Does not fit in uint64
-						if err := p.builder.AddValue(NewDoubleValue(x)); err != nil {
-							return WithStack(err)
-						}
-					}
+		case json.Number:
+			if xu, err := strconv.ParseUint(string(x), 10, 64); err == nil {
+				if err := p.builder.AddValue(NewUIntValue(xu)); err != nil {
+					return WithStack(err)
+				}
+			} else if xi, err := x.Int64(); err == nil {
+				if err := p.builder.AddValue(NewIntValue(xi)); err != nil {
+					return WithStack(err)
 				}
 			} else {
-				// Floating point
-				if err := p.builder.AddValue(NewDoubleValue(x)); err != nil {
-					return WithStack(err)
+				if xf, err := x.Float64(); err == nil {
+					if err := p.builder.AddValue(NewDoubleValue(xf)); err != nil {
+						return WithStack(err)
+					}
+				} else {
+					return WithStack(&ParseError{msg: err.Error()})
 				}
 			}
 		case string:
