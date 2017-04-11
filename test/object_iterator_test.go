@@ -23,13 +23,15 @@
 package test
 
 import (
+	"fmt"
+	"sort"
 	"strings"
 	"testing"
 
 	velocypack "github.com/arangodb/go-velocypack"
 )
 
-func TestArrayIteratorInvalidSlice(t *testing.T) {
+func TestObjectIteratorInvalidSlice(t *testing.T) {
 	tests := []velocypack.Slice{
 		velocypack.NullSlice(),
 		velocypack.TrueSlice(),
@@ -37,32 +39,39 @@ func TestArrayIteratorInvalidSlice(t *testing.T) {
 		mustSlice(velocypack.ParseJSONFromString("1")),
 		mustSlice(velocypack.ParseJSONFromString("7.7")),
 		mustSlice(velocypack.ParseJSONFromString("\"foo\"")),
-		mustSlice(velocypack.ParseJSONFromString("{}")),
-		mustSlice(velocypack.ParseJSONFromString("{}", velocypack.ParserOptions{BuildUnindexedObjects: true})),
+		mustSlice(velocypack.ParseJSONFromString("[]")),
+		mustSlice(velocypack.ParseJSONFromString("[]", velocypack.ParserOptions{BuildUnindexedArrays: true})),
 	}
 	for _, test := range tests {
-		ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsInvalidType, t)(velocypack.NewArrayIterator(test))
+		ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsInvalidType, t)(velocypack.NewObjectIterator(test))
 	}
 }
 
-func TestArrayIteratorValues(t *testing.T) {
-	tests := [][]string{
-		[]string{},
-		[]string{"1", "2", "true", "null", "false", "{}"},
+func TestObjectIteratorValues(t *testing.T) {
+	tests := []map[string]string{
+		map[string]string{},
+		map[string]string{"foo": "1"},
 	}
 	for _, unindexed := range []bool{true, false} {
 		for _, test := range tests {
-			json := "[" + strings.Join(test, ",") + "]"
-			s := mustSlice(velocypack.ParseJSONFromString(json, velocypack.ParserOptions{BuildUnindexedArrays: unindexed}))
-			it, err := velocypack.NewArrayIterator(s)
+			var keyValuePairs []string
+			for k, v := range test {
+				keyValuePairs = append(keyValuePairs, fmt.Sprintf(`"%s":%s`, k, v))
+			}
+			json := "{" + strings.Join(keyValuePairs, ",") + "}"
+			sort.Strings(keyValuePairs)
+			s := mustSlice(velocypack.ParseJSONFromString(json, velocypack.ParserOptions{BuildUnindexedObjects: unindexed}))
+			it, err := velocypack.NewObjectIterator(s)
 			if err != nil {
-				t.Errorf("Failed to create ArrayIterator for '%s': %v", json, err)
+				t.Errorf("Failed to create ObjectIterator for '%s': %v", json, err)
 			} else {
 				i := 0
 				for it.IsValid() {
+					k := mustSlice(it.Key(true))
 					v := mustSlice(it.Value())
-					if mustString(v.JSONString()) != test[i] {
-						t.Errorf("Element %d is invalid; got '%s', expected '%s'", i, mustString(v.JSONString()), test[i])
+					kv := fmt.Sprintf(`"%s":%s`, mustString(k.GetString()), mustString(v.JSONString()))
+					if kv != keyValuePairs[i] {
+						t.Errorf("Element %d is invalid; got '%s', expected '%s'", i, kv, keyValuePairs[i])
 					}
 					must(it.Next())
 					i++
