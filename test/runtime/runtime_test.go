@@ -20,13 +20,26 @@
 // Author Ewout Prangsma
 //
 
-package intsize
+package runtime
 
 import (
+	"encoding/binary"
 	"testing"
 	"unsafe"
 )
 
-func TestShowIntSize(t *testing.T) {
-	t.Logf("Sizeof(int) == %d", unsafe.Sizeof(int(0)))
+const intSize int = int(unsafe.Sizeof(0))
+
+func detectByteOrder() binary.ByteOrder {
+	i := int(0x1)
+	bs := (*[intSize]byte)(unsafe.Pointer(&i))
+	if bs[0] == 0 {
+		return binary.BigEndian
+	}
+	return binary.LittleEndian
+}
+
+func TestShowRuntime(t *testing.T) {
+	t.Logf("Sizeof(int): %d", unsafe.Sizeof(int(0)))
+	t.Logf("Byte order:  %s", detectByteOrder())
 }

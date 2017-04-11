@@ -41,19 +41,19 @@ run-tests: $(GOBUILDDIR)
 		-e GOPATH=/usr/code/.gobuild \
 		-w /usr/code/ \
 		golang:$(GOVERSION) \
-		sh -c "go test -v $(REPOPATH)/test/intsize && go test $(TESTOPTIONS) $(REPOPATH) && go test -cover -coverpkg $(REPOPATH) -coverprofile=coverage.out $(TESTOPTIONS) $(REPOPATH)/test"
+		sh -c "go test -v $(REPOPATH)/test/runtime && go test $(TESTOPTIONS) $(REPOPATH) && go test -cover -coverpkg $(REPOPATH) -coverprofile=coverage.out $(TESTOPTIONS) $(REPOPATH)/test"
 
 # All unit tests using local Go tools
 run-tests-local: $(GOBUILDDIR)
 	@GOPATH=$(GOBUILDDIR) go get github.com/stretchr/testify/assert
-	@GOPATH=$(GOBUILDDIR) go test -v $(REPOPATH)/test/intsize
+	@GOPATH=$(GOBUILDDIR) go test -v $(REPOPATH)/test/runtime
 	@GOPATH=$(GOBUILDDIR) go test $(TESTOPTIONS) $(REPOPATH) 
 	@GOPATH=$(GOBUILDDIR) go test -cover -coverpkg $(REPOPATH) -coverprofile=coverage.out $(TESTOPTIONS) $(REPOPATH)/test
 
 # All (except large memory) unit tests using local Go tools
 run-tests-local-nolarge: $(GOBUILDDIR)
 	@GOPATH=$(GOBUILDDIR) go get github.com/stretchr/testify/assert
-	@GOPATH=$(GOBUILDDIR) go test -tags nolarge -v $(REPOPATH)/test/intsize
+	@GOPATH=$(GOBUILDDIR) go test -tags nolarge -v $(REPOPATH)/test/runtime
 	@GOPATH=$(GOBUILDDIR) go test -tags nolarge $(TESTOPTIONS) $(REPOPATH) 
 	@GOPATH=$(GOBUILDDIR) go test -tags nolarge -cover -coverpkg $(REPOPATH) -coverprofile=coverage.out $(TESTOPTIONS) $(REPOPATH)/test
 
