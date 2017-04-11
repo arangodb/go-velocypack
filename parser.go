@@ -29,17 +29,26 @@ import (
 	"strings"
 )
 
+// ParserOptions controls how the Parser builds Velocypack.
+type ParserOptions struct {
+	// If set, all Array's will be unindexed.
+	BuildUnindexedArrays bool
+	// If set, all Objects's will be unindexed.
+	BuildUnindexedObjects bool
+}
+
 // Parser is used to build VPack structures from JSON.
 type Parser struct {
+	options ParserOptions
 	decoder *json.Decoder
 	builder *Builder
 }
 
 // ParseJSON parses JSON from the given reader and returns the
 // VPack equivalent.
-func ParseJSON(r io.Reader) (Slice, error) {
+func ParseJSON(r io.Reader, options ...ParserOptions) (Slice, error) {
 	builder := &Builder{}
-	p := NewParser(r, builder)
+	p := NewParser(r, builder, options...)
 	if err := p.Parse(); err != nil {
 		return nil, WithStack(err)
 	}
@@ -52,19 +61,23 @@ func ParseJSON(r io.Reader) (Slice, error) {
 
 // ParseJSONFromString parses the given JSON string and returns the
 // VPack equivalent.
-func ParseJSONFromString(json string) (Slice, error) {
-	return ParseJSON(strings.NewReader(json))
+func ParseJSONFromString(json string, options ...ParserOptions) (Slice, error) {
+	return ParseJSON(strings.NewReader(json), options...)
 }
 
 // NewParser initializes a new Parser with JSON from the given reader and
 // it will store the parsers output in the given builder.
-func NewParser(r io.Reader, builder *Builder) *Parser {
+func NewParser(r io.Reader, builder *Builder, options ...ParserOptions) *Parser {
 	d := json.NewDecoder(r)
 	d.UseNumber()
-	return &Parser{
+	p := &Parser{
 		decoder: d,
 		builder: builder,
 	}
+	if len(options) > 0 {
+		p.options = options[0]
+	}
+	return p
 }
 
 // Parse JSON from the parsers reader and build VPack structures in the
@@ -113,11 +126,11 @@ func (p *Parser) Parse() error {
 		case json.Delim:
 			switch x {
 			case '[':
-				if err := p.builder.OpenArray(); err != nil {
+				if err := p.builder.OpenArray(p.options.BuildUnindexedArrays); err != nil {
 					return WithStack(err)
 				}
 			case '{':
-				if err := p.builder.OpenObject(); err != nil {
+				if err := p.builder.OpenObject(p.options.BuildUnindexedObjects); err != nil {
 					return WithStack(err)
 				}
 			case ']', '}':
