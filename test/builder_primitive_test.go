@@ -99,7 +99,7 @@ func TestBuilderPrimitiveAddDoubleFloat64(t *testing.T) {
 }
 
 func TestBuilderPrimitiveAddInt(t *testing.T) {
-	tests := []int{10, -7, -34, 344366, -346345324234, 233224, math.MinInt32}
+	tests := []int{10, -7, -34, 344366, math.MaxInt32, 233224, math.MinInt32}
 	for _, test := range tests {
 		var b velocypack.Builder
 		b.Add(test)

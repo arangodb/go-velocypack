@@ -78,7 +78,7 @@ func TestDecoderPrimitiveAddDoubleFloat64(t *testing.T) {
 }
 
 func TestDecoderPrimitiveAddInt(t *testing.T) {
-	tests := []int{10, -7, -34, 344366, -346345324234, 233224, math.MinInt32}
+	tests := []int{10, -7, -34, 344366, math.MaxInt32, 233224, math.MinInt32}
 	for _, test := range tests {
 		b := velocypack.Builder{}
 		b.AddValue(velocypack.NewIntValue(int64(test)))

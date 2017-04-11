@@ -80,7 +80,7 @@ func TestEncoderPrimitiveAddDoubleFloat64(t *testing.T) {
 }
 
 func TestEncoderPrimitiveAddInt(t *testing.T) {
-	tests := []int{10, -7, -34, 344366, -346345324234, 233224, math.MinInt32}
+	tests := []int{10, -7, -34, 344366, math.MaxInt32, 233224, math.MinInt32}
 	for _, test := range tests {
 		bytes, err := velocypack.Marshal(test)
 		ASSERT_NIL(err, t)
