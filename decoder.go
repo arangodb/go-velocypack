@@ -83,13 +83,13 @@ func NewDecoder(r io.Reader) *Decoder {
 //
 //	bool, for VelocyPack Bool's
 //	float64 for VelocyPack Double's
-//  uint64 for VelocyPack UInt's
-//  int64 for VelocyPack Int's
+//	uint64 for VelocyPack UInt's
+//	int64 for VelocyPack Int's
 //	string, for VelocyPack String's
 //	[]interface{}, for VelocyPack Array's
 //	map[string]interface{}, for VelocyPack Object's
 //	nil for VelocyPack Null.
-//  []byte for VelocyPack Binary.
+//	[]byte for VelocyPack Binary.
 //
 // To unmarshal a VelocyPack array into a slice, Unmarshal resets the slice length
 // to zero and then appends each element to the slice.
@@ -120,9 +120,8 @@ func NewDecoder(r io.Reader) *Decoder {
 // ``not present,'' unmarshaling a VelocyPack Null into any other Go type has no effect
 // on the value and produces no error.
 //
-func Unmarshal(data []byte, v interface{}) error {
-	s := Slice(data)
-	if err := unmarshalSlice(s, v); err != nil {
+func Unmarshal(data Slice, v interface{}) error {
+	if err := unmarshalSlice(data, v); err != nil {
 		return WithStack(err)
 	}
 	return nil
