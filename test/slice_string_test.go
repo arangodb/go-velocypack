@@ -49,34 +49,26 @@ func TestSliceStringEmpty(t *testing.T) {
 }
 
 func TestSliceStringLengths(t *testing.T) {
-	t.Skip("TODO")
-	/*
-			Builder builder;
+	for i := 0; i < 255; i++ {
+		builder := velocypack.Builder{}
+		temp := ""
+		for j := 0; j < i; j++ {
+			temp = temp + "x"
+		}
+		must(builder.AddValue(velocypack.NewStringValue(temp)))
+		slice := mustSlice(builder.Slice())
 
-		  for (size_t i = 0; i < 255; ++i) {
-		    builder.clear();
+		ASSERT_TRUE(slice.IsString(), t)
+		ASSERT_EQ(velocypack.String, slice.Type(), t)
 
-		    std::string temp;
-		    for (size_t j = 0; j < i; ++j) {
-		      temp.push_back('x');
-		    }
+		ASSERT_EQ(velocypack.ValueLength(i), mustLength(slice.GetStringLength()), t)
 
-		    builder.add(Value(temp));
-
-		    Slice slice = builder.slice();
-
-		    ASSERT_TRUE(slice.isString());
-		    ASSERT_EQ(ValueType::String, slice.type());
-
-		    ASSERT_EQ(i, slice.getStringLength());
-
-		    if (i <= 126) {
-		      ASSERT_EQ(i + 1, slice.byteSize());
-		    } else {
-		      ASSERT_EQ(i + 9, slice.byteSize());
-		    }
-		  }
-	*/
+		if i <= 126 {
+			ASSERT_EQ(velocypack.ValueLength(i+1), mustLength(slice.ByteSize()), t)
+		} else {
+			ASSERT_EQ(velocypack.ValueLength(i+9), mustLength(slice.ByteSize()), t)
+		}
+	}
 }
 
 func TestSliceString1(t *testing.T) {

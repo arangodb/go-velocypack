@@ -23,6 +23,7 @@
 package test
 
 import (
+	"math"
 	"testing"
 
 	velocypack "github.com/arangodb/go-velocypack"
@@ -38,6 +39,7 @@ func TestSliceUInt1(t *testing.T) {
 	ASSERT_EQ(velocypack.ValueLength(2), mustLength(slice.ByteSize()), t)
 
 	ASSERT_EQ(value, mustUInt(slice.GetUInt()), t)
+	ASSERT_EQ(int64(value), mustInt(slice.GetInt()), t)
 }
 
 func TestSliceUInt2(t *testing.T) {
@@ -118,16 +120,13 @@ func TestSliceUInt8(t *testing.T) {
 }
 
 func TestSliceUIntMax(t *testing.T) {
-	t.Skip("TODO")
-	/*	  Builder b;
-	  b.add(Value(INT64_MAX));
+	b := velocypack.Builder{}
+	must(b.AddValue(velocypack.NewUIntValue(math.MaxUint64)))
+	slice := mustSlice(b.Slice())
 
-	  Slice slice(b.slice());
+	ASSERT_EQ(velocypack.UInt, slice.Type(), t)
+	ASSERT_TRUE(slice.IsUInt(), t)
+	ASSERT_EQ(velocypack.ValueLength(9), mustLength(slice.ByteSize()), t)
 
-		ASSERT_EQ(velocypack.Int, slice.Type(), t)
-		ASSERT_TRUE(slice.IsInt(), t)
-		ASSERT_EQ(velocypack.ValueLength(9), mustLength(slice.ByteSize()), t)
-
-		ASSERT_EQ(int64(math.MaxInt64), slice.MustGetInt(), t)
-	*/
+	ASSERT_EQ(uint64(math.MaxUint64), mustUInt(slice.GetUInt()), t)
 }

@@ -35,6 +35,7 @@ func TestSliceBinaryEmpty(t *testing.T) {
 	ASSERT_TRUE(slice.IsBinary(), t)
 	ASSERT_EQ([]byte{}, mustBytes(slice.GetBinary()), t)
 	ASSERT_EQ(velocypack.ValueLength(0), mustLength(slice.GetBinaryLength()), t)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
 }
 
 func TestSliceBinarySomeValue(t *testing.T) {
@@ -44,6 +45,7 @@ func TestSliceBinarySomeValue(t *testing.T) {
 	ASSERT_TRUE(slice.IsBinary(), t)
 	ASSERT_EQ([]byte{0xfe, 0xfd, 0xfc, 0xfb, 0xfa}, mustBytes(slice.GetBinary()), t)
 	ASSERT_EQ(velocypack.ValueLength(5), mustLength(slice.GetBinaryLength()), t)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
 }
 
 func TestSliceBinaryWithNullBytes(t *testing.T) {
@@ -53,6 +55,7 @@ func TestSliceBinaryWithNullBytes(t *testing.T) {
 	ASSERT_TRUE(slice.IsBinary(), t)
 	ASSERT_EQ([]byte{0x01, 0x02, 0x00, 0x03, 0x00}, mustBytes(slice.GetBinary()), t)
 	ASSERT_EQ(velocypack.ValueLength(5), mustLength(slice.GetBinaryLength()), t)
+	ASSERT_EQ(velocypack.ValueLength(len(slice)), mustLength(slice.ByteSize()), t)
 }
 
 func TestSliceBinaryNonBinary(t *testing.T) {

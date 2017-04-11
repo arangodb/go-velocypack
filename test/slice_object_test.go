@@ -53,6 +53,7 @@ func TestSliceObjectCases1(t *testing.T) {
 	ss := mustSlice(slice.Get("a"))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
 	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
+	ASSERT_EQ(int64(1), mustInt(mustSlice(slice.ValueAt(0)).GetInt()), t)
 }
 
 func TestSliceObjectCases2(t *testing.T) {

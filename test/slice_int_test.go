@@ -23,6 +23,7 @@
 package test
 
 import (
+	"math"
 	"testing"
 
 	velocypack "github.com/arangodb/go-velocypack"
@@ -39,6 +40,7 @@ func TestSliceInt1(t *testing.T) {
 
 	ASSERT_EQ(value, mustInt(slice.GetInt()), t)
 	ASSERT_EQ(value, mustInt(slice.GetSmallInt()), t)
+	ASSERT_EQ(uint64(value), mustUInt(slice.GetUInt()), t)
 }
 
 func TestSliceInt2(t *testing.T) {
@@ -126,18 +128,15 @@ func TestSliceInt8(t *testing.T) {
 }
 
 func TestSliceIntMax(t *testing.T) {
-	t.Skip("TODO")
-	/*	  Builder b;
-	  b.add(Value(INT64_MAX));
+	b := velocypack.Builder{}
+	must(b.AddValue(velocypack.NewIntValue(math.MaxInt64)))
+	slice := mustSlice(b.Slice())
 
-	  Slice slice(b.slice());
+	ASSERT_EQ(velocypack.Int, slice.Type(), t)
+	ASSERT_TRUE(slice.IsInt(), t)
+	ASSERT_EQ(velocypack.ValueLength(9), mustLength(slice.ByteSize()), t)
 
-		ASSERT_EQ(velocypack.Int, slice.Type(), t)
-		ASSERT_TRUE(slice.IsInt(), t)
-		ASSERT_EQ(velocypack.ValueLength(9), mustLength(slice.ByteSize()), t)
-
-		ASSERT_EQ(int64(math.MaxInt64), mustInt(slice.GetInt()), t)
-	*/
+	ASSERT_EQ(int64(math.MaxInt64), mustInt(slice.GetInt()), t)
 }
 
 func TestSliceNegInt1(t *testing.T) {
