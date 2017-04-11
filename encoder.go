@@ -54,6 +54,50 @@ func NewEncoder(w io.Writer) *Encoder {
 }
 
 // Marshal writes the Velocypack encoding of v to a buffer and returns that buffer.
+//
+// Marshal traverses the value v recursively.
+// If an encountered value implements the Marshaler interface
+// and is not a nil pointer, Marshal calls its MarshalVPack method
+// to produce Velocypack. If no MarshalVPack method is present but the
+// value implements encoding.TextMarshaler instead, Marshal calls
+// its MarshalText method and encodes the result as a Velocypack string.
+// The nil pointer exception is not strictly necessary
+// but mimics a similar, necessary exception in the behavior of
+// UnmarshalVPack.
+//
+// Otherwise, Marshal uses the following type-dependent default encodings:
+//
+// Boolean values encode as Velocypack booleans.
+//
+// Floating point, integer, and Number values encode as Velocypack Int's, UInt's and Double's.
+//
+// String values encode as Velocypack strings.
+//
+// Array and slice values encode as Velocypack arrays, except that
+// []byte encodes as Velocypack Binary data, and a nil slice
+// encodes as the Null Velocypack value.
+//
+// Struct values encode as Velocypack objects.
+// The encoding follows the same rules as specified for json.Marshal.
+// This means that all `json` tags are fully supported.
+//
+// Map values encode as Velocypack objects.
+// The encoding follows the same rules as specified for json.Marshal.
+//
+// Pointer values encode as the value pointed to.
+// A nil pointer encodes as the Null Velocypack value.
+//
+// Interface values encode as the value contained in the interface.
+// A nil interface value encodes as the Null Velocypack value.
+//
+// Channel, complex, and function values cannot be encoded in Velocypack.
+// Attempting to encode such a value causes Marshal to return
+// an UnsupportedTypeError.
+//
+// Velocypack cannot represent cyclic data structures and Marshal does not
+// handle them. Passing cyclic structures to Marshal will result in
+// an infinite recursion.
+//
 func Marshal(v interface{}) (result Slice, err error) {
 	defer func() {
 		if r := recover(); r != nil {
