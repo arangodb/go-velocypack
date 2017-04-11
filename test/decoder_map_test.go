@@ -79,7 +79,7 @@ func TestDecoderMapMultipleFieldsInt64(t *testing.T) {
 	if unsafe.Sizeof(int(0)) == 4 {
 		i = int64(math.MaxInt32) + 1
 	} else {
-		i = math.MaxInt32 + 1
+		i = int(int64(math.MaxInt32) + 1)
 	}
 	expected := map[string]interface{}{
 		"Name": "Max",
