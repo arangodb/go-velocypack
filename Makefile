@@ -43,5 +43,10 @@ run-tests: $(GOBUILDDIR)
 		golang:$(GOVERSION) \
 		sh -c "go test $(TESTOPTIONS) $(REPOPATH) && go test -cover -coverpkg $(REPOPATH) -coverprofile=coverage.out $(TESTOPTIONS) $(REPOPATH)/test"
 
+# All unit tests using local Go tools
+run-tests-local: $(GOBUILDDIR)
+	@GOPATH=$(GOBUILDDIR) go get github.com/stretchr/testify/assert
+	go test $(TESTOPTIONS) $(REPOPATH) && go test -cover -coverpkg $(REPOPATH) -coverprofile=coverage.out $(TESTOPTIONS) $(REPOPATH)/test
+
 show-coverage: run-tests
 	go tool cover -html coverage.out 
