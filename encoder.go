@@ -26,7 +26,9 @@
 package velocypack
 
 import (
+	"bytes"
 	"encoding"
+	"encoding/json"
 	"io"
 	"reflect"
 	"runtime"
@@ -58,7 +60,11 @@ func NewEncoder(w io.Writer) *Encoder {
 // Marshal traverses the value v recursively.
 // If an encountered value implements the Marshaler interface
 // and is not a nil pointer, Marshal calls its MarshalVPack method
-// to produce Velocypack. If no MarshalVPack method is present but the
+// to produce Velocypack.
+// If an encountered value implements the json.Marshaler interface
+// and is not a nil pointer, Marshal calls its MarshalJSON method
+// to produce JSON and converts the resulting JSON to VelocyPack.
+// If no MarshalVPack or MarshalJSON method is present but the
 // value implements encoding.TextMarshaler instead, Marshal calls
 // its MarshalText method and encodes the result as a Velocypack string.
 // The nil pointer exception is not strictly necessary
@@ -174,6 +180,7 @@ func valueEncoder(v reflect.Value) encoderFunc {
 
 var (
 	marshalerType     = reflect.TypeOf(new(Marshaler)).Elem()
+	jsonMarshalerType = reflect.TypeOf(new(json.Marshaler)).Elem()
 	textMarshalerType = reflect.TypeOf(new(encoding.TextMarshaler)).Elem()
 	nullValue         = NewNullValue()
 )
@@ -218,9 +225,15 @@ func newTypeEncoder(t reflect.Type, allowAddr bool) encoderFunc {
 	if t.Implements(marshalerType) {
 		return marshalerEncoder
 	}
+	if t.Implements(jsonMarshalerType) {
+		return jsonMarshalerEncoder
+	}
 	if t.Kind() != reflect.Ptr && allowAddr {
 		if reflect.PtrTo(t).Implements(marshalerType) {
 			return newCondAddrEncoder(addrMarshalerEncoder, newTypeEncoder(t, false))
+		}
+		if reflect.PtrTo(t).Implements(jsonMarshalerType) {
+			return newCondAddrEncoder(addrJSONMarshalerEncoder, newTypeEncoder(t, false))
 		}
 	}
 
@@ -275,12 +288,32 @@ func marshalerEncoder(b *Builder, v reflect.Value) {
 		b.addInternal(nullValue)
 		return
 	}
-	vpack, err := m.MarshalVPack()
-	if err == nil {
+	if vpack, err := m.MarshalVPack(); err != nil {
+		panic(&MarshalerError{v.Type(), err})
+	} else {
 		b.addInternal(NewSliceValue(vpack))
 	}
-	if err != nil {
+}
+
+func jsonMarshalerEncoder(b *Builder, v reflect.Value) {
+	if v.Kind() == reflect.Ptr && v.IsNil() {
+		b.addInternal(nullValue)
+		return
+	}
+	m, ok := v.Interface().(json.Marshaler)
+	if !ok {
+		b.addInternal(nullValue)
+		return
+	}
+	if json, err := m.MarshalJSON(); err != nil {
 		panic(&MarshalerError{v.Type(), err})
+	} else {
+		// Convert JSON to vpack
+		if slice, err := ParseJSON(bytes.NewReader(json)); err != nil {
+			panic(&MarshalerError{v.Type(), err})
+		} else {
+			b.addInternal(NewSliceValue(slice))
+		}
 	}
 }
 
@@ -291,13 +324,30 @@ func addrMarshalerEncoder(b *Builder, v reflect.Value) {
 		return
 	}
 	m := va.Interface().(Marshaler)
-	vpack, err := m.MarshalVPack()
-	if err == nil {
-		// copy JSON into buffer, checking validity.
+	if vpack, err := m.MarshalVPack(); err != nil {
+		panic(&MarshalerError{Type: v.Type(), Err: err})
+	} else {
+		// copy VPack into buffer, checking validity.
 		b.buf.Write(vpack)
 	}
-	if err != nil {
+}
+
+func addrJSONMarshalerEncoder(b *Builder, v reflect.Value) {
+	va := v.Addr()
+	if va.IsNil() {
+		b.addInternal(nullValue)
+		return
+	}
+	m := va.Interface().(json.Marshaler)
+	if json, err := m.MarshalJSON(); err != nil {
 		panic(&MarshalerError{Type: v.Type(), Err: err})
+	} else {
+		if slice, err := ParseJSON(bytes.NewReader(json)); err != nil {
+			panic(&MarshalerError{v.Type(), err})
+		} else {
+			// copy VPack into buffer, checking validity.
+			b.buf.Write(slice)
+		}
 	}
 }
 
@@ -477,7 +527,7 @@ func newSliceEncoder(t reflect.Type) encoderFunc {
 	// Byte slices get special treatment; arrays don't.
 	if t.Elem().Kind() == reflect.Uint8 {
 		p := reflect.PtrTo(t.Elem())
-		if !p.Implements(marshalerType) && !p.Implements(textMarshalerType) {
+		if !p.Implements(marshalerType) && !p.Implements(jsonMarshalerType) && !p.Implements(textMarshalerType) {
 			return encodeByteSlice
 		}
 	}
