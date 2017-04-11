@@ -20,7 +20,7 @@
 // Author Ewout Prangsma
 //
 
-// !build !nolarge
+// +build !nolarge
 
 package test
 
