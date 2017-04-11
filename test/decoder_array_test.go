@@ -174,3 +174,30 @@ func TestDecoderArrayNestedArray(t *testing.T) {
 	ASSERT_NIL(err, t)
 	ASSERT_EQ(v, expected, t)
 }
+
+func TestDecoderArrayExtraLengthInSlice(t *testing.T) {
+	input := []int{1, 2, 3, 4, 5, 6, 7, 8}
+	bytes, err := velocypack.Marshal(input)
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+	expected := input
+
+	v := make([]int, 16)
+	err = velocypack.Unmarshal(s, &v)
+	ASSERT_NIL(err, t)
+	ASSERT_EQ(v, expected, t)
+}
+
+func TestDecoderArrayExtraLengthInArray(t *testing.T) {
+	input := []int{1, 2, 3, 4, 5, 6, 7, 8}
+	bytes, err := velocypack.Marshal(input)
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+	expected := [16]int{}
+	copy(expected[:], input)
+
+	v := [16]int{}
+	err = velocypack.Unmarshal(s, &v)
+	ASSERT_NIL(err, t)
+	ASSERT_EQ(v, expected, t)
+}
