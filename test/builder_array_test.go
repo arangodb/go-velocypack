@@ -26,8 +26,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"math"
-	"strconv"
-	"strings"
 	"testing"
 
 	velocypack "github.com/arangodb/go-velocypack"
@@ -453,20 +451,4 @@ func TestBuilderClear(t *testing.T) {
 	b.Clear()
 	ASSERT_TRUE(b.IsClosed(), t)
 	ASSERT_EQ(0, len(mustBytes(b.Bytes())), t)
-}
-
-func TestBuilderArrayLarge(t *testing.T) {
-	var obj velocypack.Builder
-	max := math.MaxInt16 * 2
-	expected := make([]string, max)
-	must(obj.OpenArray())
-	for i := 0; i < max; i++ {
-		must(obj.AddValue(velocypack.NewIntValue(int64(i))))
-		expected[i] = strconv.Itoa(i)
-	}
-	must(obj.Close())
-	objSlice := mustSlice(obj.Slice())
-
-	expectedJSON := "[" + strings.Join(expected, ",") + "]"
-	ASSERT_EQ(expectedJSON, mustString(objSlice.JSONString()), t)
 }
