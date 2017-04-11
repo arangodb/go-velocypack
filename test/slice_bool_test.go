@@ -30,6 +30,7 @@ import (
 
 func TestSliceFalse(t *testing.T) {
 	slice := velocypack.Slice{0x19}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Bool, slice.Type(), t)
 	ASSERT_TRUE(slice.IsBool(), t)
@@ -41,6 +42,7 @@ func TestSliceFalse(t *testing.T) {
 
 func TestSliceTrue(t *testing.T) {
 	slice := velocypack.Slice{0x1a}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Bool, slice.Type(), t)
 	ASSERT_TRUE(slice.IsBool(), t)

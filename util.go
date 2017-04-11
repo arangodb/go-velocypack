@@ -22,6 +22,11 @@
 
 package velocypack
 
+import (
+	"fmt"
+	"io"
+)
+
 // vpackAssert panics if v is false.
 func vpackAssert(v bool) {
 	if !v {
@@ -29,10 +34,38 @@ func vpackAssert(v bool) {
 	}
 }
 
+// readBytes reads bytes from the given reader until the given slice is full.
+func readBytes(dst []byte, r io.Reader) error {
+	offset := 0
+	l := len(dst)
+	for {
+		n, err := r.Read(dst[offset:])
+		offset += n
+		l -= n
+		if l == 0 {
+			// We're done
+			return nil
+		}
+		if err != nil {
+			return WithStack(err)
+		}
+	}
+}
+
 // read an unsigned little endian integer value of the
 // specified length, starting at the specified byte offset
 func readIntegerFixed(start []byte, length uint) uint64 {
 	return readIntegerNonEmpty(start, length)
+}
+
+// read an unsigned little endian integer value of the
+// specified length, starting at the specified byte offset
+func readIntegerFixedFromReader(r io.Reader, length uint) (uint64, []byte, error) {
+	buf := make([]byte, length)
+	if err := readBytes(buf, r); err != nil {
+		return 0, nil, WithStack(err)
+	}
+	return readIntegerFixed(buf, length), buf, nil
 }
 
 // read an unsigned little endian integer value of the
@@ -45,6 +78,16 @@ func readIntegerNonEmpty(s []byte, length uint) uint64 {
 		x += 8
 	}
 	return v
+}
+
+// read an unsigned little endian integer value of the
+// specified length, starting at the specified byte offset
+func readIntegerNonEmptyFromReader(r io.Reader, length uint) (uint64, []byte, error) {
+	buf := make([]byte, length)
+	if err := readBytes(buf, r); err != nil {
+		return 0, nil, WithStack(err)
+	}
+	return readIntegerNonEmpty(buf, length), buf, nil
 }
 
 func toInt64(v uint64) int64 {
@@ -91,6 +134,34 @@ func readVariableValueLength(source []byte, offset ValueLength, reverse bool) Va
 		}
 	}
 	return length
+}
+
+// read a variable length integer in unsigned LEB128 format
+func readVariableValueLengthFromReader(r io.Reader, reverse bool) (ValueLength, []byte, error) {
+	if reverse {
+		return 0, nil, WithStack(fmt.Errorf("reverse is not supported"))
+	}
+	length := ValueLength(0)
+	p := uint(0)
+	buf := make([]byte, 1)
+	bytes := make([]byte, 0, 8)
+	for {
+		if n, err := r.Read(buf); n != 1 {
+			if err != nil {
+				return 0, nil, WithStack(err)
+			} else {
+				return 0, nil, WithStack(fmt.Errorf("failed to read 1 byte"))
+			}
+		}
+		bytes = append(bytes, buf[0])
+		v := ValueLength(buf[0])
+		length += (v & 0x7f) << p
+		p += 7
+		if v&0x80 == 0 {
+			break
+		}
+	}
+	return length, bytes, nil
 }
 
 // store a variable length integer in unsigned LEB128 format

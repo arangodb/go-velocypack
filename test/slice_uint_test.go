@@ -31,6 +31,7 @@ import (
 func TestSliceUInt1(t *testing.T) {
 	slice := velocypack.Slice{0x28, 0x33}
 	value := uint64(0x33)
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.UInt, slice.Type(), t)
 	ASSERT_TRUE(slice.IsUInt(), t)
@@ -41,6 +42,7 @@ func TestSliceUInt1(t *testing.T) {
 
 func TestSliceUInt2(t *testing.T) {
 	slice := velocypack.Slice{0x29, 0x23, 0x42}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.UInt, slice.Type(), t)
 	ASSERT_TRUE(slice.IsUInt(), t)
@@ -51,6 +53,7 @@ func TestSliceUInt2(t *testing.T) {
 
 func TestSliceUInt3(t *testing.T) {
 	slice := velocypack.Slice{0x2a, 0x23, 0x42, 0x66}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.UInt, slice.Type(), t)
 	ASSERT_TRUE(slice.IsUInt(), t)
@@ -61,6 +64,7 @@ func TestSliceUInt3(t *testing.T) {
 
 func TestSliceUInt4(t *testing.T) {
 	slice := velocypack.Slice{0x2b, 0x23, 0x42, 0x66, 0x7c}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.UInt, slice.Type(), t)
 	ASSERT_TRUE(slice.IsUInt(), t)
@@ -71,6 +75,7 @@ func TestSliceUInt4(t *testing.T) {
 
 func TestSliceUInt5(t *testing.T) {
 	slice := velocypack.Slice{0x2c, 0x23, 0x42, 0x66, 0xac, 0x6f}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.UInt, slice.Type(), t)
 	ASSERT_TRUE(slice.IsUInt(), t)
@@ -81,6 +86,7 @@ func TestSliceUInt5(t *testing.T) {
 
 func TestSliceUInt6(t *testing.T) {
 	slice := velocypack.Slice{0x2d, 0x23, 0x42, 0x66, 0xac, 0xff, 0x3f}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.UInt, slice.Type(), t)
 	ASSERT_TRUE(slice.IsUInt(), t)
@@ -91,6 +97,7 @@ func TestSliceUInt6(t *testing.T) {
 
 func TestSliceUInt7(t *testing.T) {
 	slice := velocypack.Slice{0x2e, 0x23, 0x42, 0x66, 0xac, 0xff, 0x3f, 0x5a}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.UInt, slice.Type(), t)
 	ASSERT_TRUE(slice.IsUInt(), t)
@@ -101,6 +108,7 @@ func TestSliceUInt7(t *testing.T) {
 
 func TestSliceUInt8(t *testing.T) {
 	slice := velocypack.Slice{0x2f, 0x23, 0x42, 0x66, 0xac, 0xff, 0x3f, 0xfa, 0x6f}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.UInt, slice.Type(), t)
 	ASSERT_TRUE(slice.IsUInt(), t)

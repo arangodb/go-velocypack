@@ -39,8 +39,8 @@ import (
 // A field represents a single field found in a struct.
 type field struct {
 	name      string
-	nameBytes []byte // []byte(name)
-	//equalFold func(s, t []byte) bool // bytes.EqualFold or equivalent
+	nameBytes []byte                 // []byte(name)
+	equalFold func(s, t []byte) bool // bytes.EqualFold or equivalent
 
 	tag       bool
 	index     []int
@@ -74,7 +74,7 @@ func typeByIndex(t reflect.Type, index []int) reflect.Type {
 
 func fillField(f field) field {
 	f.nameBytes = []byte(f.name)
-	//f.equalFold = foldFunc(f.nameBytes)
+	f.equalFold = foldFunc(f.nameBytes)
 	return f
 }
 

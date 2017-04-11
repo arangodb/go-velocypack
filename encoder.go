@@ -43,7 +43,7 @@ type Encoder struct {
 
 // Marshaler is implemented by types that can convert themselves into Velocypack.
 type Marshaler interface {
-	MarshalVPack() ([]byte, error)
+	MarshalVPack() (Slice, error)
 }
 
 // NewEncoder creates a new Encoder that writes output to the given writer.
@@ -54,7 +54,7 @@ func NewEncoder(w io.Writer) *Encoder {
 }
 
 // Marshal writes the Velocypack encoding of v to a buffer and returns that buffer.
-func Marshal(v interface{}) (result []byte, err error) {
+func Marshal(v interface{}) (result Slice, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			if _, ok := r.(runtime.Error); ok {
@@ -68,7 +68,7 @@ func Marshal(v interface{}) (result []byte, err error) {
 	}()
 	var b Builder
 	reflectValue(&b, reflect.ValueOf(v))
-	return b.Bytes()
+	return b.Slice()
 }
 
 // Encode writes the Velocypack encoding of v to the stream.

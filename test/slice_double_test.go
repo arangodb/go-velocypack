@@ -34,6 +34,7 @@ func TestSliceDouble(t *testing.T) {
 	slice := velocypack.Slice{0x1b, 1, 2, 3, 4, 5, 6, 7, 8}
 	value := 23.5
 	binary.LittleEndian.PutUint64(slice[1:], math.Float64bits(value))
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Double, slice.Type(), t)
 	ASSERT_TRUE(slice.IsDouble(), t)
@@ -45,6 +46,7 @@ func TestSliceDoubleNegative(t *testing.T) {
 	slice := velocypack.Slice{0x1b, 1, 2, 3, 4, 5, 6, 7, 8}
 	value := -999.91355
 	binary.LittleEndian.PutUint64(slice[1:], math.Float64bits(value))
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.Double, slice.Type(), t)
 	ASSERT_TRUE(slice.IsDouble(), t)

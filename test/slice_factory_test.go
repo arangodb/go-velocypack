@@ -30,51 +30,61 @@ import (
 
 func TestSliceNoneFactory(t *testing.T) {
 	slice := velocypack.NoneSlice()
+	assertEqualFromReader(t, slice)
 	ASSERT_TRUE(slice.IsNone(), t)
 }
 
 func TestSliceNullFactory(t *testing.T) {
 	slice := velocypack.NullSlice()
+	assertEqualFromReader(t, slice)
 	ASSERT_TRUE(slice.IsNull(), t)
 }
 
 func TestSliceZeroFactory(t *testing.T) {
 	slice := velocypack.ZeroSlice()
+	assertEqualFromReader(t, slice)
 	ASSERT_TRUE(slice.IsSmallInt(), t)
 	ASSERT_EQ(int64(0), mustInt(slice.GetSmallInt()), t)
 }
 
 func TestSliceIllegalFactory(t *testing.T) {
 	slice := velocypack.IllegalSlice()
+	assertEqualFromReader(t, slice)
 	ASSERT_TRUE(slice.IsIllegal(), t)
 }
 
 func TestSliceFalseFactory(t *testing.T) {
 	slice := velocypack.FalseSlice()
+	assertEqualFromReader(t, slice)
 	ASSERT_TRUE(slice.IsBool() && !mustBool(slice.GetBool()), t)
 }
 
 func TestSliceTrueFactory(t *testing.T) {
 	slice := velocypack.TrueSlice()
+	assertEqualFromReader(t, slice)
 	ASSERT_TRUE(slice.IsBool() && mustBool(slice.GetBool()), t)
 }
 
 func TestSliceEmptyArrayFactory(t *testing.T) {
 	slice := velocypack.EmptyArraySlice()
+	assertEqualFromReader(t, slice)
 	ASSERT_TRUE(slice.IsArray() && mustLength(slice.Length()) == 0, t)
 }
 
 func TestSliceEmptyObjectFactory(t *testing.T) {
 	slice := velocypack.EmptyObjectSlice()
+	assertEqualFromReader(t, slice)
 	ASSERT_TRUE(slice.IsObject() && mustLength(slice.Length()) == 0, t)
 }
 
 func TestSliceMinKeyFactory(t *testing.T) {
 	slice := velocypack.MinKeySlice()
+	assertEqualFromReader(t, slice)
 	ASSERT_TRUE(slice.IsMinKey(), t)
 }
 
 func TestSliceMaxKeyFactory(t *testing.T) {
 	slice := velocypack.MaxKeySlice()
+	assertEqualFromReader(t, slice)
 	ASSERT_TRUE(slice.IsMaxKey(), t)
 }

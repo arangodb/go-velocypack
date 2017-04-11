@@ -23,23 +23,26 @@
 package test
 
 import (
+	"bytes"
+	"fmt"
 	"testing"
 
 	velocypack "github.com/arangodb/go-velocypack"
 )
 
-func TestSliceSmallInt(t *testing.T) {
-	expected := []int64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, -6, -5, -4, -3, -2, -1}
-
-	for i := 0; i < 16; i++ {
-		slice := velocypack.Slice{byte(0x30 + i)}
-		assertEqualFromReader(t, slice)
-
-		ASSERT_EQ(velocypack.SmallInt, slice.Type(), t)
-		ASSERT_TRUE(slice.IsSmallInt(), t)
-		ASSERT_EQ(velocypack.ValueLength(1), mustLength(slice.ByteSize()), t)
-
-		ASSERT_EQ(expected[i], mustInt(slice.GetSmallInt()), t)
-		ASSERT_EQ(expected[i], mustInt(slice.GetInt()), t)
+// assertEqualFromReader wraps the given slice in a byte Buffer (the io.Reader) and
+// calls SliceFromReader on that.
+// It then compares the 2 slices.
+func assertEqualFromReader(t *testing.T, s velocypack.Slice, args ...interface{}) {
+	buf := bytes.NewBuffer(s)
+	s2, err := velocypack.SliceFromReader(buf)
+	var msg string
+	if len(args) > 0 {
+		msg = " (" + fmt.Sprintf(args[0].(string), args[1:]...) + ")"
+	}
+	if err != nil {
+		t.Errorf("SliceFromReader failed at %s: %v%s", callerInfo(2), err, msg)
+	} else if s.String() != s2.String() {
+		t.Errorf("SliceFromReader return different slice at %s. Got:\n\t'%s', expected:\n\t'%s'%s", callerInfo(2), s2.String(), s.String(), msg)
 	}
 }

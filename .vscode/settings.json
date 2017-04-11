@@ -32,14 +32,5 @@
             "${commentprefix} ",
             ""
         ]
-    },
-    "emeraldwalk.runonsave": {
-        "commands": [
-            {
-                "isAsync": false,
-                "match": "\\.go$",
-                "cmd": "make -C ${workspaceRoot} run-tests"
-            }
-        ]
     }
 }

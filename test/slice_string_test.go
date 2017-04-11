@@ -30,6 +30,7 @@ import (
 
 func TestSliceStringNoString(t *testing.T) {
 	slice := velocypack.Slice{}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_FALSE(slice.IsString(), t)
 	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsInvalidType, t)(slice.GetString())
@@ -38,6 +39,7 @@ func TestSliceStringNoString(t *testing.T) {
 
 func TestSliceStringEmpty(t *testing.T) {
 	slice := velocypack.Slice{0x40}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.String, slice.Type(), t)
 	ASSERT_TRUE(slice.IsString(), t)
@@ -80,6 +82,7 @@ func TestSliceStringLengths(t *testing.T) {
 func TestSliceString1(t *testing.T) {
 	value := "foobar"
 	slice := velocypack.Slice(append([]byte{byte(0x40 + len(value))}, value...))
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.String, slice.Type(), t)
 	ASSERT_TRUE(slice.IsString(), t)
@@ -90,6 +93,7 @@ func TestSliceString1(t *testing.T) {
 
 func TestSliceString2(t *testing.T) {
 	slice := velocypack.Slice{0x48, '1', '2', '3', 'f', '\r', '\t', '\n', 'x'}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.String, slice.Type(), t)
 	ASSERT_TRUE(slice.IsString(), t)
@@ -100,6 +104,7 @@ func TestSliceString2(t *testing.T) {
 
 func TestSliceStringNullBytes(t *testing.T) {
 	slice := velocypack.Slice{0x48, 0, '1', '2', 0, '3', '4', 0, 'x'}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.String, slice.Type(), t)
 	ASSERT_TRUE(slice.IsString(), t)
@@ -110,6 +115,7 @@ func TestSliceStringNullBytes(t *testing.T) {
 
 func TestSliceStringLong(t *testing.T) {
 	slice := velocypack.Slice{0xbf, 6, 0, 0, 0, 0, 0, 0, 0, 'f', 'o', 'o', 'b', 'a', 'r'}
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ(velocypack.String, slice.Type(), t)
 	ASSERT_TRUE(slice.IsString(), t)
@@ -120,6 +126,7 @@ func TestSliceStringLong(t *testing.T) {
 
 func TestSliceStringToStringNull(t *testing.T) {
 	slice := velocypack.NullSlice()
+	assertEqualFromReader(t, slice)
 
 	ASSERT_EQ("null", mustString(slice.JSONString()), t)
 }
