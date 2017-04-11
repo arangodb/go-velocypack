@@ -202,6 +202,22 @@ func IsUnmarshalType(err error) bool {
 	return ok
 }
 
+// An ParseError is returned when JSON cannot be parsed correctly.
+type ParseError struct {
+	msg    string
+	Offset int64
+}
+
+func (e *ParseError) Error() string {
+	return e.msg
+}
+
+// IsParse returns true if the given error is a ParseError.
+func IsParse(err error) bool {
+	_, ok := Cause(err).(*ParseError)
+	return ok
+}
+
 var (
 	// WithStack is called on every return of an error to add stacktrace information to the error.
 	// When setting this function, also set the Cause function.
