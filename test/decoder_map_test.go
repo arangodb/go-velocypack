@@ -26,6 +26,7 @@ import (
 	"math"
 	"reflect"
 	"testing"
+	"unsafe"
 
 	velocypack "github.com/arangodb/go-velocypack"
 )
@@ -74,11 +75,17 @@ func TestDecoderMapMultipleFields(t *testing.T) {
 }
 
 func TestDecoderMapMultipleFieldsInt64(t *testing.T) {
+	var i interface{}
+	if unsafe.Sizeof(int(0)) == 4 {
+		i = int64(math.MaxInt32) + 1
+	} else {
+		i = math.MaxInt32 + 1
+	}
 	expected := map[string]interface{}{
 		"Name": "Max",
 		"A":    true,
 		"D":    123.456,
-		"I":    math.MaxInt32 + 1, // Will be of type int or int64 depending on GOARCH
+		"I":    i, // Will be of type int or int64 depending on GOARCH
 	}
 	bytes, err := velocypack.Marshal(expected)
 	ASSERT_NIL(err, t)
