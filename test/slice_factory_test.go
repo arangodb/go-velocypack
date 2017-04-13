@@ -88,3 +88,18 @@ func TestSliceMaxKeyFactory(t *testing.T) {
 	assertEqualFromReader(t, slice)
 	ASSERT_TRUE(slice.IsMaxKey(), t)
 }
+
+func TestSliceStringFactory(t *testing.T) {
+	slice := velocypack.StringSlice("short")
+	assertEqualFromReader(t, slice)
+	ASSERT_TRUE(slice.IsString(), t)
+
+	slice = velocypack.StringSlice(`long long long long long long long long long long long long long long long long long long 
+	long long long long long long long long long long long long long long long long long long long long long long long long 
+	long long long long long long long long long long long long long long long long long long long long long long long long 
+	long long long long long long long long long long long long long long long long long long long long long long long long 
+	long long long long long long long long long long long long long long long long long long long long long long long long 
+	long long long long long long long long long long long long long long long long long long long long long long long long `)
+	assertEqualFromReader(t, slice)
+	ASSERT_TRUE(slice.IsString(), t)
+}
