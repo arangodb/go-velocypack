@@ -22,66 +22,30 @@
 
 package velocypack
 
-import "sync"
+import "strconv"
 
-var AttributeTranslator AttributeIDTranslator
+var attributeTranslator attributeIDTranslator = &arangoAttributeIDTranslator{}
 
-// AttributeIDTranslator is used to translation integer style object keys to strings.
-type AttributeIDTranslator interface {
+// attributeIDTranslator is used to translation integer style object keys to strings.
+type attributeIDTranslator interface {
 	IDToString(id uint64) string
-	StringToID(key string) Slice
 }
 
-type EditableAttributeIDTranslator interface {
-	AttributeIDTranslator
-	Add(key string, id uint64)
-}
+type arangoAttributeIDTranslator struct{}
 
-// attributeTranslator is a simple implementation of AttributeIDTranslator
-type attributeTranslator struct {
-	mutex      sync.RWMutex
-	idToString map[uint64]string
-	stringToID map[string]Slice
-}
-
-// NewAttributeIDTranslator creates a map based implementation of an AttributeIDTranslator.
-func NewAttributeIDTranslator() EditableAttributeIDTranslator {
-	return &attributeTranslator{
-		idToString: make(map[uint64]string),
-		stringToID: make(map[string]Slice),
+func (t *arangoAttributeIDTranslator) IDToString(id uint64) string {
+	switch id {
+	case 0x31:
+		return "_key"
+	case 0x32:
+		return "_rev"
+	case 0x33:
+		return "_id"
+	case 0x34:
+		return "_from"
+	case 0x35:
+		return "_to"
+	default:
+		return strconv.FormatUint(id, 10)
 	}
-}
-
-func (t *attributeTranslator) Add(key string, id uint64) {
-	t.mutex.Lock()
-	defer t.mutex.Unlock()
-
-	t.idToString[id] = key
-	var b Builder
-	b.addUInt(id)
-	s, err := b.Slice()
-	if err != nil {
-		panic(err)
-	}
-	t.stringToID[key] = s
-}
-
-func (t *attributeTranslator) IDToString(id uint64) string {
-	t.mutex.RLock()
-	defer t.mutex.RUnlock()
-
-	if s, ok := t.idToString[id]; ok {
-		return s
-	}
-	return ""
-}
-
-func (t *attributeTranslator) StringToID(key string) Slice {
-	t.mutex.RLock()
-	defer t.mutex.RUnlock()
-
-	if s, ok := t.stringToID[key]; ok {
-		return s
-	}
-	return nil
 }

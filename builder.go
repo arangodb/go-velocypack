@@ -1048,25 +1048,6 @@ func (b *Builder) addInternalKey(attrName string) (haveReported bool, err error)
 		}
 	}
 
-	// try
-	if translator := AttributeTranslator; translator != nil {
-		// check if a translation for the attribute name exists
-		translated := translator.StringToID(attrName)
-
-		if !translated.IsNone() {
-			l, err := translated.ByteSize()
-			if err != nil {
-				onError()
-				return haveReported, WithStack(err)
-			}
-			checkOverflow(l)
-			b.buf.Write(translated)
-			b.keyWritten = true
-			return haveReported, nil
-		}
-		// otherwise fall through to regular behavior
-	}
-
 	if err := b.set(NewStringValue(attrName)); err != nil {
 		onError()
 		return haveReported, WithStack(err)

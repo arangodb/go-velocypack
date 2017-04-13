@@ -549,7 +549,7 @@ func (s Slice) get(attribute string) (Slice, error) {
 			// fall through to returning None Slice below
 		} else if key.IsSmallInt() || key.IsUInt() {
 			// translate key
-			if AttributeTranslator == nil {
+			if attributeTranslator == nil {
 				return nil, WithStack(NeedAttributeTranslatorError)
 			}
 			if eq, err := key.translateUnchecked().IsEqualString(attribute); err != nil {
@@ -794,7 +794,7 @@ func (s Slice) makeKey() (Slice, error) {
 		return s, nil
 	}
 	if s.IsSmallInt() || s.IsUInt() {
-		if AttributeTranslator == nil {
+		if attributeTranslator == nil {
 			return nil, WithStack(NeedAttributeTranslatorError)
 		}
 		return s.translateUnchecked(), nil
@@ -805,7 +805,7 @@ func (s Slice) makeKey() (Slice, error) {
 
 // perform a linear search for the specified attribute inside an Object
 func (s Slice) searchObjectKeyLinear(attribute string, ieBase, offsetSize, n ValueLength) (Slice, error) {
-	useTranslator := AttributeTranslator != nil
+	useTranslator := attributeTranslator != nil
 
 	for index := ValueLength(0); index < n; index++ {
 		offset := ValueLength(ieBase + index*offsetSize)
@@ -845,7 +845,7 @@ func (s Slice) searchObjectKeyLinear(attribute string, ieBase, offsetSize, n Val
 // perform a binary search for the specified attribute inside an Object
 //template<ValueLength offsetSize>
 func (s Slice) searchObjectKeyBinary(attribute string, ieBase ValueLength, n ValueLength, offsetSize ValueLength) (Slice, error) {
-	useTranslator := AttributeTranslator != nil
+	useTranslator := attributeTranslator != nil
 	vpackAssert(n > 0)
 
 	l := ValueLength(0)
@@ -909,7 +909,7 @@ func (s Slice) translate() (Slice, error) {
 	if !s.IsSmallInt() && !s.IsUInt() {
 		return nil, WithStack(InvalidTypeError{"Cannot translate key of this type"})
 	}
-	if AttributeTranslator == nil {
+	if attributeTranslator == nil {
 		return nil, WithStack(NeedAttributeTranslatorError)
 	}
 	return s.translateUnchecked(), nil
@@ -934,7 +934,7 @@ func (s Slice) getUIntUnchecked() uint64 {
 // translates an integer key into a string, without checks
 func (s Slice) translateUnchecked() Slice {
 	id := s.getUIntUnchecked()
-	key := AttributeTranslator.IDToString(id)
+	key := attributeTranslator.IDToString(id)
 	if key == "" {
 		return nil
 	}
