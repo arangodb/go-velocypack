@@ -25,6 +25,7 @@ package test
 import (
 	"math"
 	"testing"
+	"time"
 
 	velocypack "github.com/arangodb/go-velocypack"
 )
@@ -239,6 +240,26 @@ func TestBuilderPrimitiveAddString(t *testing.T) {
 		s := mustSlice(b.Slice())
 		ASSERT_TRUE(s.IsString(), t)
 		ASSERT_EQ(test, mustString(s.GetString()), t)
+	}
+}
+
+func TestBuilderPrimitiveAddUTCDate(t *testing.T) {
+	cet, err := time.LoadLocation("CET")
+	ASSERT_NIL(err, t)
+	tests := []time.Time{
+		time.Date(2585, time.January, 12, 1, 2, 3, 0, time.UTC),
+		time.Date(2123, time.October, 9, 1, 2, 3, 0, time.UTC),
+		time.Date(2001, time.September, 11, 1, 2, 3, 0, time.UTC),
+		time.Date(1985, time.July, 4, 10, 22, 0, 0, cet),
+		time.Date(1950, time.December, 5, 20, 10, 50, 0, cet),
+	}
+	for _, test := range tests {
+		var b velocypack.Builder
+		b.Add(test)
+
+		s := mustSlice(b.Slice())
+		ASSERT_TRUE(s.IsUTCDate(), t)
+		ASSERT_EQ(test.UTC(), mustTime(s.GetUTCDate()), t)
 	}
 }
 

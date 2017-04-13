@@ -69,6 +69,9 @@ func NewReflectValue(v reflect.Value) Value {
 		if v, ok := raw.(Slice); ok {
 			return NewSliceValue(v)
 		}
+		if v, ok := raw.(time.Time); ok {
+			return NewUTCDateValue(v)
+		}
 		if v, ok := raw.(Value); ok {
 			return v
 		}
@@ -186,7 +189,9 @@ func (v Value) binaryValue() []byte {
 
 func (v Value) utcDateValue() int64 {
 	time := v.data.(time.Time)
-	return time.Unix()
+	sec := time.Unix()
+	nsec := int64(time.Nanosecond())
+	return sec*1000 + nsec/1000000
 }
 
 func (v Value) sliceValue() Slice {

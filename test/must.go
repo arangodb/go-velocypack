@@ -22,7 +22,11 @@
 
 package test
 
-import velocypack "github.com/arangodb/go-velocypack"
+import (
+	"time"
+
+	velocypack "github.com/arangodb/go-velocypack"
+)
 
 func must(err error) {
 	if err != nil {
@@ -87,6 +91,13 @@ func mustSlice(v velocypack.Slice, err error) velocypack.Slice {
 }
 
 func mustString(v string, err error) string {
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+func mustTime(v time.Time, err error) time.Time {
 	if err != nil {
 		panic(err)
 	}

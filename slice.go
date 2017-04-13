@@ -27,6 +27,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"math"
+	"time"
 )
 
 // Slice provides read only access to a VPack value
@@ -289,6 +290,17 @@ func (s Slice) GetSmallInt() (int64, error) {
 	}
 
 	return 0, InvalidTypeError{"Expecting type SmallInt"}
+}
+
+// GetUTCDate return the value for an UTCDate object
+func (s Slice) GetUTCDate() (time.Time, error) {
+	if !s.IsUTCDate() {
+		return time.Time{}, InvalidTypeError{"Expecting type UTCDate"}
+	}
+	v := toInt64(readIntegerFixed(s[1:], 8)) // milliseconds since epoch
+	sec := v / 1000
+	nsec := (v % 1000) * 1000000
+	return time.Unix(sec, nsec).UTC(), nil
 }
 
 // GetString return the value for a String object
