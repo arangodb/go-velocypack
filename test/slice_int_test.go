@@ -226,3 +226,12 @@ func TestSliceNegInt8(t *testing.T) {
 
 	ASSERT_EQ(staticCastInt64(0x8efaefffac664223), mustInt(slice.GetInt()), t)
 }
+
+func TestSliceIntOverflow(t *testing.T) {
+	b := velocypack.Builder{}
+	must(b.AddValue(velocypack.NewUIntValue(math.MaxUint64)))
+	slice := mustSlice(b.Slice())
+
+	ASSERT_EQ(velocypack.UInt, slice.Type(), t)
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsNumberOutOfRange, t)(slice.GetInt())
+}

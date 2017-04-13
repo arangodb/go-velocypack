@@ -23,6 +23,8 @@
 package test
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 
 	velocypack "github.com/arangodb/go-velocypack"
@@ -233,6 +235,13 @@ func TestSliceObjectGetLength1(t *testing.T) {
 	ASSERT_TRUE(mustBool(a.GetBool()), t)
 }
 
+func TestSliceObjectGetLength0(t *testing.T) {
+	slice := velocypack.Slice{0x0a} // empty object
+
+	a := mustSlice(slice.Get("a"))
+	ASSERT_EQ(velocypack.None, a.Type(), t)
+}
+
 func TestSliceObjectGetLength2(t *testing.T) {
 	// Test fast path with two fields (linear search of fields kicks in from 2..3 fields)
 	slice := velocypack.Slice{0x0b,
@@ -253,6 +262,21 @@ func TestSliceObjectGetLength2(t *testing.T) {
 	ASSERT_FALSE(mustBool(b.GetBool()), t)
 }
 
+func TestSliceObjectGetLengthMany(t *testing.T) {
+	fields := []string{}
+	for i := 0; i <= 255; i++ {
+		fields = append(fields, fmt.Sprintf(`"f%d":%d`, i, i+10))
+	}
+	json := fmt.Sprintf(`{%s}`, strings.Join(fields, ","))
+	slice := mustSlice(velocypack.ParseJSONFromString(json))
+
+	for i := 255; i >= 0; i-- {
+		value := mustSlice(slice.Get(fmt.Sprintf("f%d", i)))
+		ASSERT_EQ(velocypack.UInt, value.Type(), t)
+		ASSERT_EQ(uint64(i)+10, mustUInt(value.GetUInt()), t)
+	}
+}
+
 func TestSliceObjectNestedHasKey(t *testing.T) {
 	slice := mustSlice(velocypack.ParseJSONFromString(`{"a":{"b":{"c":55},"d":true}}`))
 
@@ -268,4 +292,19 @@ func TestSliceObjectNestedHasKey(t *testing.T) {
 
 	// Special: no path
 	ASSERT_TRUE(mustBool(slice.HasKey()), t)
+}
+
+func TestSliceObjectKeyValueAtInvalidType(t *testing.T) {
+	slice := mustSlice(velocypack.ParseJSONFromString(`77`))
+
+	ASSERT_EQ(velocypack.UInt, slice.Type(), t)
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsInvalidType, t)(slice.KeyAt(0))
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsInvalidType, t)(slice.ValueAt(0))
+}
+
+func TestSliceObjectGetInvalidType(t *testing.T) {
+	slice := mustSlice(velocypack.ParseJSONFromString(`77`))
+
+	ASSERT_EQ(velocypack.UInt, slice.Type(), t)
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsInvalidType, t)(slice.Get("foo"))
 }

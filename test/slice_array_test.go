@@ -23,6 +23,7 @@
 package test
 
 import (
+	"math"
 	"testing"
 
 	velocypack "github.com/arangodb/go-velocypack"
@@ -310,4 +311,13 @@ func TestSliceArrayCasesCompact(t *testing.T) {
 	ASSERT_EQ(int64(4), mustInt(ss.GetInt()), t)
 
 	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsIndexOutOfBounds, t)(slice.At(5))
+}
+
+func TestSliceArrayAtInvalidType(t *testing.T) {
+	b := velocypack.Builder{}
+	must(b.AddValue(velocypack.NewUIntValue(math.MaxUint64)))
+	slice := mustSlice(b.Slice())
+
+	ASSERT_EQ(velocypack.UInt, slice.Type(), t)
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsInvalidType, t)(slice.At(0))
 }

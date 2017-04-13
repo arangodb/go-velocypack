@@ -47,10 +47,18 @@ func TestSliceTypes(t *testing.T) {
 		{s("1f"), velocypack.MaxKey},
 	}
 
+	var allTypes []velocypack.ValueType
 	for _, test := range tests {
 		vt := test.Slice.Type()
+		allTypes = append(allTypes, test.Type)
 		if vt != test.Type {
 			t.Errorf("Invalid type for '%s', expected '%s', got '%s'", test.Slice, test.Type, vt)
+		}
+		if err := test.Slice.AssertType(test.Type); err != nil {
+			t.Errorf("AssertType returns unexpected error: %v", err)
+		}
+		if err := test.Slice.AssertTypeAny(allTypes...); err != nil {
+			t.Errorf("AssertTypeAny returns unexpected error: %v", err)
 		}
 	}
 }
