@@ -36,6 +36,7 @@ func TestSliceUTCDate1(t *testing.T) {
 
 	ASSERT_EQ(velocypack.UTCDate, slice.Type(), t)
 	ASSERT_TRUE(slice.IsUTCDate(), t)
+	ASSERT_EQ(velocypack.ValueLength(9), mustLength(slice.ByteSize()), t)
 	ASSERT_EQ(time.Unix(0, 0).UTC(), mustTime(slice.GetUTCDate()), t)
 }
 
@@ -47,5 +48,6 @@ func TestSliceUTCDate2(t *testing.T) {
 
 	ASSERT_EQ(velocypack.UTCDate, slice.Type(), t)
 	ASSERT_TRUE(slice.IsUTCDate(), t)
+	ASSERT_EQ(velocypack.ValueLength(9), mustLength(slice.ByteSize()), t)
 	ASSERT_EQ(time.Unix(0, 0).UTC().Add(time.Millisecond*time.Duration(msec)), mustTime(slice.GetUTCDate()), t)
 }
