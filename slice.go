@@ -470,9 +470,28 @@ func indexEntrySize(head byte) uint {
 	return widthMap[head]
 }
 
+// Get looks for the specified attribute path inside an Object
+// returns a Slice(ValueType::None) if not found
+func (s Slice) Get(attributePath ...string) (Slice, error) {
+	result := s
+	parent := s
+	for _, a := range attributePath {
+		var err error
+		result, err = parent.get(a)
+		if err != nil {
+			return nil, WithStack(err)
+		}
+		if result.IsNone() {
+			return result, nil
+		}
+		parent = result
+	}
+	return result, nil
+}
+
 // Get looks for the specified attribute inside an Object
 // returns a Slice(ValueType::None) if not found
-func (s Slice) Get(attribute string) (Slice, error) {
+func (s Slice) get(attribute string) (Slice, error) {
 	if !s.IsObject() {
 		return nil, InvalidTypeError{"Expecting Object"}
 	}
@@ -561,9 +580,9 @@ func (s Slice) Get(attribute string) (Slice, error) {
 	return result, WithStack(err)
 }
 
-// HasKey returns true if the slice is an object that has a given key.
-func (s Slice) HasKey(key string) (bool, error) {
-	if result, err := s.Get(key); err != nil {
+// HasKey returns true if the slice is an object that has a given key path.
+func (s Slice) HasKey(keyPath ...string) (bool, error) {
+	if result, err := s.Get(keyPath...); err != nil {
 		return false, WithStack(err)
 	} else {
 		return !result.IsNone(), nil

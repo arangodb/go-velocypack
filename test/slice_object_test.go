@@ -181,3 +181,48 @@ func TestSliceObjectCompact(t *testing.T) {
 	ASSERT_TRUE(ss.IsSmallInt(), t)
 	ASSERT_EQ(int64(3), mustInt(ss.GetInt()), t)
 }
+
+func TestSliceObjectNestedGet1(t *testing.T) {
+	slice := mustSlice(velocypack.ParseJSONFromString(`{"a":{"b":{"c":55},"d":true}}`))
+
+	a := mustSlice(slice.Get("a"))
+	ASSERT_EQ(velocypack.Object, a.Type(), t)
+	ASSERT_EQ(velocypack.ValueLength(2), mustLength(a.Length()), t)
+
+	b := mustSlice(slice.Get("a", "b"))
+	ASSERT_EQ(velocypack.Object, a.Type(), t)
+	ASSERT_EQ(velocypack.ValueLength(1), mustLength(b.Length()), t)
+
+	c := mustSlice(slice.Get("a", "b", "c"))
+	ASSERT_EQ(velocypack.UInt, c.Type(), t)
+	ASSERT_EQ(int64(55), mustInt(c.GetInt()), t)
+
+	d := mustSlice(slice.Get("a", "d"))
+	ASSERT_EQ(velocypack.Bool, d.Type(), t)
+	ASSERT_TRUE(mustBool(d.GetBool()), t)
+
+	// Not found
+	ASSERT_EQ(velocypack.None, mustSlice(slice.Get("a", "e")).Type(), t)
+	ASSERT_EQ(velocypack.None, mustSlice(slice.Get("a", "b", "f")).Type(), t)
+	ASSERT_EQ(velocypack.None, mustSlice(slice.Get("g")).Type(), t)
+
+	// Special: no path
+	ASSERT_EQ(slice, mustSlice(slice.Get()), t)
+}
+
+func TestSliceObjectNestedHasKey(t *testing.T) {
+	slice := mustSlice(velocypack.ParseJSONFromString(`{"a":{"b":{"c":55},"d":true}}`))
+
+	ASSERT_TRUE(mustBool(slice.HasKey("a")), t)
+	ASSERT_TRUE(mustBool(slice.HasKey("a", "b")), t)
+	ASSERT_TRUE(mustBool(slice.HasKey("a", "b", "c")), t)
+	ASSERT_TRUE(mustBool(slice.HasKey("a", "d")), t)
+
+	// Not found
+	ASSERT_FALSE(mustBool(slice.HasKey("a", "e")), t)
+	ASSERT_FALSE(mustBool(slice.HasKey("a", "b", "f")), t)
+	ASSERT_FALSE(mustBool(slice.HasKey("g")), t)
+
+	// Special: no path
+	ASSERT_TRUE(mustBool(slice.HasKey()), t)
+}
