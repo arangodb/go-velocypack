@@ -117,7 +117,7 @@ func Marshal(v interface{}) (result Slice, err error) {
 		}
 	}()
 	var b Builder
-	reflectValue(&b, reflect.ValueOf(v))
+	reflectValue(&b, reflect.ValueOf(v), encoderOptions{})
 	return b.Slice()
 }
 
@@ -135,7 +135,7 @@ func (e *Encoder) Encode(v interface{}) (err error) {
 		}
 	}()
 	e.b.Clear()
-	reflectValue(&e.b, reflect.ValueOf(v))
+	reflectValue(&e.b, reflect.ValueOf(v), encoderOptions{})
 	if _, err := e.b.WriteTo(e.w); err != nil {
 		return WithStack(err)
 	}
@@ -160,11 +160,15 @@ func isEmptyValue(v reflect.Value) bool {
 	return false
 }
 
-func reflectValue(b *Builder, v reflect.Value) {
-	valueEncoder(v)(b, v)
+func reflectValue(b *Builder, v reflect.Value, options encoderOptions) {
+	valueEncoder(v)(b, v, options)
 }
 
-type encoderFunc func(b *Builder, v reflect.Value)
+type encoderOptions struct {
+	quoted bool
+}
+
+type encoderFunc func(b *Builder, v reflect.Value, options encoderOptions)
 
 var encoderCache struct {
 	sync.RWMutex
@@ -203,9 +207,9 @@ func typeEncoder(t reflect.Type) encoderFunc {
 	}
 	var wg sync.WaitGroup
 	wg.Add(1)
-	encoderCache.m[t] = func(b *Builder, v reflect.Value) {
+	encoderCache.m[t] = func(b *Builder, v reflect.Value, options encoderOptions) {
 		wg.Wait()
-		f(b, v)
+		f(b, v, options)
 	}
 	encoderCache.Unlock()
 
@@ -274,11 +278,11 @@ func newTypeEncoder(t reflect.Type, allowAddr bool) encoderFunc {
 	}
 }
 
-func invalidValueEncoder(b *Builder, v reflect.Value) {
+func invalidValueEncoder(b *Builder, v reflect.Value, options encoderOptions) {
 	b.addInternal(nullValue)
 }
 
-func marshalerEncoder(b *Builder, v reflect.Value) {
+func marshalerEncoder(b *Builder, v reflect.Value, options encoderOptions) {
 	if v.Kind() == reflect.Ptr && v.IsNil() {
 		b.addInternal(nullValue)
 		return
@@ -295,7 +299,7 @@ func marshalerEncoder(b *Builder, v reflect.Value) {
 	}
 }
 
-func jsonMarshalerEncoder(b *Builder, v reflect.Value) {
+func jsonMarshalerEncoder(b *Builder, v reflect.Value, options encoderOptions) {
 	if v.Kind() == reflect.Ptr && v.IsNil() {
 		b.addInternal(nullValue)
 		return
@@ -317,7 +321,7 @@ func jsonMarshalerEncoder(b *Builder, v reflect.Value) {
 	}
 }
 
-func addrMarshalerEncoder(b *Builder, v reflect.Value) {
+func addrMarshalerEncoder(b *Builder, v reflect.Value, options encoderOptions) {
 	va := v.Addr()
 	if va.IsNil() {
 		b.addInternal(nullValue)
@@ -332,7 +336,7 @@ func addrMarshalerEncoder(b *Builder, v reflect.Value) {
 	}
 }
 
-func addrJSONMarshalerEncoder(b *Builder, v reflect.Value) {
+func addrJSONMarshalerEncoder(b *Builder, v reflect.Value, options encoderOptions) {
 	va := v.Addr()
 	if va.IsNil() {
 		b.addInternal(nullValue)
@@ -351,7 +355,7 @@ func addrJSONMarshalerEncoder(b *Builder, v reflect.Value) {
 	}
 }
 
-func textMarshalerEncoder(b *Builder, v reflect.Value) {
+func textMarshalerEncoder(b *Builder, v reflect.Value, options encoderOptions) {
 	if v.Kind() == reflect.Ptr && v.IsNil() {
 		b.addInternal(nullValue)
 		return
@@ -364,7 +368,7 @@ func textMarshalerEncoder(b *Builder, v reflect.Value) {
 	b.addInternal(NewStringValue(string(text)))
 }
 
-func addrTextMarshalerEncoder(b *Builder, v reflect.Value) {
+func addrTextMarshalerEncoder(b *Builder, v reflect.Value, options encoderOptions) {
 	va := v.Addr()
 	if va.IsNil() {
 		b.addInternal(nullValue)
@@ -378,36 +382,57 @@ func addrTextMarshalerEncoder(b *Builder, v reflect.Value) {
 	b.addInternal(NewStringValue(string(text)))
 }
 
-func boolEncoder(b *Builder, v reflect.Value) {
-	b.addInternal(NewBoolValue(v.Bool()))
+func boolEncoder(b *Builder, v reflect.Value, options encoderOptions) {
+	if options.quoted {
+		b.addInternal(NewStringValue(strconv.FormatBool(v.Bool())))
+	} else {
+		b.addInternal(NewBoolValue(v.Bool()))
+	}
 }
 
-func intEncoder(b *Builder, v reflect.Value) {
-	b.addInternal(NewIntValue(v.Int()))
+func intEncoder(b *Builder, v reflect.Value, options encoderOptions) {
+	if options.quoted {
+		b.addInternal(NewStringValue(strconv.FormatInt(v.Int(), 10)))
+	} else {
+		b.addInternal(NewIntValue(v.Int()))
+	}
 }
 
-func uintEncoder(b *Builder, v reflect.Value) {
-	b.addInternal(NewUIntValue(v.Uint()))
+func uintEncoder(b *Builder, v reflect.Value, options encoderOptions) {
+	if options.quoted {
+		b.addInternal(NewStringValue(strconv.FormatUint(v.Uint(), 10)))
+	} else {
+		b.addInternal(NewUIntValue(v.Uint()))
+	}
 }
 
-func doubleEncoder(b *Builder, v reflect.Value) {
-	b.addInternal(NewDoubleValue(v.Float()))
+func doubleEncoder(b *Builder, v reflect.Value, options encoderOptions) {
+	if options.quoted {
+		b.addInternal(NewStringValue(formatDouble(v.Float())))
+	} else {
+		b.addInternal(NewDoubleValue(v.Float()))
+	}
 }
 
-func stringEncoder(b *Builder, v reflect.Value) {
-	b.addInternal(NewStringValue(v.String()))
+func stringEncoder(b *Builder, v reflect.Value, options encoderOptions) {
+	s := v.String()
+	if options.quoted {
+		raw, _ := json.Marshal(s)
+		s = string(raw)
+	}
+	b.addInternal(NewStringValue(s))
 }
 
-func interfaceEncoder(b *Builder, v reflect.Value) {
+func interfaceEncoder(b *Builder, v reflect.Value, options encoderOptions) {
 	if v.IsNil() {
 		b.addInternal(nullValue)
 		return
 	}
 	vElem := v.Elem()
-	valueEncoder(vElem)(b, vElem)
+	valueEncoder(vElem)(b, vElem, options)
 }
 
-func unsupportedTypeEncoder(b *Builder, v reflect.Value) {
+func unsupportedTypeEncoder(b *Builder, v reflect.Value, options encoderOptions) {
 	panic(&UnsupportedTypeError{v.Type()})
 }
 
@@ -416,7 +441,7 @@ type structEncoder struct {
 	fieldEncs []encoderFunc
 }
 
-func (se *structEncoder) encode(b *Builder, v reflect.Value) {
+func (se *structEncoder) encode(b *Builder, v reflect.Value, options encoderOptions) {
 	if err := b.OpenObject(); err != nil {
 		panic(err)
 	}
@@ -431,7 +456,8 @@ func (se *structEncoder) encode(b *Builder, v reflect.Value) {
 			panic(err)
 		}
 		// Value
-		se.fieldEncs[i](b, fv)
+		options.quoted = f.quoted
+		se.fieldEncs[i](b, fv, options)
 	}
 	if err := b.Close(); err != nil {
 		panic(err)
@@ -454,7 +480,7 @@ type mapEncoder struct {
 	elemEnc encoderFunc
 }
 
-func (e *mapEncoder) encode(b *Builder, v reflect.Value) {
+func (e *mapEncoder) encode(b *Builder, v reflect.Value, options encoderOptions) {
 	if v.IsNil() {
 		b.addInternal(nullValue)
 		return
@@ -481,7 +507,7 @@ func (e *mapEncoder) encode(b *Builder, v reflect.Value) {
 			panic(err)
 		}
 		// Value
-		e.elemEnc(b, v.MapIndex(kv.v))
+		e.elemEnc(b, v.MapIndex(kv.v), options)
 	}
 	if err := b.Close(); err != nil {
 		panic(err)
@@ -502,7 +528,7 @@ func newMapEncoder(t reflect.Type) encoderFunc {
 	return me.encode
 }
 
-func encodeByteSlice(b *Builder, v reflect.Value) {
+func encodeByteSlice(b *Builder, v reflect.Value, options encoderOptions) {
 	if v.IsNil() {
 		b.addInternal(nullValue)
 		return
@@ -515,12 +541,12 @@ type sliceEncoder struct {
 	arrayEnc encoderFunc
 }
 
-func (se *sliceEncoder) encode(b *Builder, v reflect.Value) {
+func (se *sliceEncoder) encode(b *Builder, v reflect.Value, options encoderOptions) {
 	if v.IsNil() {
 		b.addInternal(nullValue)
 		return
 	}
-	se.arrayEnc(b, v)
+	se.arrayEnc(b, v, options)
 }
 
 func newSliceEncoder(t reflect.Type) encoderFunc {
@@ -539,13 +565,13 @@ type arrayEncoder struct {
 	elemEnc encoderFunc
 }
 
-func (ae *arrayEncoder) encode(b *Builder, v reflect.Value) {
+func (ae *arrayEncoder) encode(b *Builder, v reflect.Value, options encoderOptions) {
 	if err := b.OpenArray(); err != nil {
 		panic(err)
 	}
 	n := v.Len()
 	for i := 0; i < n; i++ {
-		ae.elemEnc(b, v.Index(i))
+		ae.elemEnc(b, v.Index(i), options)
 	}
 	if err := b.Close(); err != nil {
 		panic(err)
@@ -561,12 +587,12 @@ type ptrEncoder struct {
 	elemEnc encoderFunc
 }
 
-func (pe *ptrEncoder) encode(b *Builder, v reflect.Value) {
+func (pe *ptrEncoder) encode(b *Builder, v reflect.Value, options encoderOptions) {
 	if v.IsNil() {
 		b.addInternal(nullValue)
 		return
 	}
-	pe.elemEnc(b, v.Elem())
+	pe.elemEnc(b, v.Elem(), options)
 }
 
 func newPtrEncoder(t reflect.Type) encoderFunc {
@@ -578,11 +604,11 @@ type condAddrEncoder struct {
 	canAddrEnc, elseEnc encoderFunc
 }
 
-func (ce *condAddrEncoder) encode(b *Builder, v reflect.Value) {
+func (ce *condAddrEncoder) encode(b *Builder, v reflect.Value, options encoderOptions) {
 	if v.CanAddr() {
-		ce.canAddrEnc(b, v)
+		ce.canAddrEnc(b, v, options)
 	} else {
-		ce.elseEnc(b, v)
+		ce.elseEnc(b, v, options)
 	}
 }
 

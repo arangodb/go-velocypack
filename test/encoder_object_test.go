@@ -23,6 +23,7 @@
 package test
 
 import (
+	"encoding/json"
 	"testing"
 
 	velocypack "github.com/arangodb/go-velocypack"
@@ -504,4 +505,33 @@ func TestEncoderObjectStructPtr6(t *testing.T) {
 	ASSERT_EQ(s.Type(), velocypack.Object, t)
 	ASSERT_FALSE(s.IsEmptyObject(), t)
 	ASSERT_EQ(`{"a":5,"a6":true}`, mustString(s.JSONString()), t)
+}
+
+type Struct7 struct {
+	B bool    `json:"b,string"`
+	I int     `json:"i,string"`
+	U uint    `json:"u,string"`
+	F float64 `json:"f,string"`
+	S string  `json:"s,string"`
+}
+
+func TestEncoderObjectStruct7(t *testing.T) {
+	input := Struct7{
+		B: true,
+		I: -77,
+		U: 211,
+		F: 3.2,
+		S: "Hello world",
+	}
+	bytes, err := velocypack.Marshal(input)
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_FALSE(s.IsEmptyObject(), t)
+	ASSERT_EQ(`{"b":"true","f":"3.2","i":"-77","s":"\"Hello world\"","u":"211"}`, mustString(s.JSONString()), t)
+
+	goJSON, err := json.Marshal(input)
+	ASSERT_NIL(err, t)
+	ASSERT_EQ(`{"b":"true","i":"-77","u":"211","f":"3.2","s":"\"Hello world\""}`, string(goJSON), t)
 }

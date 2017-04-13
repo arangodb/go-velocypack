@@ -498,19 +498,12 @@ func (d *decodeState) unmarshalObject(data Slice, v reflect.Value) {
 			if err != nil {
 				d.saveError(fmt.Errorf("json: invalid use of ,string struct tag, expected string, got %s in %v (%v)", value.Type(), subv.Type(), err))
 			}
-			var qv interface{}
-			if err := json.Unmarshal([]byte(valueString), &qv); err != nil {
+			v, err := ParseJSONFromString(valueString)
+			if err != nil {
 				d.saveError(err)
+			} else {
+				d.unmarshalValue(v, subv)
 			}
-			d.saveError(fmt.Errorf("Use of ,string is not yet supported in %v", subv.Type()))
-			/*			switch qv := d.valueQuoted().(type) {
-						case nil:
-							d.literalStore(NullSlice(), subv, false)
-						case string:
-							d.literalStore([]byte(qv), subv, true)
-						default:
-							d.saveError(fmt.Errorf("json: invalid use of ,string struct tag, trying to unmarshal unquoted value into %v", subv.Type()))
-						}*/
 		} else {
 			d.unmarshalValue(value, subv)
 		}

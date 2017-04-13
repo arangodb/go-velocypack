@@ -682,3 +682,32 @@ func TestDecoderObjectStructPtr6(t *testing.T) {
 	ASSERT_NIL(err, t)
 	ASSERT_EQ(v, expected, t)
 }
+
+/*
+type Struct7 struct {
+	B bool    `json:"b,string"`
+	I int     `json:"i,string"`
+	U uint    `json:"u,string"`
+	F float64 `json:"f,string"`
+	S string  `json:"s,string"`
+}
+*/
+
+func TestDecoderObjectStruct7(t *testing.T) {
+	input := Struct7{
+		B: true,
+		I: -77,
+		U: 211,
+		F: 3.2,
+		S: "Hello world",
+	}
+	bytes, err := velocypack.Marshal(input)
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+	expected := input
+
+	var v Struct7
+	err = velocypack.Unmarshal(s, &v)
+	ASSERT_NIL(err, t)
+	ASSERT_EQ(v, expected, t)
+}

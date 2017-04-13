@@ -191,8 +191,12 @@ func (d *Dumper) appendInt(v int64) error {
 	return nil
 }
 
+func formatDouble(v float64) string {
+	return strconv.FormatFloat(v, 'g', -1, 64)
+}
+
 func (d *Dumper) appendDouble(v float64) error {
-	s := strconv.FormatFloat(v, 'g', -1, 64)
+	s := formatDouble(v)
 	if _, err := d.w.Write([]byte(s)); err != nil {
 		return WithStack(err)
 	}
