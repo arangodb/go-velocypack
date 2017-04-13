@@ -130,3 +130,21 @@ func TestSliceUIntMax(t *testing.T) {
 
 	ASSERT_EQ(uint64(math.MaxUint64), mustUInt(slice.GetUInt()), t)
 }
+
+func TestSliceUIntNegative1(t *testing.T) {
+	b := velocypack.Builder{}
+	must(b.AddValue(velocypack.NewIntValue(-3))) // SmallInt
+	slice := mustSlice(b.Slice())
+
+	ASSERT_EQ(velocypack.SmallInt, slice.Type(), t)
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsNumberOutOfRange, t)(slice.GetUInt())
+}
+
+func TestSliceUIntNegative2(t *testing.T) {
+	b := velocypack.Builder{}
+	must(b.AddValue(velocypack.NewIntValue(-300))) // Int
+	slice := mustSlice(b.Slice())
+
+	ASSERT_EQ(velocypack.Int, slice.Type(), t)
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsNumberOutOfRange, t)(slice.GetUInt())
+}
