@@ -37,6 +37,9 @@ func TestSliceObjectEmpty(t *testing.T) {
 	ASSERT_TRUE(slice.IsEmptyObject(), t)
 	ASSERT_EQ(velocypack.ValueLength(1), mustLength(slice.ByteSize()), t)
 	ASSERT_EQ(velocypack.ValueLength(0), mustLength(slice.Length()), t)
+
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsIndexOutOfBounds, t)(slice.KeyAt(0))
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsIndexOutOfBounds, t)(slice.ValueAt(0))
 }
 
 func TestSliceObjectCases1(t *testing.T) {
@@ -54,6 +57,9 @@ func TestSliceObjectCases1(t *testing.T) {
 	ASSERT_TRUE(ss.IsSmallInt(), t)
 	ASSERT_EQ(int64(1), mustInt(ss.GetInt()), t)
 	ASSERT_EQ(int64(1), mustInt(mustSlice(slice.ValueAt(0)).GetInt()), t)
+
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsIndexOutOfBounds, t)(slice.KeyAt(4))
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsIndexOutOfBounds, t)(slice.ValueAt(4))
 }
 
 func TestSliceObjectCases2(t *testing.T) {
@@ -180,6 +186,9 @@ func TestSliceObjectCompact(t *testing.T) {
 	ss = mustSlice(slice.Get("d"))
 	ASSERT_TRUE(ss.IsSmallInt(), t)
 	ASSERT_EQ(int64(3), mustInt(ss.GetInt()), t)
+
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsIndexOutOfBounds, t)(slice.KeyAt(4))
+	ASSERT_VELOCYPACK_EXCEPTION(velocypack.IsIndexOutOfBounds, t)(slice.ValueAt(4))
 }
 
 func TestSliceObjectNestedGet1(t *testing.T) {

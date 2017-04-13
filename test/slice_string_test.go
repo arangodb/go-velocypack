@@ -46,6 +46,7 @@ func TestSliceStringEmpty(t *testing.T) {
 	ASSERT_EQ(velocypack.ValueLength(1), mustLength(slice.ByteSize()), t)
 	ASSERT_EQ("", mustString(slice.GetString()), t)
 	ASSERT_EQ(velocypack.ValueLength(0), mustLength(slice.GetStringLength()), t)
+	ASSERT_EQ(0, mustGoInt(slice.CompareString("")), t)
 }
 
 func TestSliceStringLengths(t *testing.T) {
@@ -60,6 +61,8 @@ func TestSliceStringLengths(t *testing.T) {
 
 		ASSERT_TRUE(slice.IsString(), t)
 		ASSERT_EQ(velocypack.String, slice.Type(), t)
+		ASSERT_EQ(0, mustGoInt(slice.CompareString(temp)), t)
+		ASSERT_EQ(temp, mustString(slice.GetString()), t)
 
 		ASSERT_EQ(velocypack.ValueLength(i), mustLength(slice.GetStringLength()), t)
 

@@ -69,6 +69,13 @@ func mustInt(v int64, err error) int64 {
 	return v
 }
 
+func mustGoInt(v int, err error) int {
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 func mustLength(v velocypack.ValueLength, err error) velocypack.ValueLength {
 	if err != nil {
 		panic(err)
