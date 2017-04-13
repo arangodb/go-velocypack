@@ -25,6 +25,11 @@ package velocypack
 // builderBuffer is a byte slice used for building slices.
 type builderBuffer []byte
 
+const (
+	minGrowDelta = 32          // Minimum amount of extra bytes to add to a buffer when growing
+	maxGrowDelta = 1024 * 1024 // Maximum amount of extra bytes to add to a buffer when growing
+)
+
 // IsEmpty returns 0 if there are no values in the buffer.
 func (b *builderBuffer) IsEmpty() bool {
 	l := len(*b)
@@ -103,7 +108,13 @@ func (b *builderBuffer) grow(n uint) {
 	var newBuffer builderBuffer
 	newLen := uint(len(*b)) + n
 	if newLen > uint(cap(*b)) {
-		newBuffer = make(builderBuffer, newLen, newLen+32)
+		extra := newLen / 4
+		if extra < minGrowDelta {
+			extra = minGrowDelta
+		} else if extra > maxGrowDelta {
+			extra = maxGrowDelta
+		}
+		newBuffer = make(builderBuffer, newLen, newLen+extra)
 		copy(newBuffer, *b)
 	} else {
 		newBuffer = (*b)[0:newLen]
