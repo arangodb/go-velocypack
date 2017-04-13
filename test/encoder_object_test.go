@@ -535,3 +535,32 @@ func TestEncoderObjectStruct7(t *testing.T) {
 	ASSERT_NIL(err, t)
 	ASSERT_EQ(`{"b":"true","i":"-77","u":"211","f":"3.2","s":"\"Hello world\""}`, string(goJSON), t)
 }
+
+type Struct8 struct {
+	B bool    `json:",string"`
+	I int     `json:",string"`
+	U uint    `json:",string"`
+	F float64 `json:",string"`
+	S string  `json:",string"`
+}
+
+func TestEncoderObjectStruct8(t *testing.T) {
+	input := Struct8{
+		B: true,
+		I: -77,
+		U: 211,
+		F: 3.2,
+		S: "Hello world",
+	}
+	bytes, err := velocypack.Marshal(input)
+	ASSERT_NIL(err, t)
+	s := velocypack.Slice(bytes)
+
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_FALSE(s.IsEmptyObject(), t)
+	ASSERT_EQ(`{"B":"true","F":"3.2","I":"-77","S":"\"Hello world\"","U":"211"}`, mustString(s.JSONString()), t)
+
+	goJSON, err := json.Marshal(input)
+	ASSERT_NIL(err, t)
+	ASSERT_EQ(`{"B":"true","I":"-77","U":"211","F":"3.2","S":"\"Hello world\""}`, string(goJSON), t)
+}
