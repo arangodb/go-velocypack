@@ -33,11 +33,6 @@ import (
 // Slice provides read only access to a VPack value
 type Slice []byte
 
-// SliceFromBytes creates a Slice by casting the given byte slice to a Slice.
-func SliceFromBytes(v []byte) Slice {
-	return Slice(v)
-}
-
 // SliceFromHex creates a Slice by decoding the given hex string into a Slice.
 // If decoding fails, nil is returned.
 func SliceFromHex(v string) Slice {
