@@ -81,14 +81,6 @@ func SliceFromReader(r io.Reader) (Slice, error) {
 			return readRemaining(append(hdr, bytes...), l)
 		}
 
-		if h == 0x01 || h == 0x0a {
-			// we cannot get here, because the FixedTypeLengths lookup
-			// above will have kicked in already. however, the compiler
-			// claims we'll be reading across the bounds of the input
-			// here...
-			return hdr, nil
-		}
-
 		vpackAssert(h > 0x00 && h <= 0x0e)
 		l, bytes, err := readIntegerNonEmptyFromReader(r, widthMap[h])
 		if err != nil {
@@ -96,26 +88,9 @@ func SliceFromReader(r io.Reader) (Slice, error) {
 		}
 		return readRemaining(append(hdr, bytes...), ValueLength(l))
 
-	case External:
-		return readRemaining(hdr, 1+charPtrLength)
-
-	case UTCDate:
-		return readRemaining(hdr, 1+int64Length)
-
-	case Int:
-		l := ValueLength(1 + (h - 0x1f))
-		return readRemaining(hdr, l)
-
 	case String:
 		vpackAssert(h == 0xbf)
-		if h < 0xbf {
-			// we cannot get here, because the FixedTypeLengths lookup
-			// above will have kicked in already. however, the compiler
-			// claims we'll be reading across the bounds of the input
-			// here...
-			l := ValueLength(h) - 0x40
-			return readRemaining(hdr, l)
-		}
+
 		// long UTF-8 String
 		l, bytes, err := readIntegerFixedFromReader(r, 8)
 		if err != nil {
@@ -194,7 +169,11 @@ func SliceFromReader(r io.Reader) (Slice, error) {
 func sliceFromBufReader(r *bufio.Reader) (Slice, error) {
 	// ByteSize is always found within first 16 bytes
 	hdr, err := r.Peek(maxByteSizeBytes)
-	if err != nil {
+	if len(hdr) == 0 && err != nil {
+		if Cause(err) == io.EOF {
+			// Empty slice
+			return nil, nil
+		}
 		return nil, WithStack(err)
 	}
 	s := Slice(hdr)
@@ -210,7 +189,7 @@ func sliceFromBufReader(r *bufio.Reader) (Slice, error) {
 		n, err := r.Read(buf[offset:])
 		bytesRead += n
 		offset += n
-		if err != nil {
+		if err != nil && ValueLength(bytesRead) < size {
 			return nil, WithStack(err)
 		}
 	}

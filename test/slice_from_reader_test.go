@@ -23,6 +23,7 @@
 package test
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"testing"
@@ -34,15 +35,33 @@ import (
 // calls SliceFromReader on that.
 // It then compares the 2 slices.
 func assertEqualFromReader(t *testing.T, s velocypack.Slice, args ...interface{}) {
-	buf := bytes.NewBuffer(s)
-	s2, err := velocypack.SliceFromReader(buf)
-	var msg string
-	if len(args) > 0 {
-		msg = " (" + fmt.Sprintf(args[0].(string), args[1:]...) + ")"
+	// Normal reader
+	{
+		buf := bytes.NewBuffer(s)
+		s2, err := velocypack.SliceFromReader(buf)
+		var msg string
+		if len(args) > 0 {
+			msg = " (" + fmt.Sprintf(args[0].(string), args[1:]...) + ")"
+		}
+		if err != nil {
+			t.Errorf("SliceFromReader failed at %s: %v%s", callerInfo(2), err, msg)
+		} else if s.String() != s2.String() {
+			t.Errorf("SliceFromReader return different slice at %s. Got:\n\t'%s', expected:\n\t'%s'%s", callerInfo(2), s2.String(), s.String(), msg)
+		}
 	}
-	if err != nil {
-		t.Errorf("SliceFromReader failed at %s: %v%s", callerInfo(2), err, msg)
-	} else if s.String() != s2.String() {
-		t.Errorf("SliceFromReader return different slice at %s. Got:\n\t'%s', expected:\n\t'%s'%s", callerInfo(2), s2.String(), s.String(), msg)
+
+	// Buffered reader
+	{
+		brd := bufio.NewReader(bytes.NewBuffer(s))
+		s2, err := velocypack.SliceFromReader(brd)
+		var msg string
+		if len(args) > 0 {
+			msg = " (" + fmt.Sprintf(args[0].(string), args[1:]...) + ")"
+		}
+		if err != nil {
+			t.Errorf("SliceFromReader failed at %s: %v%s", callerInfo(2), err, msg)
+		} else if s.String() != s2.String() {
+			t.Errorf("SliceFromReader return different slice at %s. Got:\n\t'%s', expected:\n\t'%s'%s", callerInfo(2), s2.String(), s.String(), msg)
+		}
 	}
 }
