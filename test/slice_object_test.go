@@ -233,6 +233,26 @@ func TestSliceObjectGetLength1(t *testing.T) {
 	ASSERT_TRUE(mustBool(a.GetBool()), t)
 }
 
+func TestSliceObjectGetLength2(t *testing.T) {
+	// Test fast path with two fields (linear search of fields kicks in from 2..3 fields)
+	slice := velocypack.Slice{0x0b,
+		0,                // Bytesize
+		0x02,             // NoItems
+		0x41, 0x61, 0x1a, // "a": true
+		0x28, 0x32, 0x19, // "_rev": false
+		0x03, 0x06, // Index of "a", "_rev"
+	}
+	slice[1] = byte(len(slice))
+
+	a := mustSlice(slice.Get("a"))
+	ASSERT_EQ(velocypack.Bool, a.Type(), t)
+	ASSERT_TRUE(mustBool(a.GetBool()), t)
+
+	b := mustSlice(slice.Get("_rev"))
+	ASSERT_EQ(velocypack.Bool, b.Type(), t)
+	ASSERT_FALSE(mustBool(b.GetBool()), t)
+}
+
 func TestSliceObjectNestedHasKey(t *testing.T) {
 	slice := mustSlice(velocypack.ParseJSONFromString(`{"a":{"b":{"c":55},"d":true}}`))
 

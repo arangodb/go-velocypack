@@ -88,35 +88,11 @@ func (s Slice) ByteSize() (ValueLength, error) {
 			return readVariableValueLength(s, 1, false), nil
 		}
 
-		if h == 0x01 || h == 0x0a {
-			// we cannot get here, because the FixedTypeLengths lookup
-			// above will have kicked in already. however, the compiler
-			// claims we'll be reading across the bounds of the input
-			// here...
-			return 1, nil
-		}
-
 		vpackAssert(h > 0x00 && h <= 0x0e)
 		return ValueLength(readIntegerNonEmpty(s[1:], widthMap[h])), nil
 
-	case External:
-		return 1 + charPtrLength, nil
-
-	case UTCDate:
-		return 1 + int64Length, nil
-
-	case Int:
-		return ValueLength(1 + (h - 0x1f)), nil
-
 	case String:
 		vpackAssert(h == 0xbf)
-		if h < 0xbf {
-			// we cannot get here, because the FixedTypeLengths lookup
-			// above will have kicked in already. however, the compiler
-			// claims we'll be reading across the bounds of the input
-			// here...
-			return ValueLength(h) - 0x40, nil
-		}
 		// long UTF-8 String
 		return ValueLength(1 + 8 + readIntegerFixed(s[1:], 8)), nil
 
