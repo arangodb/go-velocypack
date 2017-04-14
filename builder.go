@@ -28,7 +28,6 @@ import (
 	"io"
 	"math"
 	"reflect"
-	"sort"
 )
 
 // BuilderOptions contains options that influence how Builder builds slices.
@@ -45,6 +44,13 @@ type Builder struct {
 	stack      builderStack
 	index      []indexVector
 	keyWritten bool
+}
+
+func NewBuilder(capacity uint) *Builder {
+	b := &Builder{
+		buf: make(builderBuffer, 0, capacity),
+	}
+	return b
 }
 
 // Clear and start from scratch:
@@ -105,8 +111,9 @@ func (b *Builder) IsOpenObject() bool {
 	if b.stack.IsEmpty() {
 		return false
 	}
-	tos := b.stack.Tos()
-	return b.buf[tos] == 0x0b || b.buf[tos] == 0x014
+	tos, _ := b.stack.Tos()
+	h := b.buf[tos]
+	return h == 0x0b || h == 0x014
 }
 
 // IsOpenArray returns true when the builder has an open array at the top of the stack.
@@ -114,8 +121,9 @@ func (b *Builder) IsOpenArray() bool {
 	if b.stack.IsEmpty() {
 		return false
 	}
-	tos := b.stack.Tos()
-	return b.buf[tos] == 0x06 || b.buf[tos] == 0x013
+	tos, _ := b.stack.Tos()
+	h := b.buf[tos]
+	return h == 0x06 || h == 0x013
 }
 
 // OpenObject starts a new object.
@@ -147,7 +155,7 @@ func (b *Builder) Close() error {
 	if b.IsClosed() {
 		return WithStack(BuilderNeedOpenCompoundError)
 	}
-	tos := b.stack.Tos()
+	tos, _ := b.stack.Tos()
 	head := b.buf[tos]
 
 	vpackAssert(head == 0x06 || head == 0x0b || head == 0x13 || head == 0x14)
@@ -291,8 +299,9 @@ func (b *Builder) HasKey(key string) (bool, error) {
 	if b.stack.IsEmpty() {
 		return false, WithStack(BuilderNeedOpenObjectError)
 	}
-	tos := b.stack.Tos()
-	if b.buf[tos] != 0x0b && b.buf[tos] != 0x14 {
+	tos, _ := b.stack.Tos()
+	h := b.buf[tos]
+	if h != 0x0b && h != 0x14 {
 		return false, WithStack(BuilderNeedOpenObjectError)
 	}
 	index := b.index[len(b.stack)-1]
@@ -320,8 +329,9 @@ func (b *Builder) GetKey(key string) (Slice, error) {
 	if b.stack.IsEmpty() {
 		return nil, WithStack(BuilderNeedOpenObjectError)
 	}
-	tos := b.stack.Tos()
-	if b.buf[tos] != 0x0b && b.buf[tos] != 0x14 {
+	tos, _ := b.stack.Tos()
+	h := b.buf[tos]
+	if h != 0x0b && h != 0x14 {
 		return nil, WithStack(BuilderNeedOpenObjectError)
 	}
 	index := b.index[len(b.stack)-1]
@@ -352,7 +362,7 @@ func (b *Builder) RemoveLast() error {
 	if b.stack.IsEmpty() {
 		return WithStack(BuilderNeedOpenCompoundError)
 	}
-	tos := b.stack.Tos()
+	tos, _ := b.stack.Tos()
 	index := &b.index[len(b.stack)-1]
 	if index.IsEmpty() {
 		return WithStack(BuilderNeedSubValueError)
@@ -419,25 +429,24 @@ func (b *Builder) addUInt(v uint64) {
 // addUTCDate adds an UTC date value to the buffer.
 func (b *Builder) addUTCDate(v int64) {
 	x := toUInt64(v)
-	b.buf.ReserveSpace(9)
-	b.buf.WriteByte(0x1c)
-	b.appendLength(ValueLength(x), 8)
+	dst := b.buf.Grow(9)
+	dst[0] = 0x1c
+	setLength(dst[1:], ValueLength(x), 8)
 }
 
 // addString adds a string value to the buffer.
 func (b *Builder) addString(v string) {
-	raw := []byte(v)
-	strLen := uint(len(raw))
+	strLen := uint(len(v))
 	if strLen > 126 {
 		// long string
-		b.buf.ReserveSpace(1 + 8 + strLen)
-		b.buf.WriteByte(0xbf)
-		b.appendLength(ValueLength(strLen), 8) // string length
-		b.buf.Write(raw)                       // string data
+		dst := b.buf.Grow(1 + 8 + strLen)
+		dst[0] = 0xbf
+		setLength(dst[1:], ValueLength(strLen), 8) // string length
+		copy(dst[9:], v)                           // string data
 	} else {
-		b.buf.ReserveSpace(1 + strLen)
-		b.buf.WriteByte(byte(0x40 + strLen)) // short string (with length)
-		b.buf.Write(raw)                     // string data
+		dst := b.buf.Grow(1 + strLen)
+		dst[0] = byte(0x40 + strLen) // short string (with length)
+		copy(dst[1:], v)             // string data
 	}
 }
 
@@ -504,8 +513,9 @@ func (b *Builder) AddValuesFromIterator(it *ArrayIterator) error {
 	if b.stack.IsEmpty() {
 		return WithStack(BuilderNeedOpenArrayError)
 	}
-	tos := b.stack.Tos()
-	if b.buf[tos] != 0x06 && b.buf[tos] != 0x13 {
+	tos, _ := b.stack.Tos()
+	h := b.buf[tos]
+	if h != 0x06 && h != 0x13 {
 		return WithStack(BuilderNeedOpenArrayError)
 	}
 	for it.IsValid() {
@@ -529,8 +539,9 @@ func (b *Builder) AddKeyValuesFromIterator(it *ObjectIterator) error {
 	if b.stack.IsEmpty() {
 		return WithStack(BuilderNeedOpenObjectError)
 	}
-	tos := b.stack.Tos()
-	if b.buf[tos] != 0x0b && b.buf[tos] != 0x14 {
+	tos, _ := b.stack.Tos()
+	h := b.buf[tos]
+	if h != 0x0b && h != 0x14 {
 		return WithStack(BuilderNeedOpenObjectError)
 	}
 	if b.keyWritten {
@@ -596,11 +607,13 @@ func (b *Builder) appendInt(v int64, base uint) {
 		//      x = v >= 0 ? static_cast<uint64_t>(v)
 		//                 : static_cast<uint64_t>(v + shift) + shift;
 	}
-	b.buf.ReserveSpace(1 + vSize)
-	b.buf.WriteByte(byte(base + vSize))
+	dst := b.buf.Grow(1 + vSize)
+	dst[0] = byte(base + vSize)
+	off := 1
 	for ; vSize > 0; vSize-- {
-		b.buf.WriteByte(byte(x & 0xff))
+		dst[off] = byte(x & 0xff)
 		x >>= 8
+		off++
 	}
 }
 
@@ -621,9 +634,13 @@ func (b *Builder) appendUInt(v uint64, base uint) {
 }
 
 func (b *Builder) appendLength(v ValueLength, n uint) {
-	b.buf.ReserveSpace(n)
+	dst := b.buf.Grow(n)
+	setLength(dst, v, n)
+}
+
+func setLength(dst []byte, v ValueLength, n uint) {
 	for i := uint(0); i < n; i++ {
-		b.buf.WriteByte(byte(v & 0xff))
+		dst[i] = byte(v & 0xff)
 		v >>= 8
 	}
 }
@@ -631,11 +648,11 @@ func (b *Builder) appendLength(v ValueLength, n uint) {
 // openCompoundValue opens an array/object, checking the context.
 func (b *Builder) openCompoundValue(vType byte) error {
 	//haveReported := false
-	if !b.stack.IsEmpty() {
-		tos := b.stack.Tos()
-		buf := b.buf
+	tos, empty := b.stack.Tos()
+	if !empty {
+		h := b.buf[tos]
 		if !b.keyWritten {
-			if buf[tos] != 0x06 && buf[tos] != 0x13 {
+			if h != 0x06 && h != 0x13 {
 				return WithStack(BuilderNeedOpenArrayError)
 			}
 			b.reportAdd()
@@ -657,9 +674,9 @@ func (b *Builder) addCompoundValue(vType byte) {
 		b.index = append(b.index, indexVector{})
 	}
 	b.index[len(b.stack)-1].Clear()
-	b.buf.ReserveSpace(9)
-	b.buf.WriteByte(vType)
-	b.buf.WriteBytes(0, 8) // Will be filled later with bytelength and nr subs
+	dst := b.buf.Grow(9)
+	dst[0] = vType
+	//b.buf.WriteBytes(0, 8) // Will be filled later with bytelength and nr subs
 }
 
 // closeEmptyArrayOrObject closes an empty array/object, removing the pre-allocated length space.
@@ -818,18 +835,19 @@ func findAttrName(base []byte) ([]byte, error) {
 }
 
 func (b *Builder) sortObjectIndex(objBase []byte, offsets []ValueLength) error {
-	var list sortEntries
-	for _, off := range offsets {
+	list := make(sortEntries, len(offsets))
+	for i, off := range offsets {
 		name, err := findAttrName(objBase[off:])
 		if err != nil {
 			return WithStack(err)
 		}
-		list = append(list, sortEntry{
+		list[i] = sortEntry{
 			Offset: off,
 			Name:   name,
-		})
+		}
 	}
-	sort.Sort(list)
+	list.Sort()
+	//sort.Sort(list)
 	for i, entry := range list {
 		offsets[i] = entry.Offset
 	}
@@ -1029,9 +1047,10 @@ func (b *Builder) addInternalKeyValue(attrName string, v Value) error {
 
 func (b *Builder) addInternalKey(attrName string) (haveReported bool, err error) {
 	haveReported = false
-	if !b.stack.IsEmpty() {
-		tos := b.stack.Tos()
-		if b.buf[tos] != 0x0b && b.buf[tos] != 0x14 {
+	tos, empty := b.stack.Tos()
+	if !empty {
+		h := b.buf[tos]
+		if h != 0x0b && h != 0x14 {
 			return haveReported, WithStack(BuilderNeedOpenObjectError)
 		}
 		if b.keyWritten {
@@ -1057,9 +1076,10 @@ func (b *Builder) addInternalKey(attrName string) (haveReported bool, err error)
 }
 
 func (b *Builder) checkKeyIsString(isString bool) error {
-	if !b.stack.IsEmpty() {
-		tos := b.stack.Tos()
-		if b.buf[tos] == 0x0b || b.buf[tos] == 0x14 {
+	tos, empty := b.stack.Tos()
+	if !empty {
+		h := b.buf[tos]
+		if h == 0x0b || h == 0x14 {
 			if !b.keyWritten {
 				if isString {
 					b.keyWritten = true

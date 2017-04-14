@@ -43,6 +43,22 @@ run-tests: $(GOBUILDDIR)
 		golang:$(GOVERSION) \
 		sh -c "go test -v $(REPOPATH)/test/runtime && go test $(TESTOPTIONS) $(REPOPATH) && go test -cover -coverpkg $(REPOPATH) -coverprofile=coverage.out $(TESTOPTIONS) $(REPOPATH)/test"
 
+# All benchmarks
+run-benchmarks: $(GOBUILDDIR)
+	@GOPATH=$(GOBUILDDIR) go get github.com/stretchr/testify/assert
+	@docker run \
+		--rm \
+		-v $(ROOTDIR):/usr/code \
+		-e GOPATH=/usr/code/.gobuild \
+		-w /usr/code/ \
+		golang:$(GOVERSION) \
+		go test $(TESTOPTIONS) -bench=. -run=notests -cpu=1,2,4 $(REPOPATH)/test
+
+# All benchmarks using local profiling
+run-benchmarks-prof: $(GOBUILDDIR)
+	@GOPATH=$(GOBUILDDIR) go get github.com/stretchr/testify/assert
+	@GOPATH=$(GOBUILDDIR) go test $(TESTOPTIONS) -bench=. -run=notests -cpu=1,2,4 -cpuprofile=cpu.out $(REPOPATH)/test
+
 # All unit tests using local Go tools
 run-tests-local: $(GOBUILDDIR)
 	@GOPATH=$(GOBUILDDIR) go get github.com/stretchr/testify/assert

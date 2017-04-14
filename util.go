@@ -193,3 +193,10 @@ func optionalBool(arg []bool, defaultValue bool) bool {
 	}
 	return arg[0]
 }
+
+// alignAt returns the first number >= value that is aligned at the given alignment.
+// alignment must be a power of 2.
+func alignAt(value, alignment uint) uint {
+	mask := ^(alignment - 1)
+	return (value + alignment - 1) & mask
+}

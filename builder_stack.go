@@ -27,9 +27,7 @@ type builderStack []ValueLength
 
 // Push the given value on top of the stack
 func (s *builderStack) Push(v ValueLength) {
-	l := len(*s)
-	s.grow(1)
-	(*s)[l] = v
+	*s = append(*s, v)
 }
 
 // Pop removes the top of the stack.
@@ -41,29 +39,18 @@ func (s *builderStack) Pop() {
 }
 
 // Tos returns the value at the top of the stack.
-func (s *builderStack) Tos() ValueLength {
-	l := len(*s)
+// Returns <value at top of stack>, <stack is empty>
+func (s builderStack) Tos() (ValueLength, bool) {
+	//	_s := *s
+	l := len(s)
 	if l > 0 {
-		return (*s)[l-1]
+		return (s)[l-1], false
 	}
-	return 0
+	return 0, true
 }
 
 // IsEmpty returns true if there are no values on the stack.
-func (s *builderStack) IsEmpty() bool {
-	l := len(*s)
+func (s builderStack) IsEmpty() bool {
+	l := len(s)
 	return l == 0
-}
-
-// grow adds n elements to the stack.
-func (s *builderStack) grow(n int) {
-	var newStack builderStack
-	newLen := len(*s) + n
-	if newLen > cap(*s) {
-		newStack = make(builderStack, newLen, newLen+32)
-		copy(newStack, *s)
-	} else {
-		newStack = (*s)[0:newLen]
-	}
-	*s = newStack
 }
