@@ -58,6 +58,7 @@ run-benchmarks: $(GOBUILDDIR)
 run-benchmarks-prof: $(GOBUILDDIR)
 	@GOPATH=$(GOBUILDDIR) go get github.com/stretchr/testify/assert
 	@GOPATH=$(GOBUILDDIR) go test $(TESTOPTIONS) -bench=. -run=notests -cpu=1,2,4 -cpuprofile=cpu.out $(REPOPATH)/test
+	@echo Now profile using: go tool pprof test.test cpu.out
 
 # All unit tests using local Go tools
 run-tests-local: $(GOBUILDDIR)

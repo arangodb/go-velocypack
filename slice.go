@@ -274,13 +274,15 @@ func (s Slice) GetUTCDate() (time.Time, error) {
 	return time.Unix(sec, nsec).UTC(), nil
 }
 
-// GetString return the value for a String object
-func (s Slice) GetString() (string, error) {
+// GetStringUTF8 return the value for a String object as a []byte with UTF-8 values.
+// This function is a bit faster than GetString, since the conversion from
+// []byte to string needs a memory allocation.
+func (s Slice) GetStringUTF8() ([]byte, error) {
 	h := s.head()
 	if h >= 0x40 && h <= 0xbe {
 		// short UTF-8 String
 		length := h - 0x40
-		result := string(s[1 : 1+length])
+		result := s[1 : 1+length]
 		return result, nil
 	}
 
@@ -288,13 +290,24 @@ func (s Slice) GetString() (string, error) {
 		// long UTF-8 String
 		length := readIntegerFixed(s[1:], 8)
 		if err := checkOverflow(ValueLength(length)); err != nil {
-			return "", WithStack(err)
+			return nil, WithStack(err)
 		}
-		result := string(s[1+8 : 1+8+length])
+		result := s[1+8 : 1+8+length]
 		return result, nil
 	}
 
-	return "", InvalidTypeError{"Expecting type String"}
+	return nil, InvalidTypeError{"Expecting type String"}
+}
+
+// GetString return the value for a String object
+// This function is a bit slower than GetStringUTF8, since the conversion from
+// []byte to string needs a memory allocation.
+func (s Slice) GetString() (string, error) {
+	bytes, err := s.GetStringUTF8()
+	if err != nil {
+		return "", WithStack(err)
+	}
+	return string(bytes), nil
 }
 
 // GetStringLength return the length for a String object
@@ -323,20 +336,21 @@ func (s Slice) GetStringLength() (ValueLength, error) {
 // s < value -> -1
 // s > value -> 1
 func (s Slice) CompareString(value string) (int, error) {
-	k, err := s.GetString()
+	k, err := s.GetStringUTF8()
 	if err != nil {
 		return 0, WithStack(err)
 	}
-	return bytes.Compare([]byte(k), []byte(value)), nil
+	return bytes.Compare(k, []byte(value)), nil
 }
 
 // IsEqualString compares the string value in the slice with the given string for equivalence.
 func (s Slice) IsEqualString(value string) (bool, error) {
-	k, err := s.GetString()
+	k, err := s.GetStringUTF8()
 	if err != nil {
 		return false, WithStack(err)
 	}
-	return k == value, nil
+	rc := bytes.Compare(k, []byte(value))
+	return rc == 0, nil
 }
 
 // GetBinary return the value for a Binary object

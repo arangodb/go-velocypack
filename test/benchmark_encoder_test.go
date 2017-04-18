@@ -29,26 +29,6 @@ import (
 	velocypack "github.com/arangodb/go-velocypack"
 )
 
-var (
-	benchmarkObjectInput = struct {
-		Name      string
-		FirstName string
-		LastName  string
-		Age       int
-		Address   []string
-	}{
-		Name:      "John Doe",
-		FirstName: "John",
-		LastName:  "Doe",
-		Age:       42,
-		Address: []string{
-			"Some street",
-			"Block 123",
-			"South",
-		},
-	}
-)
-
 func BenchmarkVPackEncoderObject(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		if _, err := velocypack.Marshal(benchmarkObjectInput); err != nil {
