@@ -248,7 +248,7 @@ func TestSliceObjectGetLength2(t *testing.T) {
 		0,                // Bytesize
 		0x02,             // NoItems
 		0x41, 0x61, 0x1a, // "a": true
-		0x28, 0x32, 0x19, // "_rev": false
+		0x32, 0x19, // "_rev": false
 		0x03, 0x06, // Index of "a", "_rev"
 	}
 	slice[1] = byte(len(slice))

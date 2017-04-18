@@ -35,15 +35,15 @@ type arangoAttributeIDTranslator struct{}
 
 func (t *arangoAttributeIDTranslator) IDToString(id uint64) string {
 	switch id {
-	case 0x31:
+	case 1:
 		return "_key"
-	case 0x32:
+	case 2:
 		return "_rev"
-	case 0x33:
+	case 3:
 		return "_id"
-	case 0x34:
+	case 4:
 		return "_from"
-	case 0x35:
+	case 5:
 		return "_to"
 	default:
 		return strconv.FormatUint(id, 10)
