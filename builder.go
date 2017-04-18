@@ -56,7 +56,7 @@ func NewBuilder(capacity uint) *Builder {
 // Clear and start from scratch:
 func (b *Builder) Clear() {
 	b.buf = nil
-	b.stack = nil
+	b.stack.Clear()
 	b.keyWritten = false
 }
 
@@ -161,7 +161,7 @@ func (b *Builder) Close() error {
 	vpackAssert(head == 0x06 || head == 0x0b || head == 0x13 || head == 0x14)
 
 	isArray := (head == 0x06 || head == 0x13)
-	index := b.index[len(b.stack)-1]
+	index := b.index[b.stack.Len()-1]
 
 	if index.IsEmpty() {
 		b.closeEmptyArrayOrObject(tos, isArray)
@@ -304,7 +304,7 @@ func (b *Builder) HasKey(key string) (bool, error) {
 	if h != 0x0b && h != 0x14 {
 		return false, WithStack(BuilderNeedOpenObjectError)
 	}
-	index := b.index[len(b.stack)-1]
+	index := b.index[b.stack.Len()-1]
 	if index.IsEmpty() {
 		return false, nil
 	}
@@ -334,7 +334,7 @@ func (b *Builder) GetKey(key string) (Slice, error) {
 	if h != 0x0b && h != 0x14 {
 		return nil, WithStack(BuilderNeedOpenObjectError)
 	}
-	index := b.index[len(b.stack)-1]
+	index := b.index[b.stack.Len()-1]
 	if index.IsEmpty() {
 		return nil, nil
 	}
@@ -363,7 +363,7 @@ func (b *Builder) RemoveLast() error {
 		return WithStack(BuilderNeedOpenCompoundError)
 	}
 	tos, _ := b.stack.Tos()
-	index := &b.index[len(b.stack)-1]
+	index := &b.index[b.stack.Len()-1]
 	if index.IsEmpty() {
 		return WithStack(BuilderNeedSubValueError)
 	}
@@ -648,8 +648,8 @@ func setLength(dst []byte, v ValueLength, n uint) {
 // openCompoundValue opens an array/object, checking the context.
 func (b *Builder) openCompoundValue(vType byte) error {
 	//haveReported := false
-	tos, empty := b.stack.Tos()
-	if !empty {
+	tos, stackLen := b.stack.Tos()
+	if stackLen > 0 {
 		h := b.buf[tos]
 		if !b.keyWritten {
 			if h != 0x06 && h != 0x13 {
@@ -670,10 +670,14 @@ func (b *Builder) openCompoundValue(vType byte) error {
 func (b *Builder) addCompoundValue(vType byte) {
 	pos := b.buf.Len()
 	b.stack.Push(pos)
-	for len(b.stack) > len(b.index) {
-		b.index = append(b.index, indexVector{})
+	stackLen := b.stack.Len()
+	toAdd := stackLen - len(b.index)
+	for toAdd > 0 {
+		newIndex := make(indexVector, 0, 16) // Pre-allocate 16 entries so we don't have to allocate memory for the first 16 entries
+		b.index = append(b.index, newIndex)
+		toAdd--
 	}
-	b.index[len(b.stack)-1].Clear()
+	b.index[stackLen-1].Clear()
 	dst := b.buf.Grow(9)
 	dst[0] = vType
 	//b.buf.WriteBytes(0, 8) // Will be filled later with bytelength and nr subs
@@ -989,13 +993,14 @@ func (b *Builder) closeArray(tos ValueLength, index []ValueLength) {
 }
 
 func (b *Builder) cleanupAdd() {
-	depth := len(b.stack) - 1
+	depth := b.stack.Len() - 1
 	b.index[depth].RemoveLast()
 }
 
 func (b *Builder) reportAdd() {
-	depth := len(b.stack) - 1
-	b.index[depth].Add(b.buf.Len() - b.stack[depth])
+	tos, stackLen := b.stack.Tos()
+	depth := stackLen - 1
+	b.index[depth].Add(b.buf.Len() - tos)
 }
 
 func (b *Builder) addArray(unindexed ...bool) {
@@ -1047,8 +1052,8 @@ func (b *Builder) addInternalKeyValue(attrName string, v Value) error {
 
 func (b *Builder) addInternalKey(attrName string) (haveReported bool, err error) {
 	haveReported = false
-	tos, empty := b.stack.Tos()
-	if !empty {
+	tos, stackLen := b.stack.Tos()
+	if stackLen > 0 {
 		h := b.buf[tos]
 		if h != 0x0b && h != 0x14 {
 			return haveReported, WithStack(BuilderNeedOpenObjectError)
@@ -1076,8 +1081,8 @@ func (b *Builder) addInternalKey(attrName string) (haveReported bool, err error)
 }
 
 func (b *Builder) checkKeyIsString(isString bool) error {
-	tos, empty := b.stack.Tos()
-	if !empty {
+	tos, stackLen := b.stack.Tos()
+	if stackLen > 0 {
 		h := b.buf[tos]
 		if h == 0x0b || h == 0x14 {
 			if !b.keyWritten {
