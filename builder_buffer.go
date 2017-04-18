@@ -26,19 +26,19 @@ package velocypack
 type builderBuffer []byte
 
 const (
-	minGrowDelta = 32          // Minimum amount of extra bytes to add to a buffer when growing
+	minGrowDelta = 128         // Minimum amount of extra bytes to add to a buffer when growing
 	maxGrowDelta = 1024 * 1024 // Maximum amount of extra bytes to add to a buffer when growing
 )
 
 // IsEmpty returns 0 if there are no values in the buffer.
-func (b *builderBuffer) IsEmpty() bool {
-	l := len(*b)
+func (b builderBuffer) IsEmpty() bool {
+	l := len(b)
 	return l == 0
 }
 
 // Len returns the length of the buffer.
-func (b *builderBuffer) Len() ValueLength {
-	l := len(*b)
+func (b builderBuffer) Len() ValueLength {
+	l := len(b)
 	return ValueLength(l)
 }
 
@@ -51,14 +51,19 @@ func (b *builderBuffer) Bytes() []byte {
 // WriteByte appends a single byte to the buffer.
 func (b *builderBuffer) WriteByte(v byte) {
 	off := len(*b)
-	b.grow(1)
+	b.growCapacity(1)
+	*b = (*b)[:off+1]
 	(*b)[off] = v
 }
 
 // WriteBytes appends a series of identical bytes to the buffer.
 func (b *builderBuffer) WriteBytes(v byte, count uint) {
+	if count == 0 {
+		return
+	}
 	off := uint(len(*b))
-	b.grow(count)
+	b.growCapacity(count)
+	*b = (*b)[:off+count]
 	for i := uint(0); i < count; i++ {
 		(*b)[off+i] = v
 	}
@@ -66,10 +71,11 @@ func (b *builderBuffer) WriteBytes(v byte, count uint) {
 
 // Write appends a series of bytes to the buffer.
 func (b *builderBuffer) Write(v []byte) {
-	l := len(v)
+	l := uint(len(v))
 	if l > 0 {
-		off := len(*b)
-		b.grow(uint(l))
+		off := uint(len(*b))
+		b.growCapacity(l)
+		*b = (*b)[:off+l]
 		copy((*b)[off:], v)
 	}
 }
@@ -77,9 +83,7 @@ func (b *builderBuffer) Write(v []byte) {
 // ReserveSpace ensures that at least n bytes can be added to the buffer without allocating new memory.
 func (b *builderBuffer) ReserveSpace(n uint) {
 	if n > 0 {
-		l := len(*b)
-		b.grow(n)
-		*b = (*b)[:l]
+		b.growCapacity(n)
 	}
 }
 
@@ -90,34 +94,38 @@ func (b *builderBuffer) Shrink(n uint) {
 		if newLen < 0 {
 			newLen = 0
 		}
-		*b = (*b)[0:newLen]
+		*b = (*b)[:newLen]
 	}
 }
 
 // Grow adds n elements to the buffer, returning a slice where the added elements start.
 func (b *builderBuffer) Grow(n uint) []byte {
-	l := len(*b)
+	l := uint(len(*b))
 	if n > 0 {
-		b.grow(n)
+		b.growCapacity(n)
+		*b = (*b)[:l+n]
 	}
 	return (*b)[l:]
 }
 
-// grow adds n elements to the buffer.
-func (b *builderBuffer) grow(n uint) {
-	var newBuffer builderBuffer
-	newLen := uint(len(*b)) + n
-	if newLen > uint(cap(*b)) {
-		extra := newLen / 4
-		if extra < minGrowDelta {
-			extra = minGrowDelta
-		} else if extra > maxGrowDelta {
-			extra = maxGrowDelta
-		}
-		newBuffer = make(builderBuffer, newLen, newLen+extra)
-		copy(newBuffer, *b)
-	} else {
-		newBuffer = (*b)[0:newLen]
+// growCapacity ensures that there is enough capacity in the buffer to add n elements.
+func (b *builderBuffer) growCapacity(n uint) {
+	_b := *b
+	curLen := uint(len(_b))
+	curCap := uint(cap(_b))
+	newCap := curLen + n
+	if newCap <= curCap {
+		// No need to do anything
+		return
 	}
+	// Increase the capacity
+	extra := newCap // Grow a bit more to avoid copying all the time
+	if extra < minGrowDelta {
+		extra = minGrowDelta
+	} else if extra > maxGrowDelta {
+		extra = maxGrowDelta
+	}
+	newBuffer := make(builderBuffer, curLen, newCap+extra)
+	copy(newBuffer, _b)
 	*b = newBuffer
 }

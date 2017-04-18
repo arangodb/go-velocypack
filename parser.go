@@ -23,6 +23,7 @@
 package velocypack
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"strconv"
@@ -63,6 +64,12 @@ func ParseJSON(r io.Reader, options ...ParserOptions) (Slice, error) {
 // VPack equivalent.
 func ParseJSONFromString(json string, options ...ParserOptions) (Slice, error) {
 	return ParseJSON(strings.NewReader(json), options...)
+}
+
+// ParseJSONFromUTF8 parses the given JSON string and returns the
+// VPack equivalent.
+func ParseJSONFromUTF8(json []byte, options ...ParserOptions) (Slice, error) {
+	return ParseJSON(bytes.NewReader(json), options...)
 }
 
 // NewParser initializes a new Parser with JSON from the given reader and

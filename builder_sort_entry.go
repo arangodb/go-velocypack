@@ -22,7 +22,10 @@
 
 package velocypack
 
-import "bytes"
+import (
+	"bytes"
+	"sort"
+)
 
 type sortEntry struct {
 	Offset ValueLength
@@ -40,3 +43,40 @@ func (l sortEntries) Less(i, j int) bool { return bytes.Compare(l[i].Name, l[j].
 
 // Swap swaps the elements with indexes i and j.
 func (l sortEntries) Swap(i, j int) { l[i], l[j] = l[j], l[i] }
+
+// partition picks the last element as a pivot and reorders the array so that
+// all elements with values less than the pivot come before the pivot and all
+// elements with values greater than the pivot come after it.
+func partition(s sortEntries) int {
+	hi := len(s) - 1
+	pivot := s[hi]
+	i := 0
+	for j := 0; j < hi; j++ {
+		r := bytes.Compare(s[j].Name, pivot.Name)
+		if r <= 0 {
+			s[i], s[j] = s[j], s[i]
+			i++
+		}
+	}
+	s[i], s[hi] = s[hi], s[i]
+	return i
+}
+
+// Sort sorts the slice in ascending order.
+func (l sortEntries) qSort() {
+	if len(l) > 1 {
+		p := partition(l)
+		l[:p].qSort()
+		l[p+1:].qSort()
+	}
+}
+
+// Sort sorts the slice in ascending order.
+func (l sortEntries) Sort() {
+	x := len(l)
+	if x > 16 {
+		sort.Sort(l)
+	} else if len(l) > 1 {
+		l.qSort()
+	}
+}

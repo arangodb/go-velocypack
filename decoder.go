@@ -441,7 +441,7 @@ func (d *decodeState) unmarshalObject(data Slice, v reflect.Value) {
 		if err != nil {
 			d.error(err)
 		}
-		keyStr, err := key.GetString()
+		keyUTF8, err := key.GetStringUTF8()
 		if err != nil {
 			d.error(err)
 		}
@@ -471,7 +471,7 @@ func (d *decodeState) unmarshalObject(data Slice, v reflect.Value) {
 					f = ff
 					break
 				}
-				if f == nil && ff.equalFold(ff.nameBytes, []byte(keyStr)) {
+				if f == nil && ff.equalFold(ff.nameBytes, keyUTF8) {
 					f = ff
 				}
 			}
@@ -494,11 +494,11 @@ func (d *decodeState) unmarshalObject(data Slice, v reflect.Value) {
 
 		if destring {
 			// Value should be a string that we'll decode as JSON
-			valueString, err := value.GetString()
+			valueUTF8, err := value.GetStringUTF8()
 			if err != nil {
 				d.saveError(fmt.Errorf("json: invalid use of ,string struct tag, expected string, got %s in %v (%v)", value.Type(), subv.Type(), err))
 			}
-			v, err := ParseJSONFromString(valueString)
+			v, err := ParseJSONFromUTF8(valueUTF8)
 			if err != nil {
 				d.saveError(err)
 			} else {
@@ -515,12 +515,13 @@ func (d *decodeState) unmarshalObject(data Slice, v reflect.Value) {
 			var kv reflect.Value
 			switch {
 			case kt.Kind() == reflect.String:
-				kv = reflect.ValueOf(keyStr).Convert(kt)
+				kv = reflect.ValueOf(keyUTF8).Convert(kt)
 			case reflect.PtrTo(kt).Implements(textUnmarshalerType):
 				kv = reflect.New(v.Type().Key())
 				d.literalStore(key, kv, true)
 				kv = kv.Elem()
 			default:
+				keyStr := string(keyUTF8)
 				switch kt.Kind() {
 				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 					n, err := strconv.ParseInt(keyStr, 10, 64)
@@ -733,7 +734,7 @@ func (d *decodeState) literalStore(item Slice, v reflect.Value, fromQuoted bool)
 			}
 			return
 		}
-		s, err := item.GetString()
+		s, err := item.GetStringUTF8()
 		if err != nil {
 			if fromQuoted {
 				d.error(fmt.Errorf("json: invalid use of ,string struct tag, trying to unmarshal slice of type %s into %v", item.Type(), v.Type()))
@@ -741,7 +742,7 @@ func (d *decodeState) literalStore(item Slice, v reflect.Value, fromQuoted bool)
 				d.error(InternalError) // Out of sync
 			}
 		}
-		if err := ut.UnmarshalText([]byte(s)); err != nil {
+		if err := ut.UnmarshalText(s); err != nil {
 			d.error(err)
 		}
 		return

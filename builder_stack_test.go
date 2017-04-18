@@ -30,63 +30,63 @@ func TestBuilderStack1(t *testing.T) {
 		t.Errorf("Expected empty, got %v", empty)
 	}
 	b.Push(1)
-	if tos := b.Tos(); tos != 1 {
+	if tos, _ := b.Tos(); tos != 1 {
 		t.Errorf("Expected 1, got %d", tos)
 	}
 	if empty := b.IsEmpty(); empty {
 		t.Errorf("Expected not empty, got %v", empty)
 	}
 	b.Push(17)
-	if tos := b.Tos(); tos != 17 {
+	if tos, _ := b.Tos(); tos != 17 {
 		t.Errorf("Expected 17, got %d", tos)
 	}
 	if empty := b.IsEmpty(); empty {
 		t.Errorf("Expected not empty, got %v", empty)
 	}
 	b.Pop()
-	if tos := b.Tos(); tos != 1 {
+	if tos, _ := b.Tos(); tos != 1 {
 		t.Errorf("Expected 1, got %d", tos)
 	}
 	if empty := b.IsEmpty(); empty {
 		t.Errorf("Expected not empty, got %v", empty)
 	}
 	b.Push(77)
-	if tos := b.Tos(); tos != 77 {
+	if tos, _ := b.Tos(); tos != 77 {
 		t.Errorf("Expected 77, got %d", tos)
 	}
 	if empty := b.IsEmpty(); empty {
 		t.Errorf("Expected not empty, got %v", empty)
 	}
 	b.Push(88)
-	if tos := b.Tos(); tos != 88 {
+	if tos, _ := b.Tos(); tos != 88 {
 		t.Errorf("Expected 88, got %d", tos)
 	}
 	if empty := b.IsEmpty(); empty {
 		t.Errorf("Expected not empty, got %v", empty)
 	}
 	b.Pop()
-	if tos := b.Tos(); tos != 77 {
+	if tos, _ := b.Tos(); tos != 77 {
 		t.Errorf("Expected 77, got %d", tos)
 	}
 	if empty := b.IsEmpty(); empty {
 		t.Errorf("Expected not empty, got %v", empty)
 	}
 	b.Pop()
-	if tos := b.Tos(); tos != 1 {
+	if tos, _ := b.Tos(); tos != 1 {
 		t.Errorf("Expected 1, got %d", tos)
 	}
 	if empty := b.IsEmpty(); empty {
 		t.Errorf("Expected not empty, got %v", empty)
 	}
 	b.Pop() // Now empty
-	if tos := b.Tos(); tos != 0 {
+	if tos, _ := b.Tos(); tos != 0 {
 		t.Errorf("Expected 0, got %d", tos)
 	}
 	if empty := b.IsEmpty(); !empty {
 		t.Errorf("Expected empty, got %v", empty)
 	}
 	b.Pop() // Already empty
-	if tos := b.Tos(); tos != 0 {
+	if tos, _ := b.Tos(); tos != 0 {
 		t.Errorf("Expected 0, got %d", tos)
 	}
 	if empty := b.IsEmpty(); !empty {

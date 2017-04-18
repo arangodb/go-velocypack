@@ -22,36 +22,23 @@
 
 package velocypack
 
-const (
-	minIndexVectorGrowDelta = 32
-	maxIndexVectorGrowDelta = 1024
-)
+import "testing"
 
-// indexVector is a list of index of positions.
-type indexVector []ValueLength
-
-// Add an index position to the end of the list.
-func (iv *indexVector) Add(v ValueLength) {
-	*iv = append(*iv, v)
-}
-
-// RemoveLast removes the last index position from the end of the list.
-func (iv *indexVector) RemoveLast() {
-	l := len(*iv)
-	if l > 0 {
-		*iv = (*iv)[:l-1]
+func TestAlignAt(t *testing.T) {
+	tests := []struct {
+		Value     uint
+		Alignment uint
+		Expected  uint
+	}{
+		{10, 16, 16},
+		{16, 16, 16},
+		{2345, 4096, 4096},
+		{7000, 4096, 4096 * 2},
 	}
-}
-
-// Clear removes all entries
-func (iv *indexVector) Clear() {
-	if len(*iv) > 0 {
-		*iv = (*iv)[0:0]
+	for _, test := range tests {
+		result := alignAt(test.Value, test.Alignment)
+		if result != test.Expected {
+			t.Errorf("alignAt(%d, %d) failed. Expected %d, got %d", test.Value, test.Alignment, test.Expected, result)
+		}
 	}
-}
-
-// IsEmpty returns true if there are no values on the vector.
-func (iv indexVector) IsEmpty() bool {
-	l := len(iv)
-	return l == 0
 }
