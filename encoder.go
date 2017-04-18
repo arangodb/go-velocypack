@@ -142,6 +142,11 @@ func (e *Encoder) Encode(v interface{}) (err error) {
 	return nil
 }
 
+// Builder returns a reference to the builder used in the given encoder.
+func (e *Encoder) Builder() *Builder {
+	return &e.b
+}
+
 func isEmptyValue(v reflect.Value) bool {
 	switch v.Kind() {
 	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
