@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/hex"
 	"flag"
+	"fmt"
 	"log"
 	"strings"
 
@@ -23,5 +24,5 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to convert slice: %#v\n", err)
 	}
-	log.Println(json)
+	fmt.Println(json)
 }
