@@ -1116,7 +1116,13 @@ func (b *Builder) set(item Value) error {
 		case Custom:
 			return WithStack(fmt.Errorf("Cannot set a ValueType::Custom with this method"))
 		}
-		b.buf.Write(item.sliceValue())
+		s := item.sliceValue()
+		// Determine length of slice
+		l, err := s.ByteSize()
+		if err != nil {
+			return WithStack(err)
+		}
+		b.buf.Write(s[:l])
 		return nil
 	}
 

@@ -217,3 +217,48 @@ func TestEncoderMapNestedStringSliceEmpty(t *testing.T) {
 	ASSERT_FALSE(s.IsEmptyObject(), t)
 	ASSERT_EQ(`{"A":true,"D":123.456,"I":789,"Name":"Jan","Nested":[]}`, mustString(s.JSONString()), t)
 }
+
+func TestEncoderMapRandomIterator(t *testing.T) {
+	bytesA, err := velocypack.Marshal(map[string]interface{}{
+		"_key": "1246",
+		"_rev": "_U4_BZxm---",
+	})
+	ASSERT_NIL(err, t)
+	bytesB, err := velocypack.Marshal(map[string]interface{}{
+		"age": 34,
+	})
+	ASSERT_NIL(err, t)
+	s := mustSlice(velocypack.Merge(bytesA, bytesB))
+
+	ASSERT_EQ(s.Type(), velocypack.Object, t)
+	ASSERT_FALSE(s.IsEmptyObject(), t)
+
+	genOutput := func(s velocypack.Slice) string {
+		output := "{"
+		it, err := velocypack.NewObjectIterator(s, true) // Allow random iteration
+		ASSERT_NIL(err, t)
+		for it.IsValid() {
+			if !it.IsFirst() {
+				output = output + ","
+			}
+			k, err := it.Key(true)
+			ASSERT_NIL(err, t)
+			output += mustString(k.JSONString())
+			output += ":"
+			v, err := it.Value()
+			ASSERT_NIL(err, t)
+			output += mustString(v.JSONString())
+			err = it.Next()
+			ASSERT_NIL(err, t)
+		}
+		return output + "}"
+	}
+
+	outputA := genOutput(bytesA)
+	outputB := genOutput(bytesB)
+	output := genOutput(s)
+
+	ASSERT_EQ(`{"_key":"1246","_rev":"_U4_BZxm---"}`, outputA, t)
+	ASSERT_EQ(`{"age":34}`, outputB, t)
+	ASSERT_EQ(`{"_key":"1246","_rev":"_U4_BZxm---","age":34}`, output, t)
+}
