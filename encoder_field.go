@@ -153,10 +153,16 @@ func typeFields(t reflect.Type) []field {
 				if sf.PkgPath != "" && !sf.Anonymous { // unexported
 					continue
 				}
-				tag := sf.Tag.Get("json")
+
+				tag := sf.Tag.Get("velocypack")
+				if len(tag) == 0 {
+					tag = sf.Tag.Get("json")
+				}
+
 				if tag == "-" {
 					continue
 				}
+
 				name, opts := parseTag(tag)
 				if !isValidTag(name) {
 					name = ""
@@ -173,7 +179,7 @@ func typeFields(t reflect.Type) []field {
 
 				// Only strings, floats, integers, and booleans can be quoted.
 				quoted := false
-				if opts.Contains("string") {
+				if opts.Contains("string") && !opts.Contains("noquota") {
 					switch ft.Kind() {
 					case reflect.Bool,
 						reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
