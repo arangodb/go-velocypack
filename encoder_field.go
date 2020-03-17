@@ -179,7 +179,7 @@ func typeFields(t reflect.Type) []field {
 
 				// Only strings, floats, integers, and booleans can be quoted.
 				quoted := false
-				if opts.Contains("string") && !opts.Contains("noquote") {
+				if opts.Contains("string") {
 					switch ft.Kind() {
 					case reflect.Bool,
 						reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
