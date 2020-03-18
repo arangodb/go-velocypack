@@ -25,6 +25,7 @@ package test
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/stretchr/testify/require"
 	"strconv"
 	"strings"
 	"testing"
@@ -302,9 +303,12 @@ func (c *ConnectionString) MarshalVPack() (velocypack.Slice, error) {
 }
 
 type CustomStructConnectionString struct {
-	ConnectionString ConnectionString `json:"connectionString,string" velocypack:"connectionString"`
+	ConnectionString ConnectionString `json:"invalidString,string" velocypack:"connectionString"`
 }
 
+// TestEncoderCustomStructConnectionString tests two things:
+// - Using 'velocypack' tag instead of 'json' tag
+// - Marshaling structure field which is not a pointer
 func TestEncoderCustomStructConnectionString(t *testing.T) {
 
 	expected := CustomStructConnectionString{
@@ -315,10 +319,12 @@ func TestEncoderCustomStructConnectionString(t *testing.T) {
 	}
 
 	marshaledStructure, err := velocypack.Marshal(&expected)
-	ASSERT_NIL(err, t)
+	require.NoError(t, err)
+	require.Contains(t, string(marshaledStructure), "connectionString")
 
 	actual := CustomStructConnectionString{}
 	err = velocypack.Unmarshal(marshaledStructure, &actual)
-	ASSERT_NIL(err, t)
-	ASSERT_EQ(expected, actual, t)
+	require.NoError(t, err)
+	require.Equal(t, expected, actual)
+
 }
