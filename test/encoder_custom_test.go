@@ -25,6 +25,10 @@ package test
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"strconv"
+	"strings"
 	"testing"
 
 	velocypack "github.com/arangodb/go-velocypack"
@@ -265,4 +269,62 @@ func TestEncoderCustomJSONVPACKStruct1(t *testing.T) {
 
 	ASSERT_EQ(s.Type(), velocypack.String, t)
 	ASSERT_EQ(`"Hello VPACK, goodbye JSON"`, mustString(s.JSONString()), t)
+}
+
+type ConnectionString struct {
+	Host string
+	Port int
+}
+
+func (c *ConnectionString) UnmarshalVPack(data velocypack.Slice) error {
+	source, err := data.GetString()
+	if err != nil {
+		return err
+	}
+
+	array := strings.Split(source, ":")
+
+	c.Host = array[0]
+	if len(array) > 1 {
+		port, _ := strconv.Atoi(array[1])
+		c.Port = port
+	}
+
+	return nil
+}
+
+func (c *ConnectionString) MarshalVPack() (velocypack.Slice, error) {
+	var b velocypack.Builder
+
+	if err := b.AddValue(velocypack.NewStringValue(c.Host + ":" + strconv.Itoa(c.Port))); err != nil {
+		return nil, err
+	}
+
+	return b.Slice()
+}
+
+type CustomStructConnectionString struct {
+	ConnectionString ConnectionString `json:"invalidString,string" velocypack:"connectionString"`
+}
+
+// TestEncoderCustomStructConnectionString tests two things:
+// - Using 'velocypack' tag instead of 'json' tag
+// - Marshaling structure field which is not a pointer
+func TestEncoderCustomStructConnectionString(t *testing.T) {
+
+	expected := CustomStructConnectionString{
+		ConnectionString: ConnectionString{
+			Host: "localhost",
+			Port: 1234,
+		},
+	}
+
+	marshaledStructure, err := velocypack.Marshal(&expected)
+	require.NoError(t, err)
+	assert.Contains(t, string(marshaledStructure), "connectionString")
+
+	actual := CustomStructConnectionString{}
+	err = velocypack.Unmarshal(marshaledStructure, &actual)
+	require.NoError(t, err)
+	assert.Equal(t, expected, actual)
 }
