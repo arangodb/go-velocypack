@@ -320,7 +320,7 @@ func TestEncoderCustomStructConnectionString(t *testing.T) {
 	}
 
 	marshaledStructure, err := velocypack.Marshal(&expected)
-	require.Error(t, err)
+	require.NoError(t, err)
 	assert.Contains(t, string(marshaledStructure), "connectionString")
 
 	actual := CustomStructConnectionString{}
