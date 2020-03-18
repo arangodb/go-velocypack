@@ -25,6 +25,7 @@ package test
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"strconv"
 	"strings"
@@ -319,12 +320,11 @@ func TestEncoderCustomStructConnectionString(t *testing.T) {
 	}
 
 	marshaledStructure, err := velocypack.Marshal(&expected)
-	require.NoError(t, err)
-	require.Contains(t, string(marshaledStructure), "connectionString")
+	require.Error(t, err)
+	assert.Contains(t, string(marshaledStructure), "connectionString")
 
 	actual := CustomStructConnectionString{}
 	err = velocypack.Unmarshal(marshaledStructure, &actual)
 	require.NoError(t, err)
-	require.Equal(t, expected, actual)
-
+	assert.Equal(t, expected, actual)
 }
