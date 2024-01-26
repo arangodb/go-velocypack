@@ -50,7 +50,7 @@ func NewObjectIterator(s Slice, allowRandomIteration ...bool) (*ObjectIterator, 
 			i.current = s[s.findDataOffset(h):]
 		}
 	}
-	return i, nil
+	return i, err
 }
 
 // IsValid returns true if the given position of the iterator is valid.
